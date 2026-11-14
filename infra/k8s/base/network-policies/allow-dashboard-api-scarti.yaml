@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dashboard-api-scarti
+  namespace: verumdoc
+  labels:
+    app: dashboard-api-scarti
+    app.kubernetes.io/name: dashboard-api-scarti
+    app.kubernetes.io/part-of: verumdoc
+spec:
+  podSelector:
+    matchLabels:
+      app: dashboard-api-scarti
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress: []
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: pgbouncer
+    ports:
+    - port: 6432
+      protocol: TCP
+  - to:
+    - ipBlock:
+        cidr: 10.0.96.0/20
+    - ipBlock:
+        cidr: 10.0.112.0/20
+    - ipBlock:
+        cidr: 10.0.128.0/20
+    ports:
+    - port: 9092
+      protocol: TCP
+    - port: 9094
+      protocol: TCP
+    - port: 9098
+      protocol: TCP

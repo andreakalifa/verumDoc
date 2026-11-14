@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: distribution-config
+  namespace: verumdoc
+  labels:
+    app: distribution
+    app.kubernetes.io/name: distribution
+    app.kubernetes.io/part-of: verumdoc
+data:
+  ENV: production
+  LOG_LEVEL: INFO
+  KAFKA_BOOTSTRAP: DA_TERRAFORM:kafka_bootstrap
+  KAFKA_AUTENTICAZIONE: iam
+  KAFKA_REGIONE: eu-south-1
+  S3_ENDPOINT_URL: https://s3.eu-south-1.amazonaws.com
+  S3_REGION: eu-south-1
+  S3_BUCKET_AIP: verumdoc-prod-aip-prod
+  SIGNED_URL_EXPIRY: '3600'
+  OPENSEARCH_URL: https://DA_TERRAFORM:opensearch_endpoint
+  OPENSEARCH_INDEX: verumdoc-aip
+  OPENSEARCH_UTENTE: ''
+  OPENSEARCH_TIMEOUT_SECONDI: '10'
+  JWT_ISSUER: verumdoc.it
+  JWT_AUDIENCE: verumdoc-api
+  PDD_DURATA_LINK_SECONDI: '3600'
+  PDD_DURATA_LINK_MAX_SECONDI: '86400'
+  PDD_SINCRONO_MAX_MB: '50'
+  S3_BUCKET_PDD: DA_TERRAFORM:s3_pdd_bucket
+  PDD_ZIP_PARTE_MB: '8'
+  PDD_ZIP_VALIDITA_ORE: '720'
+  PDD_LEASE_SECONDI: '1800'
+  PDD_RITARDI_SECONDI: '[60, 300, 1500, 7200]'
+  KAFKA_TOPIC_PDD_PRONTO: pdd.pronto
+  CONSERVATORE_DENOMINAZIONE: ''
+  CONSERVATORE_CODICE_FISCALE: ''
+  LAVORATORI_ATTIVI: 'false'
+  INDICIZZAZIONE_LOTTO: '200'
+  INDICIZZAZIONE_INTERVALLO_SECONDI: '2'
+  INDICIZZAZIONE_RITARDI_SECONDI: '[60, 300, 1500, 7200]'
+  RICERCA_CONTEGGIO_MASSIMO: '1000'
+  QUOTE_RICHIESTE_MINUTO: '{"starter": 120, "business": 600, "enterprise": 6000}'
+  QUOTE_PIANO_PREDEFINITO: starter
+  QUOTE_FINESTRA_SECONDI: '60'
+  QUOTE_PIANO_CACHE_SECONDI: '60'

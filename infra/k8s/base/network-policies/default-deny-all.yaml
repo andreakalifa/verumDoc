@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: verumdoc
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress

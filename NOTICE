@@ -1,0 +1,47 @@
+VerumDoc — sistema di conservazione digitale a norma
+Copyright 2026 Contributori di VerumDoc
+
+Questo prodotto è distribuito con licenza European Union Public Licence v. 1.2
+(EUPL-1.2), il cui testo integrale è nel file LICENSE. Ogni file sorgente porta
+l'intestazione SPDX con il titolare del diritto d'autore e l'identificativo della
+licenza (SPDX-FileCopyrightText, SPDX-License-Identifier).
+
+«Contributori di VerumDoc» indica collettivamente le persone e le organizzazioni che
+hanno contribuito al progetto, ciascuna titolare dei diritti sui propri contributi,
+concessi con la stessa licenza (vedi CONTRIBUTING.md).
+
+Il progetto include o usa componenti di terze parti con le loro licenze: l'elenco,
+con le licenze e la compatibilità con la EUPL-1.2, è in THIRD_PARTY_NOTICES.md.
+
+
+POLITICA DEL MARCHIO
+--------------------
+
+Il nome «VerumDoc» e il logo di VerumDoc sono segni distintivi del progetto e NON sono
+concessi in licenza dalla EUPL-1.2. La EUPL concede diritti sull'Opera (il software e la
+sua documentazione), non sui nomi, marchi o loghi del Licenziante (EUPL-1.2, art. 5,
+ultimo periodo: «This Licence does not grant permission to use the trade names,
+trademarks, service marks, or names of the Licensor, except as required for reasonable
+and customary use in describing the origin of the Work and reproducing the content of
+the copyright notice»).
+
+Sono quindi ammessi, senza chiedere permesso:
+- citare il nome «VerumDoc» per indicare l'origine del software o di un'opera derivata
+  (per esempio «basato su VerumDoc»);
+- conservare gli avvisi di copyright e di licenza come richiesto dalla EUPL;
+- usare il nome in articoli, recensioni, confronti e materiale didattico, senza far
+  credere a un'approvazione o a un legame che non c'è.
+
+Non sono ammessi senza autorizzazione scritta dei manutentori (MAINTAINERS):
+- distribuire un'opera derivata o offrire un servizio con il nome o il logo «VerumDoc»,
+  o con un nome che possa confondersi con esso;
+- presentare un servizio di conservazione come «VerumDoc», «servizio VerumDoc» o
+  «certificato VerumDoc»;
+- usare il logo, anche modificato, per prodotti, servizi o materiale promozionale.
+
+Chi distribuisce una versione modificata deve cambiarle nome e togliere il logo, pur
+mantenendo gli avvisi di copyright e di licenza.
+
+La qualificazione di un servizio di conservazione (Regolamento AgID, qualificazione ACN
+dei servizi cloud) riguarda chi eroga il servizio, non il software: usare VerumDoc non
+rende qualificato un servizio e il nome del progetto non può essere usato per affermarlo.

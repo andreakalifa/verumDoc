@@ -1,0 +1,4372 @@
+{
+ "allarmi": [
+  {
+   "gravita": "pagina",
+   "nome": "AllarmiTestimoneAperti",
+   "sintesi": "{{ $value }} allarmi del testimone aperti (rifiuti raggruppati per causa)"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "ArretratoIpdaScartati",
+   "sintesi": "IPdA storici non accodati al sigillo: manifest diverso o illeggibile"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "AuditExportTrattenuto",
+   "sintesi": "Export dell'audit trattenuto da una transazione aperta da oltre 30 minuti"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "AuditNonEsportato",
+   "sintesi": "audit_global non esportato nel WORM da oltre 2 ore"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "AuditOrizzonteNonVerificabile",
+   "sintesi": "Export dell'audit sospeso: inizio di transazioni non visibile"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "AuditWormDivergente",
+   "sintesi": "Un segmento dell'audit nel WORM differisce dalle righe del database"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "CatenaErroriRegistro",
+   "sintesi": "Errori nei passi del registro delle impronte negli ultimi 15 minuti"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "CatenaFerma",
+   "sintesi": "Il registro cresce ma nessun checkpoint nuovo da 30 minuti"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "CheckpointNonMarcato",
+   "sintesi": "Nessuna marca temporale dei checkpoint da oltre un giorno"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "CheckpointRifiutatoDalTestimone",
+   "sintesi": "Il testimone ha rifiutato un checkpoint del registro: conservazione sospesa"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "CheckpointSenzaControfirma",
+   "sintesi": "Checkpoint del registro senza controfirma del testimone da oltre 10 minuti (K3)"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "ConservazioneFermaPerFirma",
+   "sintesi": "PdA fermi: IPdA non firmato con FIRMA_SENZA_FORNITORE=BLOCCA"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "DocumentazioneNonArchiviata",
+   "sintesi": "Versioni della documentazione non archiviate nel WORM da oltre 2 ore"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "DocumentazioneNonGenerata",
+   "sintesi": "Generazione della documentazione del servizio non riuscita"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "DocumentiDaFirmareInAccumulo",
+   "sintesi": "Documenti in attesa di sigillo in accumulo"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "DocumentiDaSigillareInErrore",
+   "sintesi": "Documenti del conservatore in ERRORE (sigillo non riuscito)"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "DocumentiInScadenzaNonRimarcati",
+   "sintesi": "Documenti firmati entro il preavviso di scadenza dopo tre giorni"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "DocumentiNonFirmati",
+   "sintesi": "Documenti del conservatore dichiarati NON_FIRMATO"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "FirmaOrigineDiversa",
+   "sintesi": "Documento da sigillare con impronta diversa nello storage"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "FirmeResponsabileRespinte",
+   "sintesi": "Firma personale del responsabile respinta prima del WORM"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "OutboxChiaviFerme",
+   "sintesi": "Chiavi dell'outbox in riprova da oltre 15 minuti ({{ $labels.origine }})"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "OutboxEventiInAttesa",
+   "sintesi": "Eventi in outbox non pubblicati da oltre 5 minuti ({{ $labels.origine }})"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "OutboxEventoBloccato",
+   "sintesi": "Eventi dell'outbox bloccati dopo i ritentativi ({{ $labels.origine }})"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "OutboxKafkaNonDisponibile",
+   "sintesi": "Kafka non raggiungibile dal relay dell'outbox ({{ $labels.origine }})"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "OutboxTopicSospeso",
+   "sintesi": "Topic dell'outbox sospeso per un errore del topic o dei permessi ({{ $labels.origine }})"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "PassoPeriodicoFermo",
+   "sintesi": "Un passo automatico del ciclo di vita non gira da oltre due intervalli"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "PassoPeriodicoInErrore",
+   "sintesi": "Un passo automatico del ciclo di vita non riesce (es. rinnovo dei blocchi WORM)"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "PassoPeriodicoSingoloInErrore",
+   "sintesi": "Il passo periodico {{ $labels.passo }} ha l'ultimo giro in errore"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "PdaPermanenteSenzaOggetti",
+   "sintesi": "PdA permanenti senza oggetti nello storage WORM"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "PecCanaleNonUtilizzabile",
+   "sintesi": "Canale PEC attivo non utilizzabile"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "PecLavoratoreFermo",
+   "sintesi": "Stato dei canali PEC non aggiornato da oltre 15 minuti"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "PecRicevuteNonAutentiche",
+   "sintesi": "Ricevute PEC non autentiche nelle ultime 24 ore"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "PecSenzaRicevuta",
+   "sintesi": "PEC senza ricevuta di accettazione o di consegna"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "PostaCodaFerma",
+   "sintesi": "Posta in coda da oltre 30 minuti"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "PostaNonPartita",
+   "sintesi": "Messaggi di posta NON_PARTITA nelle ultime 24 ore"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "PraticaLavoroInErrore",
+   "sintesi": "Pratiche del ciclo di vita con il lavoro che fallisce ripetutamente"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "PraticaSospesa",
+   "sintesi": "Pratica del ciclo di vita sospesa dopo i tentativi esauriti"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "PuntualeAutorizzazioniNonVerificate",
+   "sintesi": "Annullamento o rettifica bloccati: richiesta non verificata dal lavoratore"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "RegistroBloccato",
+   "sintesi": "Registro delle impronte bloccato: niente sequenziatore né checkpoint"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "RegistroSospeso",
+   "sintesi": "Registro delle impronte sospeso da oltre 30 minuti (CATENA_REGISTRO_SOSPESO)"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "RegistroWormInScadenza",
+   "sintesi": "Oggetti del registro con il blocco WORM entro la soglia di rinnovo"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "RegistroWormRinnovoInErrore",
+   "sintesi": "Il rinnovo del blocco WORM degli oggetti del registro non riesce"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "RimarcaturaInErrore",
+   "sintesi": "La rimarcatura dei documenti firmati non riesce"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "ScartoAutorizzazioniNonVerificate",
+   "sintesi": "Scarto bloccato: autorizzazioni non verificate dal lavoratore"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "ScartoEliminazioneIncompleta",
+   "sintesi": "PdA con cancellazione dello scarto iniziata e non completata"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "ScartoNonDeterminabile",
+   "sintesi": "Scarto con versioni rimaste non determinabili"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "TestimoneAllarmi",
+   "sintesi": "Allarmi del testimone negli ultimi 15 minuti"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "TestimoneNonConfigurato",
+   "sintesi": "Registro delle impronte senza testimone configurato"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "TestimoneNonRisponde",
+   "sintesi": "Il testimone non risponde al registro da oltre 5 minuti"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "TestimoneRegistroCompromesso",
+   "sintesi": "Il testimone ha rilevato una biforcazione del registro (fork)"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "TestimoneSenzaControfirmeRecenti",
+   "sintesi": "Nessuna controfirma del testimone da oltre 10 minuti (CATENA_CONTROFIRMA_MAX_SECONDI)"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "VerificaAnomalieAperte",
+   "sintesi": "Anomalie d'integrità aperte nella verifica continua"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "VerificaAuditFallita",
+   "sintesi": "La verifica giornaliera dell'audit nel WORM è fallita (codice d'uscita diverso da 0)"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "VerificaAuditNonEseguita",
+   "sintesi": "Nessuna verifica dell'audit riuscita da oltre 26 ore"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "VerificaFerma",
+   "sintesi": "Nessun giro della verifica continua da oltre 10 minuti"
+  },
+  {
+   "gravita": "avviso",
+   "nome": "VerificaInRitardo",
+   "sintesi": "Verifica continua in ritardo di oltre un giorno sul ciclo (capacità insufficiente)"
+  },
+  {
+   "gravita": "pagina",
+   "nome": "VerificaNuoveAnomalie",
+   "sintesi": "Nuove anomalie d'integrità nell'ultima ora"
+  }
+ ],
+ "architettura": [
+  {
+   "file": "docs/architettura/PIANO_R03_R05.md",
+   "titolo": "Piano R03–R05 — VerumDoc unico: canali, scala, catena, configurazione"
+  },
+  {
+   "file": "docs/architettura/ROADMAP_R07_R13.md",
+   "titolo": "Roadmap dei rilasci R07–R13 — VerumDoc (30/10/2026, aggiornata al 01/11/2026)"
+  },
+  {
+   "file": "docs/architettura/accesso_spid_cie.md",
+   "titolo": "Accesso con SPID e CIE tramite aggregatore (R13b, VD-C-069)"
+  },
+  {
+   "file": "docs/architettura/catena.md",
+   "titolo": "Catena delle impronte di VerumDoc — registro a due livelli"
+  },
+  {
+   "file": "docs/architettura/ciclo_vita.md",
+   "titolo": "Ciclo di vita dei pacchetti — servizio `ciclo-vita`"
+  },
+  {
+   "file": "docs/architettura/documentazione.md",
+   "titolo": "Documentazione di conformità generata dalla configurazione (R15)"
+  },
+  {
+   "file": "docs/architettura/firma_qualificata.md",
+   "titolo": "Firma, sigillo e marca qualificati (R13a)"
+  },
+  {
+   "file": "docs/architettura/giorno1_staging.md",
+   "titolo": "R12 — Checklist «giorno 1 di staging»"
+  },
+  {
+   "file": "docs/architettura/infrastruttura.md",
+   "titolo": "Infrastruttura di VerumDoc (R04 «Scala e catena»)"
+  },
+  {
+   "file": "docs/architettura/regole.md",
+   "titolo": "Regole e configurazione — come si configura VerumDoc"
+  },
+  {
+   "file": "docs/architettura/sicurezza.md",
+   "titolo": "Sicurezza dei dati per ente e sessione del portale"
+  }
+ ],
+ "criticita": [
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-001",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Token decodificato senza verifica della firma: chiunque gestisce utenti e API key di ogni cliente"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-002",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "`dev-token` conia `SUPER_ADMIN` in ogni ambiente diverso da `production`"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-003",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Endpoint lifecycle senza autenticazione (e in crash senza token)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-004",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Chiave privata RSA di sviluppo nel repository, caricata da 5 servizi"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-005",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Esibizione di documenti di altri clienti senza controllo del tenant (IDOR)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-006",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "`id_token` SPID decodificato senza verifica (JWKS, nonce, aud)"
+  },
+  {
+   "area": "Database",
+   "codice": "VD-C-007",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Schema non riproducibile (migrazioni 007/008 rotte, 009 incompleta, `create_all`, 98 differenze, enum divergenti, `init.sql`, seed sempre fallito)"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-008",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Impronte dichiarate mai ricalcolate; PdA `SU_STORAGE` anche senza file; passo hash fail-open"
+  },
+  {
+   "area": "Affidabilità",
+   "codice": "VD-C-009",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Offset Kafka confermato prima del sigillo e lotto svuotato prima; offset confermato anche in errore"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-010",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Firma e marca finte, verifica che accetta buste scritte a mano, stato «Firma eIDAS attiva»"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-011",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Nessuna scrittura con Object Lock/retention; bucket diverso da Terraform; sovrascritture possibili"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-012",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Nessun componente porta PdV/PdA a `CONSERVATO`; `/rdv` sempre 409"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-013",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Manuale e piano di cessazione statici, con funzioni inesistenti e dati segnaposto"
+  },
+  {
+   "area": "Frontend",
+   "codice": "VD-C-014",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Errori mostrati come «vuoto», stato globale fisso, versamento fallito «in corso», esibizione senza link"
+  },
+  {
+   "area": "Affidabilità",
+   "codice": "VD-C-015",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Con Kafka giù il client riceve 202 e l'evento si perde; file orfani su S3"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-016",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Nessuna idempotenza né controllo duplicati nel versamento"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-017",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Hash solo SHA-256; file non dichiarati accettati; classi create al volo; eseguibili rinominati accettati"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-018",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Merkle con ultima foglia duplicata e senza separazione foglia/nodo"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-019",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Ultimo lotto mai sigillato con traffico basso; blocchi né firmati né marcati; catena riscrivibile"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-020",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Riferimento alla RdV definitiva su una colonna inesistente, errore ignorato"
+  },
+  {
+   "area": "Integrazione",
+   "codice": "VD-C-021",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "PDND: SQL non valido, in produzione sempre 503, versamenti nel tenant demo"
+  },
+  {
+   "area": "Database",
+   "codice": "VD-C-022",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "8 endpoint con `:tid::uuid` sempre in errore"
+  },
+  {
+   "area": "Multi-tenant",
+   "codice": "VD-C-023",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Classi documentali globali modificabili da un amministratore di un cliente"
+  },
+  {
+   "area": "Notifiche",
+   "codice": "VD-C-024",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Nessun invio reale; destinatari finti; DLQ non funzionante; SMTP 587 con TLS implicito"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-025",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Contratti e nomine leggono colonne inesistenti; nessun percorso di creazione"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-026",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Fascicoli: creazione e dettaglio falliscono; tabella senza tenant"
+  },
+  {
+   "area": "Frontend",
+   "codice": "VD-C-027",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "`npm run build` fallisce; Tailwind inattivo; 738 stili inline; classi mancanti; favicon; bundle unico 830 KB"
+  },
+  {
+   "area": "Frontend",
+   "codice": "VD-C-028",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "Accessibilità e mobile: contrasti, focus, label, `div onClick`, drawer non dialog, zero media query"
+  },
+  {
+   "area": "Frontend",
+   "codice": "VD-C-029",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Dati finti presentati come reali (trend, SLA, «verificato», profili demo nel bundle)"
+  },
+  {
+   "area": "Test",
+   "codice": "VD-C-030",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Test che cercano stringhe o mockano tutto; `make test` maschera i fallimenti; 136 su 659 falliti"
+  },
+  {
+   "area": "Dipendenze",
+   "codice": "VD-C-031",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "PyJWT non dichiarato; `fastapi>=0.111`; dipendenze inutili"
+  },
+  {
+   "area": "Qualità",
+   "codice": "VD-C-032",
+   "gravita": "P2",
+   "rilascio": "R16",
+   "stato": "Chiusa",
+   "titolo": "Ruff: 232 errori sul perimetro di ingresso; B008 disattivata"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-033",
+   "gravita": "P2",
+   "rilascio": "R14",
+   "stato": "Chiusa con riserve",
+   "titolo": "Osservabilità mai collegata"
+  },
+  {
+   "area": "Regole",
+   "codice": "VD-C-034",
+   "gravita": "P2",
+   "rilascio": "R07",
+   "stato": "Chiusa",
+   "titolo": "Policy OPA placeholder (`allow := true`) mai interrogate"
+  },
+  {
+   "area": "Infrastruttura",
+   "codice": "VD-C-035",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Due liste di topic Kafka incoerenti"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-036",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "`lifecycle_manager` irraggiungibile e rotto; migrazione che elimina prima di esportare; nessun workflow di scarto"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-037",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa con riserve",
+   "titolo": "`modalita_formazione` definita in tre modi, nessuno conforme; 38 metadati dichiarati, ~25 reali"
+  },
+  {
+   "area": "Infrastruttura",
+   "codice": "VD-C-038",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Parzialmente chiusa",
+   "titolo": "Terraform non supera il parsing; probe, Secret, ConfigMap, network policy, ingress sbagliati; nessun deploy del frontend"
+  },
+  {
+   "area": "Documentazione",
+   "codice": "VD-C-039",
+   "gravita": "P3",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "`ADR-001` descrive schema per tenant e Celery"
+  },
+  {
+   "area": "Pulizia",
+   "codice": "VD-C-040",
+   "gravita": "P3",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "`aggregator.py` codice morto con test misti"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-041",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Chiavi API mai funzionanti: onboarding salvava `sha256` e prefisso di 8, il gateway cercava 10 caratteri e verificava con bcrypt"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-042",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Creazione utente: `ON CONFLICT (email)` senza vincolo, `cognome` mai inserito, 201 anche se non creato, testo SQL al client"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-043",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Ogni richiesta di PdD dava 500 (`compute_pdd_hash` chiamata con una lista)"
+  },
+  {
+   "area": "Multi-tenant",
+   "codice": "VD-C-044",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Ricerca: un token senza ente cercava in tutti gli enti; testo e classe ignorati"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-045",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Registro operazioni: filtro per ente sempre fallito (uuid = testo), 200 con `error`, leggibile da ogni profilo"
+  },
+  {
+   "area": "Frontend",
+   "codice": "VD-C-046",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Home: `integra: null` mostrato come «Integrità compromessa»"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-047",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Immagini non avviabili: signature senza `libs/`, 4 HEALTHCHECK con `httpx` non installato, dipendenze JWT di hashchain non dichiarate"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-048",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Hashchain: API senza autenticazione (`/status`, `/verifica-completa`, `/integrity` costosa); dashboard-api non inoltrava il token"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-049",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Readiness: gateway 500 o «ready» senza DB; gli altri 8 servizi «ready» senza controlli"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-050",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Verifica completa della catena sincrona fino a 300 s, oltre il timeout dell'ALB (60 s)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-051",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "SPID-002/010/011 in JSON lasciavano la persona sulla pagina del gateway; 010 rivelava l'elenco dei ritorni ammessi"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-052",
+   "gravita": "P0",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Presa di controllo di un utente di ruolo superiore (anche SUPER_ADMIN) scrivendo il proprio codice fiscale e entrando con SPID"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-053",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Il servizio di firma firmava qualsiasi contenuto per qualsiasi token; token di servizio valido ovunque"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-054",
+   "gravita": "P1",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Voucher PDND senza `aud` accettato, emittente non controllato in produzione; python-jose"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-055",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Default `ENV=development` in tutti i servizi (fail-open se manca la variabile)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-056",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Migrazione: testo d'eccezione al client, id non UUID → 500, `/status` senza token"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-057",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Token non revocabili: utente disattivato o ente sospeso mantenevano l'accesso fino alla scadenza"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-058",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Livello SPID preso dalla richiesta del browser, non dall'`acr`; L1 ammesso"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-059",
+   "gravita": "P3",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Fughe di informazioni: 502 PDND con URL interno, motivo PyJWT nei 401, `str(exc)` e testo SQL in dashboard-api e onboarding"
+  },
+  {
+   "area": "Multi-tenant",
+   "codice": "VD-C-060",
+   "gravita": "P3",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Responsabile di una chiave API o di un fascicolo preso da un altro ente; 409/201 come oracolo"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-061",
+   "gravita": "P3",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Nomi dei file nello ZIP non normalizzati (zip-slip)"
+  },
+  {
+   "area": "Multi-tenant",
+   "codice": "VD-C-062",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Ricerca OpenSearch sempre fallita e nascosta come elenco vuoto; filtro per ente fail-open"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-063",
+   "gravita": "P3",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Approva/rifiuta PdD: 500 su id non UUID, tipo della notifica non verificato"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-064",
+   "gravita": "P3",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Connettori Gedoc/Titulus seguivano URL remoti inviando le credenziali (SSRF)"
+  },
+  {
+   "area": "Frontend",
+   "codice": "VD-C-065",
+   "gravita": "P3",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Classi: attivazione su `/api/api/v1/…` (sempre fallita); Enti: «tutte le classi abilitate» con elenco vuoto"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-066",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Esibizione: richiedente scritto dal client, link consegnato anche se il registro non si scriveva, storico che nascondeva gli errori"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-067",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Scaricamenti: ZIP con `*_ERROR.txt` al posto dei file, RdV definitivo in 500, impronte dei file non controllate"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-068",
+   "gravita": "P0",
+   "rilascio": "R13a",
+   "stato": "Chiusa con riserve",
+   "titolo": "Nessuna firma né marca qualificata: blocchi `NON_FIRMATO`, IPdA, RdV, manuale e piano non firmati; senza ancoraggio esterno la catena è riscrivibile da un superutente del DB"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-069",
+   "gravita": "P1",
+   "rilascio": "prima della produzione",
+   "stato": "Aperta",
+   "titolo": "Nessun accesso per le persone in produzione: aggregatore SPID/CIE qualificato non contrattualizzato né configurato (SPID-001); utenti senza codice fiscale non entrano"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-070",
+   "gravita": "P1",
+   "rilascio": "R09",
+   "stato": "Chiusa",
+   "titolo": "Orizzonte di retention delle classi permanenti non deciso: con il segnaposto aip-builder e hashchain non partono; senza valore i PdA permanenti vanno in DLQ"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-071",
+   "gravita": "P1",
+   "rilascio": "R12",
+   "stato": "Aperta",
+   "titolo": "IPdA non verificabile contro lo schema ufficiale UNI 11386:2020 (XSD non disponibile)"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-072",
+   "gravita": "P1",
+   "rilascio": "R05",
+   "stato": "Chiusa con riserve",
+   "titolo": "Ciclo di vita assente: scarto (proposta, autorizzazioni, Soprintendenza, verbale), verifiche periodiche, riversamento, export SInCRO prima di ogni cambio di stato"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-073",
+   "gravita": "P1",
+   "rilascio": "R08",
+   "stato": "Chiusa con riserve",
+   "titolo": "Firme dei documenti versati non verificate; la verifica delle buste non usa Trusted List UE né OCSP/CRL"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-074",
+   "gravita": "P2",
+   "rilascio": "R08",
+   "stato": "Chiusa con riserve",
+   "titolo": "Formati riconosciuti solo per firma binaria: niente PRONOM/DROID né veraPDF"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-075",
+   "gravita": "P2",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "Code di scarto (`pdv.received.dlq`, `pdv.validated.dlq`, `notification.dlq`) senza interfaccia di consultazione e «Rielabora»"
+  },
+  {
+   "area": "Affidabilità",
+   "codice": "VD-C-076",
+   "gravita": "P2",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "Outbox dipendente dal gateway: un solo relay pubblica anche gli eventi di onboarding e distribution (in attesa se il gateway è spento); ordine non garantito con `SKIP LOCKED`"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-077",
+   "gravita": "P1",
+   "rilascio": "R03",
+   "stato": "Chiusa",
+   "titolo": "Motore di distribuzione incompleto: ESTRATTO costruisce chiavi S3 dal nome del file; COMPLETO/ESTRATTO/MIGRAZIONE senza link; IPdA di migrazione con valori fissi; migrazione senza audit"
+  },
+  {
+   "area": "Notifiche",
+   "codice": "VD-C-078",
+   "gravita": "P2",
+   "rilascio": "R13b",
+   "stato": "Chiusa con riserve",
+   "titolo": "PEC e webhook non disponibili (messaggi `NON_PARTITA` con motivo)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-079",
+   "gravita": "P2",
+   "rilascio": "R05",
+   "stato": "Chiusa con riserve",
+   "titolo": "Sessione del portale in `localStorage` invece che in cookie HttpOnly"
+  },
+  {
+   "area": "Multi-tenant",
+   "codice": "VD-C-080",
+   "gravita": "P2",
+   "rilascio": "R05",
+   "stato": "Chiusa con riserve",
+   "titolo": "Row Level Security non attiva; `documenti`, `metadati_allegato5`, `lifecycle_events`, `fascicoli_aip` senza `tenant_id` proprio"
+  },
+  {
+   "area": "Test",
+   "codice": "VD-C-081",
+   "gravita": "P2",
+   "rilascio": "R04",
+   "stato": "Parzialmente chiusa",
+   "titolo": "Infrastruttura vera mai provata: immagini Docker mai costruite, `helm lint` e `nginx -t` non eseguiti, Kafka simulato nei test, Object Lock provato su moto e non su MinIO/S3, CI mai eseguita su GitHub"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-082",
+   "gravita": "P2",
+   "rilascio": "R14",
+   "stato": "Chiusa con riserve",
+   "titolo": "Strumenti di rilascio del §0.4 assenti: `tests/integrity`, `genera_cataloghi.py`, `verifica_documentazione.py`, test end-to-end e di accessibilità del frontend; `docs/manuale`, `docs/catalogo`, `GUIDA_FUNZIONALITA.md` non esistono"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-083",
+   "gravita": "P3",
+   "rilascio": "R03",
+   "stato": "Chiusa",
+   "titolo": "`Idempotency-Key` facoltativa (§12.1 la vuole obbligatoria)"
+  },
+  {
+   "area": "Integrazione",
+   "codice": "VD-C-084",
+   "gravita": "P3",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "PDND: `jti` dei voucher non controllato come monouso; fruitori registrati solo a mano in `pdnd_fruitori`"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-085",
+   "gravita": "P3",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "Rotazione delle chiavi JWT senza sovrapposizione (una sola chiave pubblica, nessun `kid`)"
+  },
+  {
+   "area": "Pulizia",
+   "codice": "VD-C-086",
+   "gravita": "P3",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "Codice senza chiamanti da valutare: `libs/shared/security/headers.py`, `libs/shared/observability/health.py` e funzioni di tracing, connettori Gedoc/Titulus"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-087",
+   "gravita": "P3",
+   "rilascio": "R05",
+   "stato": "Chiusa",
+   "titolo": "Nessun elenco dei fascicoli (API assente; pagina «da realizzare»)"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-088",
+   "gravita": "P2",
+   "rilascio": "R05",
+   "stato": "Chiusa con riserve",
+   "titolo": "Metadati dell'Allegato 5 parziali (23 campi), nessun profilo versionato; testo delle lettere a–d da verificare sul testo ufficiale"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-089",
+   "gravita": "P3",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Un gestore d'ente poteva indicare come responsabile di una chiave API un SUPER_ADMIN o un altro amministratore: versamenti e audit attribuiti a lui, chiave revocata con lui"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-090",
+   "gravita": "P2",
+   "rilascio": "R02",
+   "stato": "Chiusa",
+   "titolo": "Declassamento di ruolo o cambio di ente non revocavano i token già emessi (validi fino a `exp`, 1 h)"
+  },
+  {
+   "area": "Integrazione",
+   "codice": "VD-C-091",
+   "gravita": "P1",
+   "rilascio": "R03",
+   "stato": "Chiusa",
+   "titolo": "SDK inutilizzabile: `versa_file` non invia `parametri` (ogni versamento riceve 400 VRS-103), non invia `Idempotency-Key`, modelli di risposta con campi che l'API non restituisce; `get_aip`, `cerca_aip`, `richiedi_pdd` con chiave API ricevono 401"
+  },
+  {
+   "area": "Integrazione",
+   "codice": "VD-C-092",
+   "gravita": "P1",
+   "rilascio": "R03",
+   "stato": "Chiusa",
+   "titolo": "Canale PDND senza idempotenza: `id` e `numero` generati dall'orario, nessuna `Idempotency-Key`, quindi ogni ritentativo crea un PdV duplicato; MIME forzato a `application/pdf` (p7m e XML rifiutati con VRS-109)"
+  },
+  {
+   "area": "Ricerca",
+   "codice": "VD-C-093",
+   "gravita": "P1",
+   "rilascio": "R03",
+   "stato": "Chiusa",
+   "titolo": "Ricerca sempre vuota: `index_aip()` definita ma mai chiamata; la ricerca del portale interroga `metadati_allegato5`, tabella mai popolata"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-094",
+   "gravita": "P1",
+   "rilascio": "R03",
+   "stato": "Chiusa",
+   "titolo": "Metadati persi o non controllati: chiavi extra in `parametri` scartate in silenzio (Pydantic `extra=ignore`), `metadati_extra` non entra nell'IPdA; `metadati_obbligatori`, `max_dimensione_mb` e `tipologia_xml` della classe non applicati"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-095",
+   "gravita": "P2",
+   "rilascio": "R03",
+   "stato": "Chiusa",
+   "titolo": "Chiave UD (numero/anno/registro) non univoca: stessa chiave con file diverso accettata senza segnalazione; il duplicato si riconosce solo sull'impronta dell'indice"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-096",
+   "gravita": "P2",
+   "rilascio": "R14",
+   "stato": "Chiusa con riserve",
+   "titolo": "RdV preliminare con namespace AgID inesistente (`http://www.agid.gov.it/rdv/2022`); IPdA con elementi SInCRO propri"
+  },
+  {
+   "area": "Notifiche",
+   "codice": "VD-C-097",
+   "gravita": "P2",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "Evento `aip.conserved` ed e-mail inviati a `SU_STORAGE`, prima che PdV e AIP siano CONSERVATO"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-098",
+   "gravita": "P2",
+   "rilascio": "R03",
+   "stato": "Chiusa",
+   "titolo": "Router hashchain (`/api/v1/hashchain`) non raggiungibile dall'esterno: l'ingress manda tutto `/api/v1` al gateway"
+  },
+  {
+   "area": "Integrazione",
+   "codice": "VD-C-099",
+   "gravita": "P2",
+   "rilascio": "R03",
+   "stato": "Chiusa",
+   "titolo": "Chiave API utile solo sul gateway (distribution e dashboard vogliono Bearer, nessuno scambio): un sistema versante non può cercare, elencare versamenti o chiedere un PdD; limite fisso a 60 richieste al minuto perché il token da chiave API non porta il piano; `PDV_LIMITS` non usato"
+  },
+  {
+   "area": "Integrazione",
+   "codice": "VD-C-100",
+   "gravita": "P3",
+   "rilascio": "R03",
+   "stato": "Chiusa",
+   "titolo": "Errori in cinque formati diversi senza catalogo centrale versionato; OpenAPI solo del gateway"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-101",
+   "gravita": "P1",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "Ruoli IRSA mancanti: Terraform crea il ruolo solo per il gateway; le annotazioni Helm di aip-builder, distribution, dashboard-api, validation, hashchain, signature, onboarding e notification puntano a ruoli inesistenti (accesso S3 fallirebbe su EKS). Preesistente a R03"
+  },
+  {
+   "area": "Scalabilità",
+   "codice": "VD-C-102",
+   "gravita": "P3",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "Elenchi ancora con OFFSET e COUNT: distribution `/storico`, dashboard `/notifiche` e `/audit`"
+  },
+  {
+   "area": "Scalabilità",
+   "codice": "VD-C-103",
+   "gravita": "P2",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "Crescita di `eventi_cliente` e consegne webhook (~4 milioni di righe/giorno a pieno carico) senza partizionamento né retention"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-104",
+   "gravita": "P3",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "Scadenza dei file di staging dei PdV rifiutati o in ERRORE non definita (servono a «Rielabora»): oggi non vengono mai eliminati"
+  },
+  {
+   "area": "Pulizia",
+   "codice": "VD-C-105",
+   "gravita": "P3",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "`gateway/app/auth/quote.py` resta come codice senza chiamanti dopo il passaggio a `limiti_ente`"
+  },
+  {
+   "area": "Integrazione",
+   "codice": "VD-C-106",
+   "gravita": "P3",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "`Idempotency-Key` non accettata su `POST /api/v2/distribution/richiedi` e `POST /api/v1/webhook`: l'SDK non può ritentarle in sicurezza"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-107",
+   "gravita": "P3",
+   "rilascio": "R10",
+   "stato": "Chiusa con riserve",
+   "titolo": "SFTP dietro bilanciatore TCP senza IP del cliente (nessun proxy protocol): niente allow-list per IP né IP nei log d'accesso"
+  },
+  {
+   "area": "Scalabilità",
+   "codice": "VD-C-108",
+   "gravita": "P3",
+   "rilascio": "R04",
+   "stato": "Chiusa",
+   "titolo": "Il consumer degli eventi per i clienti e lo SFTP lavorano con un solo pubblicatore seriale della posizione: da misurare nella prova di carico"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-109",
+   "gravita": "P1",
+   "rilascio": "prova in staging",
+   "stato": "Aperta",
+   "titolo": "Kafka su MSK con autenticazione IAM e ACL per topic realizzati ma mai provati su un cluster MSK reale"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-110",
+   "gravita": "P1",
+   "rilascio": "R12a (Terraform)",
+   "stato": "Parzialmente chiusa",
+   "titolo": "Testimone in account separato: Terraform dell'account non scritto; in produzione l'avvio della hashchain senza `TESTIMONE_URL` fallisce (voluto)"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-111",
+   "gravita": "P2",
+   "rilascio": "R05",
+   "stato": "Chiusa",
+   "titolo": "Ripristino del registro da backup senza PITR utile: manca il comando versionato `ricostruisci-da-worm --fino-a max(N,X) --prova`; oggi il registro si ferma con allarme (nessuna perdita, conservazione sospesa)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-112",
+   "gravita": "P2",
+   "rilascio": "R05",
+   "stato": "Chiusa con riserve",
+   "titolo": "Superutente / master del database fuori perimetro: le righe di `audit_global` non sono in WORM (le difese sono catena e WORM per i dati conservati)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-113",
+   "gravita": "P3",
+   "rilascio": "R05",
+   "stato": "Chiusa",
+   "titolo": "Nessuna guardia all'avvio che rifiuti un `DATABASE_URL` di superutente o proprietario per i servizi"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-114",
+   "gravita": "P3",
+   "rilascio": "R04",
+   "stato": "Chiusa con riserve",
+   "titolo": "Readiness S3: un 403 su `head_bucket` conta come «bucket presente» (per non dare l'elenco ai ruoli di sola lettura); credenziali sbagliate si scoprono alla prima operazione"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-115",
+   "gravita": "P3",
+   "rilascio": "R05",
+   "stato": "Chiusa",
+   "titolo": "Storage di sviluppo su `cgr.dev/chainguard/minio:latest` senza digest fissato e senza correzioni di sicurezza della versione community"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-116",
+   "gravita": "P3",
+   "rilascio": "R09",
+   "stato": "Chiusa",
+   "titolo": "Ciclo della verifica continua (365 giorni) è una scelta di servizio da firmare come decisione normativa"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-117",
+   "gravita": "P3",
+   "rilascio": "R05",
+   "stato": "Chiusa",
+   "titolo": "Le migrazioni 034 e successive importano `libs` al caricamento: `alembic heads/history` fuori dal container richiede `PYTHONPATH` (le migrazioni vere funzionano)"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-118",
+   "gravita": "P3",
+   "rilascio": "R05",
+   "stato": "Chiusa",
+   "titolo": "Controllo di coerenza del registro: il caso di un `E` (foglie esportate) nel DB maggiore di quanto realmente esportato non è verificato (non possibile per costruzione)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-119",
+   "gravita": "P2",
+   "rilascio": "R06",
+   "stato": "Chiusa con riserve",
+   "titolo": "Annullamento e rettifica: il riscontro della hashchain non ha un fatto scritto solo dal lavoratore; un'API di ciclo-vita compromessa può far firmare una foglia di annullamento o rettifica non vera. Le altre righe del ciclo di vita restano scrivibili da tutti i login di `verumdoc_applicazione` (privilegi per unione)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-120",
+   "gravita": "P2",
+   "rilascio": "R17",
+   "stato": "Chiusa con riserve",
+   "titolo": "Scarto: un'API compromessa che agisce come un utente legittimo può percorrere l'intero iter con passi coerenti e caricare documenti che sembrano autorizzazione firmata e nulla osta (firma rilevata, non verificata); il lavoratore eseguirebbe lo scarto. Limiti: solo PdA già scartabili (retention scaduta, classe non permanente, nessun blocco), traccia permanente e attribuita"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-121",
+   "gravita": "P3",
+   "rilascio": "R14",
+   "stato": "Chiusa",
+   "titolo": "Due righe della cronologia di una pratica scritte insieme: la concorrenza si affida al lock applicativo (il trigger di continuità non blocca la pratica); un ramo doppio sarebbe rilevato dalla verifica come discontinuità"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-122",
+   "gravita": "P3",
+   "rilascio": "R09",
+   "stato": "Parzialmente chiusa",
+   "titolo": "Scarto: con lo storage illeggibile alla chiusura il numero di versioni rimaste è «non determinabile»; gli oggetti avviati senza inventario non si estendono e restano `non_determinabile`. Serve un controllo manuale prima della ripresa"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-123",
+   "gravita": "P3",
+   "rilascio": "R14",
+   "stato": "Chiusa con riserve",
+   "titolo": "Verificatore: lo stato attuale di un documento non si dimostra senza una prova aggiornata (la consistenza verso il checkpoint corrente esclude solo la riscrittura); la pagina web, offline, non scarica da sola il checkpoint corrente (endpoint autenticato)"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-124",
+   "gravita": "P3",
+   "rilascio": "R13a",
+   "stato": "Chiusa con riserve",
+   "titolo": "Attestazione del ciclo di vita firmata dal solo registro: protegge da chi presenta la prova a un terzo, non da chi controlla la chiave del registro"
+  },
+  {
+   "area": "Multi-tenant",
+   "codice": "VD-C-125",
+   "gravita": "P3",
+   "rilascio": "R13 (da decidere)",
+   "stato": "Aperta",
+   "titolo": "Fuori dalla RLS: `catena_pda`, `catena_foglie_interne` (tabelle protette del registro), `sessioni_revocate`; `audit_global` e `verifiche_registro` senza RLS per ente"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-126",
+   "gravita": "P2",
+   "rilascio": "R06",
+   "stato": "Chiusa",
+   "titolo": "Il server SFTP (esposto con NLB) riceve `SFTP_TOKEN_CHIAVE_PRIVATA` nel Secret del servizio, mentre la usa solo il lavoratore; l'API di ciclo-vita conserva la lettura dello staging"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-127",
+   "gravita": "P2",
+   "rilascio": "R06",
+   "stato": "Chiusa",
+   "titolo": "Sessione del portale: nessuna scadenza per inattività né timeout più breve per i ruoli privilegiati (§19.7); durata = durata del token; revoca entro 30 s negli altri processi; signature senza revoca (non esposto)"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-128",
+   "gravita": "P3",
+   "rilascio": "R06",
+   "stato": "Chiusa",
+   "titolo": "«In attesa di te» nelle pratiche fa una richiesta per stato (5 per il conservatore, 3 per il produttore, 10 righe ciascuna): manca un filtro `in_attesa_di=me` o `stato` multiplo"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-129",
+   "gravita": "P3",
+   "rilascio": "R06",
+   "stato": "Chiusa",
+   "titolo": "Nessuna API degli allarmi del registro e del testimone (`GET /api/v1/hashchain/registro/allarmi`); `CATENA_CONTROFIRMA_MAX_SECONDI` non esposta: la console mostra l'età dell'attesa, non l'allarme"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-130",
+   "gravita": "P3",
+   "rilascio": "R06",
+   "stato": "Chiusa",
+   "titolo": "CronJob giornaliero `verifica-audit` non creato (verifica dei segmenti dell'audit con allarme sul codice d'uscita)"
+  },
+  {
+   "area": "Test",
+   "codice": "VD-C-131",
+   "gravita": "P3",
+   "rilascio": "R12a",
+   "stato": "Chiusa con riserve",
+   "titolo": "Oracolo Go del formato dei checkpoint (`libs/catena/tests/test_oracolo_go.py`) saltato: moduli Go non scaricabili nell'ambiente di prova"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-132",
+   "gravita": "P3",
+   "rilascio": "limite accettato",
+   "stato": "Aperta",
+   "titolo": "Export dell'audit: una transazione dimenticata (anche di un operatore con un altro login) lo trattiene finché resta aperta; `idle_in_transaction_session_timeout` non copre transazioni attive lunghe; righe del periodo non ancora esportato (≤ 70 min) alterabili senza traccia; forma del jsonb da riverificare a ogni aggiornamento maggiore di PostgreSQL"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-133",
+   "gravita": "P3",
+   "rilascio": "R14",
+   "stato": "Chiusa",
+   "titolo": "Nessuno stato terminale automatico per verbale e foglie dello scarto e per gli altri tipi di pratica con esecuzione avviata: ritentativo ogni 7200 s con allarme `PraticaLavoroInErrore`"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-134",
+   "gravita": "P3",
+   "rilascio": "limite accettato",
+   "stato": "Aperta",
+   "titolo": "Documento già caricato nel WORM resta orfano (con retention) se fallisce la transazione finale di verbale, export o manifesto"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-135",
+   "gravita": "P3",
+   "rilascio": "R09",
+   "stato": "Chiusa",
+   "titolo": "PdA `ELIMINAZIONE_INCOMPLETA` fuori dalla verifica continua anche per le versioni rimaste sotto legal hold"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-136",
+   "gravita": "P2",
+   "rilascio": "R11",
+   "stato": "Chiusa con riserve",
+   "titolo": "Profili di tipologia: campi e valori da riscontrare sul testo ufficiale dell'Allegato 5 (obbligatorietà di `DatiDiRegistrazione`, `Riservato`, `Verifica`; valori di `TipoRegistro`, `TipoAggregazione`, `TipologiaFascicolo`; fattura, registro di protocollo, contratto); Soggetti con ruoli e Tracciature non strutturati; profili non mappati nell'IPdA"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-137",
+   "gravita": "P2",
+   "rilascio": "R09",
+   "stato": "Chiusa con riserve",
+   "titolo": "I PdA scartati restano nel DB con i metadati (elenco di scarto): da valutare la minimizzazione dei dati personali dopo lo scarto"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-138",
+   "gravita": "P3",
+   "rilascio": "R06",
+   "stato": "Chiusa",
+   "titolo": "Natura dell'ente (`PA`/`PRIVATO`, motivo) gestibile solo da API: manca la voce nella console di onboarding"
+  },
+  {
+   "area": "Frontend",
+   "codice": "VD-C-139",
+   "gravita": "P3",
+   "rilascio": "R06",
+   "stato": "Chiusa",
+   "titolo": "Console «Classi e accordi»: l'API d'elenco degli accordi esiste ma la pagina apre ancora gli accordi solo per codice (chiave `accordi` in «da realizzare»)"
+  },
+  {
+   "area": "Pulizia",
+   "codice": "VD-C-140",
+   "gravita": "P3",
+   "rilascio": "R06",
+   "stato": "Chiusa",
+   "titolo": "Dati simulati con nomi di enti pubblici reali (senza persone) e il codice fiscale d'esempio del login di sviluppo"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-141",
+   "gravita": "P2",
+   "rilascio": "R17",
+   "stato": "Chiusa con riserve",
+   "titolo": "Annullamento e rettifica: un'API di ciclo-vita compromessa che agisce come un utente legittimo dell'ente può scrivere anche la cronologia e la voce d'audit coerenti con la richiesta (righe scrivibili dal suo login) e ottenere dal lavoratore atto, fatto e foglia per un PdV di quell'ente; resta la traccia permanente (cronologia append-only, audit nel WORM verificato ogni giorno). Stesso residuo dello scarto"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-142",
+   "gravita": "P3",
+   "rilascio": "R09",
+   "stato": "Chiusa",
+   "titolo": "CronJob `hashchain-verifica-audit`: usa il ruolo IAM della hashchain (scrittura su `registro/` e RdV) e il login DB della hashchain via PgBouncer, non credenziali in sola lettura proprie"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-143",
+   "gravita": "P1",
+   "rilascio": "R12",
+   "stato": "Aperta",
+   "titolo": "Il servizio `verifica-firme` (EU DSS: Trusted List UE dalla LOTL, OCSP/CRL, XAdES e ASiC) è scritto con Dockerfile, values di Helm e NetworkPolicy ma non è stato costruito né provato: in sviluppo Maven Central non era raggiungibile. Finché non è in esercizio la verifica usa pyHanko con le trust anchor di `FIRME_RADICI_PEM` (senza Trusted List)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-144",
+   "gravita": "P3",
+   "rilascio": "R12a",
+   "stato": "Chiusa con riserve",
+   "titolo": "`verifica-firme`: fra il controllo dell'indirizzo in `RecuperoProtetto` e la connessione del client HTTP un DNS rebinding può portare il recupero OCSP/CRL/AIA verso un indirizzo non pubblico; l'allow-list dei domini `VERIFICA_RETE_DOMINI` è vuota per impostazione predefinita (qualunque host pubblico)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-145",
+   "gravita": "P2",
+   "rilascio": "R12a",
+   "stato": "Chiusa con riserve",
+   "titolo": "Ciclo di vita: un'autorizzazione allo scarto o un nulla osta autentici, firmati da un firmatario in elenco per un'altra pratica dello stesso ente, si possono riusare; il riferimento al versamento nel contenuto firmato si controlla solo per la richiesta di annullamento"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-146",
+   "gravita": "P3",
+   "rilascio": "R12a",
+   "stato": "Chiusa",
+   "titolo": "Verifica: oltre il limite delle firme, testa, coda e ricerca a blocchi della firma PAdES si leggono dallo staging S3 senza VersionId né ETag, quindi non sono legate ai byte di cui il passo 5 ha calcolato le impronte (la copia locale intera sì, X13)"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-147",
+   "gravita": "P3",
+   "rilascio": "R12a",
+   "stato": "Chiusa",
+   "titolo": "Verifica con pyHanko oltre `FIRME_TEMPO_MAX_S`: l'esito è «firme non verificate» ma il thread non si interrompe e finisce da sé, occupando CPU e memoria"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-148",
+   "gravita": "P2",
+   "rilascio": "R12a",
+   "stato": "Chiusa",
+   "titolo": "Il rinnovo automatico del blocco WORM (D04) copre i PdA permanenti (compreso il RdV definitivo) e gli allegati delle pratiche, non gli oggetti `registro/` della hashchain (segmenti delle foglie, checkpoint, audit), scritti con l'orizzonte permanente"
+  },
+  {
+   "area": "Riservatezza",
+   "codice": "VD-C-149",
+   "gravita": "P3",
+   "rilascio": "R12a",
+   "stato": "Chiusa con riserve",
+   "titolo": "La minimizzazione dopo lo scarto (D06) non tocca l'indice di ricerca (distribution), i fascicoli collegati, gli eventi per i clienti già pubblicati e i dettagli dell'audit (registro di legge, non si modifica)"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-150",
+   "gravita": "P3",
+   "rilascio": "R12a",
+   "stato": "Chiusa con riserve",
+   "titolo": "Lavoro periodico di ciclo-vita e verifica dell'audit provati solo in sviluppo: login `verumdoc_auditor`, voce di PgBouncer e ruolo IRSA del job da creare; errori dei passi periodici solo nel log e nella pagina «Lavoro automatico» (nessuna metrica o allarme dedicati)"
+  },
+  {
+   "area": "Affidabilità",
+   "codice": "VD-C-151",
+   "gravita": "P3",
+   "rilascio": "R12a",
+   "stato": "Chiusa",
+   "titolo": "Lease dei passi periodici rinnovato prima di OGNI elemento (revisione R09, nota sul lease): un singolo elemento più lungo del lease (PdA con moltissime versioni, storage molto lento) può ancora sovrapporsi a un'altra replica per quell'elemento; manca un fencing token verificato in ogni scrittura"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-152",
+   "gravita": "P2",
+   "rilascio": "R12a",
+   "stato": "Chiusa con riserve",
+   "titolo": "Il collegamento d'invito (segreto) passa in chiaro dall'outbox e dalla coda della posta (`outbox_eventi`, `notifications`) finché l'e-mail non è inviata: chi legge il database di onboarding o di notification può attivare un invito non ancora usato. Mitigazioni: monouso, legato all'e-mail, scadenza (`INVITO_VALIDITA_ORE`), revoca, tentativi limitati"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-153",
+   "gravita": "P3",
+   "rilascio": "R16",
+   "stato": "Chiusa con riserve",
+   "titolo": "Riduzione dei permessi concedibili da parte del conservatore e cambio dei metodi ammessi dall'ente valgono dal prossimo accesso: le sessioni aperte restano fino alla scadenza del token (al più 1 h) o all'inattività. Assegnazione, modifica o tolta di un ruolo personalizzato invece revocano subito (versione dei permessi)"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-154",
+   "gravita": "P3",
+   "rilascio": "R12",
+   "stato": "Aperta",
+   "titolo": "PROXY protocol e indirizzi ammessi provati con il server asyncssh vero e intestazioni v1/v2 simulate, non con l'NLB AWS reale (annotazione `aws-load-balancer-proxy-protocol`, reti fidate = sottoreti dell'NLB dopo la revisione V4); lo stesso vale per `X-Forwarded-For` dietro l'ALB (`PROXY_FIDATI`, revisione V1)"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-155",
+   "gravita": "P3",
+   "rilascio": "R12a",
+   "stato": "Chiusa",
+   "titolo": "Il lavoratore di ciclo-vita riverifica l'annullamento con il ruolo BASE del richiedente e i parametri dell'ente, non con i permessi del ruolo personalizzato: un permesso tolto dopo la richiesta non la respinge (l'API lo controlla alla richiesta)"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-156",
+   "gravita": "P3",
+   "rilascio": "R12b",
+   "stato": "Chiusa con riserve",
+   "titolo": "Gestione delle proprie credenziali non ancora in console (aggiungere una seconda passkey, cambiare password, rigenerare i codici di recupero): oggi si rifà l'accesso con un nuovo invito dopo la disattivazione (le credenziali precedenti si sostituiscono)"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-157",
+   "gravita": "P2",
+   "rilascio": "prima di attivare l'aggregazione v2",
+   "stato": "Aperta",
+   "titolo": "Allegato 5, §4 oltre p. 84 non riscontrato: stringhe dei ruoli dei Soggetti delle aggregazioni (schema a p. 89) e obbligo per ruolo, procedimento amministrativo, collegamento ad altre aggregazioni, indice dei documenti, tempo di conservazione, note (campi `da_riscontrare` della v2 dell'aggregazione)"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-158",
+   "gravita": "P3",
+   "rilascio": "R16",
+   "stato": "Chiusa con riserve",
+   "titolo": "Obblighi dell'Allegato 5 che il servizio non controlla (l'annullamento con le tracciature è controllato dalla revisione R11 con `documento_annullato`; resta la presenza di un elemento «Annullamento» fra le tracciature): mittente per i documenti protocollati, operatore quando ci sono tracciature, PAI/PAE solo in entrata o in uscita, prodotto software «quando rilevabile», documento primario «se presente»"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-159",
+   "gravita": "P3",
+   "rilascio": "con D03 (VD-C-071)",
+   "stato": "Aperta",
+   "titolo": "IPdA: i metadati dei profili v2 escono con i nomi dell'Allegato 5 in un contenitore provvisorio (`MetadatiAllegato5`); tipo registro e modalità di formazione nella forma del testo (lettera a–d, «Protocollo Ordinario/Protocollo Emergenza») e non in quella degli schemi dell'Allegato 5"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-160",
+   "gravita": "P3",
+   "rilascio": "R12b",
+   "stato": "Chiusa con riserve",
+   "titolo": "L'autorizzazione del produttore al RIVERSAMENTO in uscita non deve citare la pratica (VD-C-145 vale per lo scarto) e il lavoratore non la riverifica dal WORM come per lo scarto"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-161",
+   "gravita": "P3",
+   "rilascio": "R12b",
+   "stato": "Chiusa",
+   "titolo": "La chiave privata della posta (`POSTA_CHIAVE_PRIVATA`) sta nel processo di notification esposto (le API eventi e webhook e l'invio della posta girano nello stesso Deployment): una compromissione del processo apre i collegamenti d'invito in coda"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-162",
+   "gravita": "P3",
+   "rilascio": "R17",
+   "stato": "Chiusa",
+   "titolo": "Il riversamento in uscita verso un altro conservatore (`RIVERSAMENTO_USCITA`) avviato dal conservatore non richiede un'autorizzazione firmata del produttore (macchina a stati: PROPOSTA → ESEGUIBILE dal solo conservatore; VD-P-47): il legame alla pratica di VD-C-160 vale quindi per la restituzione"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-163",
+   "gravita": "P3",
+   "rilascio": "R13b",
+   "stato": "Chiusa",
+   "titolo": "L'avviso delle modifiche alle proprie credenziali arriva solo per e-mail: la campanella legge gli eventi per ente (`eventi_cliente`, consegnati anche ai webhook dell'ente) e un evento personale non vi entra; una persona senza indirizzo e-mail non riceve l'avviso (resta l'audit)"
+  },
+  {
+   "area": "Infrastruttura",
+   "codice": "VD-C-164",
+   "gravita": "P2",
+   "rilascio": "R12b",
+   "stato": "Chiusa",
+   "titolo": "`onboarding` scrive sul topic `notification.send` (inviti, avvisi delle modifiche programmate) ma non ne era produttore in `infra/kafka/topics.yaml`, fonte dei permessi IAM di MSK: in esercizio quegli eventi sarebbero rimasti nell'outbox (topic sospeso per permesso negato)"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-165",
+   "gravita": "P2",
+   "rilascio": "R14",
+   "stato": "Chiusa con riserve",
+   "titolo": "Gli IPdA dei PdA già CONSERVATI prima di R13a (migrazione 054) non entrano fra i documenti da sigillare: restano senza sigillo qualificato (i PdA in lavorazione alla migrazione sì)"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-166",
+   "gravita": "P3",
+   "rilascio": "R16",
+   "stato": "Chiusa con riserve",
+   "titolo": "Firma personale con OTP del responsabile della conservazione (manuale, piano, nomine): l'adattatore CSC la supporta (`invia_otp`, `firma_impronta_con_otp`, provata con il simulatore) ma non c'è il flusso in console; manuale e piano oggi hanno il sigillo del conservatore"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-167",
+   "gravita": "P2",
+   "rilascio": "R12/R13",
+   "stato": "Aperta",
+   "titolo": "CAdES B-LTA (`archive-time-stamp-v3`, `ats-hash-index-v3`) costruito secondo ETSI EN 319 122-1 §5.5.3 ma verificato solo dal nostro verificatore (ricalcolo dell'impronta) e da pyHanko per firma e marca di base; non ancora con EU DSS o un verificatore del prestatore"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-168",
+   "gravita": "P3",
+   "rilascio": "R16",
+   "stato": "Chiusa con riserve",
+   "titolo": "Il limite delle prove di connessione (`FIRMA_PROVE_PER_ORA`) vale per replica del servizio di firma (non condiviso); il pinning della chiave del server è provato sulla logica e su trasporto senza TLS, non con un server TLS reale"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-169",
+   "gravita": "P2",
+   "rilascio": "prima della produzione",
+   "stato": "Aperta",
+   "titolo": "Canale PEC provato solo con il simulatore: formati reali delle ricevute dei gestori (completa, breve, sintetica, codifiche della data), certificati di firma dei gestori dall'indice pubblico e limiti della casella da verificare con il gestore scelto"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-170",
+   "gravita": "P3",
+   "rilascio": "R14",
+   "stato": "Chiusa",
+   "titolo": "Il lavoratore della posta non espone metriche (`http: false`): messaggi PEC senza ricevuta, canale non utilizzabile e ricevute non autentiche si vedono in console e nei log, senza allarmi Alertmanager"
+  },
+  {
+   "area": "Notifiche",
+   "codice": "VD-C-171",
+   "gravita": "P3",
+   "rilascio": "R16",
+   "stato": "Chiusa",
+   "titolo": "Consegna PEC «almeno una volta»: un arresto del lavoratore fra l'accettazione SMTP del gestore e la scrittura di INVIATO rimanda il messaggio dopo `PEC_RECUPERO_DOPO_SECONDI` (stesso Message-ID: le ricevute si associano comunque, ma l'ente può ricevere due PEC)"
+  },
+  {
+   "area": "Dati",
+   "codice": "VD-C-172",
+   "gravita": "P3",
+   "rilascio": "R14",
+   "stato": "Chiusa",
+   "titolo": "`notifiche_personali` non ha retention: nessun ruolo ha DELETE (il trigger lo vieta), le voci crescono con le modifiche delle credenziali"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-173",
+   "gravita": "P3",
+   "rilascio": "R16",
+   "stato": "Chiusa con riserve",
+   "titolo": "Federazione OpenID verificata in parte: `metadata_policy`, `trust_marks`, `constraints` e revoche non applicati; Entity Configuration del relying party non pubblicata (servono solo all'adesione diretta, non con l'aggregatore)"
+  },
+  {
+   "area": "Integrità",
+   "codice": "VD-C-174",
+   "gravita": "P3",
+   "rilascio": "da pianificare",
+   "stato": "Aperta",
+   "titolo": "La pagina web del verificatore non usa la prova aggiornata: lo stato attuale si dimostra solo con il comando `verifica_ricevuta.py --prova-aggiornata`"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-175",
+   "gravita": "P3",
+   "rilascio": "R14",
+   "stato": "Chiusa",
+   "titolo": "La ripresa di una pratica sospesa dopo i tentativi esauriti si fa solo con il comando SQL del runbook (amministratore del database), senza azione in console né audit applicativo automatico"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-176",
+   "gravita": "P3",
+   "rilascio": "R16",
+   "stato": "Chiusa con riserve",
+   "titolo": "Tracing distribuito non collegato: Tempo è nello stack locale ma i servizi non esportano tracce"
+  },
+  {
+   "area": "Processo",
+   "codice": "VD-C-177",
+   "gravita": "P2",
+   "rilascio": "R15",
+   "stato": "Chiusa con riserve",
+   "titolo": "Manuale di conservazione, `GUIDA_FUNZIONALITA.md` e cataloghi di route del frontend, matrice ruoli × permessi e classificazione dei modelli non ancora generati (§28.1, §28.3)"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-178",
+   "gravita": "P3",
+   "rilascio": "da pianificare",
+   "stato": "Aperta",
+   "titolo": "Tracce distribuite: il contesto della richiesta non attraversa l'outbox (la traccia del consumatore parte dal relay, non dalla richiesta che ha creato l'evento) e i manifest del cluster non hanno un collettore né le variabili `OTEL_*` (le tracce si attivano solo nello stack locale)"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-179",
+   "gravita": "P3",
+   "rilascio": "da pianificare",
+   "stato": "Aperta",
+   "titolo": "Credenziali di firma personali registrabili solo con l'API di onboarding (`PUT /api/v1/onboarding/firma/credenziali-personali/{user_id}`, con audit): nessuna sezione nella console «Fornitori di firma e marca»; firma personale provata solo con il simulatore CSC"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-180",
+   "gravita": "P3",
+   "rilascio": "da riscontrare",
+   "stato": "Aperta",
+   "titolo": "Regole incrociate dei profili solo nella v3 del documento informatico: il documento amministrativo informatico (§3, ruoli propri dei Soggetti) e l'aggregazione documentale (§4) non le hanno; prodotto software «quando rilevabile» e documento primario «se presente» restano non verificabili dal servizio"
+  },
+  {
+   "area": "Documentazione",
+   "codice": "VD-C-181",
+   "gravita": "P3",
+   "rilascio": "da pianificare",
+   "stato": "Aperta",
+   "titolo": "Due generatori del manuale: la bozza JSON di R02 (`services/dashboard-api/app/services/manuale.py`, pagina «Manuale di conservazione», con `STATO_FUNZIONI` scritto a mano e non aggiornato) e «Pubblica» di R13a che sigilla quella bozza convivono con il manuale generato di R15"
+  },
+  {
+   "area": "Esercizio",
+   "codice": "VD-C-182",
+   "gravita": "P3",
+   "rilascio": "da pianificare",
+   "stato": "Aperta",
+   "titolo": "La generazione della documentazione gira nel processo di dashboard-api dopo la risposta (`BackgroundTasks`): se il pod termina, la richiesta resta IN_CORSO fino alla scadenza (10 minuti) e si dichiara interrotta solo alla richiesta successiva"
+  },
+  {
+   "area": "Conformità",
+   "codice": "VD-C-183",
+   "gravita": "P2",
+   "rilascio": "da pianificare",
+   "stato": "Aperta",
+   "titolo": "Requisiti dei documenti generati non riscontrati sul testo ufficiale: numero del paragrafo del manuale, fasi del processo di conservazione e numero massimo di rifiuti, esibizione, infrastrutture, misure di sicurezza, selezione e scarto"
+  },
+  {
+   "area": "Sicurezza",
+   "codice": "VD-C-184",
+   "gravita": "P3",
+   "rilascio": "da pianificare",
+   "stato": "Aperta",
+   "titolo": "Conferma firmata delle decisioni: chi possiede il token di sessione della persona (anche un pod che lo vede passare) può, nella finestra della conferma dell'identità (R12b, 5 minuti), consumarla per primo per un'azione del ruolo di quella persona; con solo SPID/CIE vale l'accesso fatto da meno della finestra"
+  },
+  {
+   "area": "Governo",
+   "codice": "VD-C-185",
+   "gravita": "P3",
+   "rilascio": "da decidere",
+   "stato": "Aperta",
+   "titolo": "Decisioni sensibili non coperte dalla conferma firmata: restituzione all'ente e chiusura con eccezioni; le integrazioni con chiave API non chiedono più annullamenti e rettifiche con la conferma attiva"
+  },
+  {
+   "area": "Frontend",
+   "codice": "VD-C-186",
+   "gravita": "P3",
+   "rilascio": "da pianificare",
+   "stato": "Aperta",
+   "titolo": "Residui dell'audit finale della console R17 non corretti nella revisione: corsa della pratica come tabellone e del pacchetto come linea (R17-24), larghezza delle note di sezione (R17-25), 483 stili in linea (R17-32, debito VD-C-027), versamento a lotti (resto di R17-06), descrizioni del catalogo v1 con codici di decisione (R17-26, dati versionati), bersagli dei bottoni-link a 24 px e non 44 (R17-22)"
+  },
+  {
+   "area": "Legale",
+   "codice": "VD-C-187",
+   "gravita": "P3",
+   "rilascio": "R18.2",
+   "stato": "Chiusa",
+   "titolo": "Adattatori di compatibilità del gateway che riprendono la forma di interfacce di altri soggetti: prima di pubblicare va confermato che le specifiche usate fossero pubbliche e che nomi dei campi, schemi ed esempi non riproducano documentazione riservata"
+  },
+  {
+   "area": "Licenze",
+   "codice": "VD-C-188",
+   "gravita": "P3",
+   "rilascio": "da decidere",
+   "stato": "Aperta",
+   "titolo": "Ambiente di sviluppo locale con immagini non open source o con termini da verificare: `hashicorp/vault:1.16` (BUSL-1.1), `redis:7-alpine` (dalla 7.4 RSALv2/SSPLv1), `confluentinc/cp-kafka:7.6.0` (termini dell'immagine)"
+  },
+  {
+   "area": "Licenze",
+   "codice": "VD-C-189",
+   "gravita": "P3",
+   "rilascio": "prima immagine pubblica di verifica-firme",
+   "stato": "Aperta",
+   "titolo": "Dipendenze Java transitive di verifica-firme non elencate con lo strumento: Maven Central non raggiungibile dall'ambiente di R18"
+  }
+ ],
+ "decisioni": [
+  "VD-DR-00",
+  "VD-DR-01",
+  "VD-DR-02",
+  "VD-DR-03",
+  "VD-DR-04",
+  "VD-DR-05",
+  "VD-N-01",
+  "VD-N-02",
+  "VD-N-03",
+  "VD-P-00",
+  "VD-P-01",
+  "VD-P-02",
+  "VD-P-03",
+  "VD-P-04",
+  "VD-P-05",
+  "VD-P-06",
+  "VD-P-07",
+  "VD-P-08",
+  "VD-P-09",
+  "VD-P-10",
+  "VD-P-100",
+  "VD-P-101",
+  "VD-P-102",
+  "VD-P-103",
+  "VD-P-104",
+  "VD-P-105",
+  "VD-P-106",
+  "VD-P-107",
+  "VD-P-108",
+  "VD-P-109",
+  "VD-P-11",
+  "VD-P-110",
+  "VD-P-111",
+  "VD-P-112",
+  "VD-P-113",
+  "VD-P-114",
+  "VD-P-115",
+  "VD-P-116",
+  "VD-P-117",
+  "VD-P-118",
+  "VD-P-119",
+  "VD-P-12",
+  "VD-P-120",
+  "VD-P-121",
+  "VD-P-122",
+  "VD-P-123",
+  "VD-P-124",
+  "VD-P-125",
+  "VD-P-126",
+  "VD-P-127",
+  "VD-P-128",
+  "VD-P-129",
+  "VD-P-13",
+  "VD-P-130",
+  "VD-P-131",
+  "VD-P-132",
+  "VD-P-133",
+  "VD-P-134",
+  "VD-P-135",
+  "VD-P-136",
+  "VD-P-137",
+  "VD-P-138",
+  "VD-P-139",
+  "VD-P-14",
+  "VD-P-140",
+  "VD-P-141",
+  "VD-P-142",
+  "VD-P-143",
+  "VD-P-144",
+  "VD-P-145",
+  "VD-P-146",
+  "VD-P-147",
+  "VD-P-148",
+  "VD-P-149",
+  "VD-P-15",
+  "VD-P-150",
+  "VD-P-151",
+  "VD-P-152",
+  "VD-P-153",
+  "VD-P-154",
+  "VD-P-155",
+  "VD-P-156",
+  "VD-P-157",
+  "VD-P-158",
+  "VD-P-159",
+  "VD-P-16",
+  "VD-P-160",
+  "VD-P-161",
+  "VD-P-162",
+  "VD-P-163",
+  "VD-P-164",
+  "VD-P-165",
+  "VD-P-166",
+  "VD-P-167",
+  "VD-P-168",
+  "VD-P-169",
+  "VD-P-17",
+  "VD-P-170",
+  "VD-P-171",
+  "VD-P-172",
+  "VD-P-173",
+  "VD-P-174",
+  "VD-P-175",
+  "VD-P-176",
+  "VD-P-177",
+  "VD-P-178",
+  "VD-P-179",
+  "VD-P-18",
+  "VD-P-185",
+  "VD-P-186",
+  "VD-P-187",
+  "VD-P-188",
+  "VD-P-189",
+  "VD-P-19",
+  "VD-P-190",
+  "VD-P-191",
+  "VD-P-20",
+  "VD-P-21",
+  "VD-P-22",
+  "VD-P-23",
+  "VD-P-24",
+  "VD-P-25",
+  "VD-P-26",
+  "VD-P-27",
+  "VD-P-28",
+  "VD-P-29",
+  "VD-P-30",
+  "VD-P-31",
+  "VD-P-32",
+  "VD-P-33",
+  "VD-P-34",
+  "VD-P-35",
+  "VD-P-36",
+  "VD-P-37",
+  "VD-P-38",
+  "VD-P-39",
+  "VD-P-40",
+  "VD-P-41",
+  "VD-P-42",
+  "VD-P-43",
+  "VD-P-44",
+  "VD-P-45",
+  "VD-P-46",
+  "VD-P-47",
+  "VD-P-48",
+  "VD-P-49",
+  "VD-P-50",
+  "VD-P-51",
+  "VD-P-52",
+  "VD-P-53",
+  "VD-P-54",
+  "VD-P-55",
+  "VD-P-56",
+  "VD-P-57",
+  "VD-P-58",
+  "VD-P-59",
+  "VD-P-60",
+  "VD-P-61",
+  "VD-P-62",
+  "VD-P-63",
+  "VD-P-64",
+  "VD-P-65",
+  "VD-P-66",
+  "VD-P-67",
+  "VD-P-68",
+  "VD-P-69",
+  "VD-P-70",
+  "VD-P-71",
+  "VD-P-72",
+  "VD-P-73",
+  "VD-P-74",
+  "VD-P-75",
+  "VD-P-76",
+  "VD-P-77",
+  "VD-P-78",
+  "VD-P-79",
+  "VD-P-80",
+  "VD-P-81",
+  "VD-P-82",
+  "VD-P-83",
+  "VD-P-84",
+  "VD-P-85",
+  "VD-P-86",
+  "VD-P-87",
+  "VD-P-88",
+  "VD-P-89",
+  "VD-P-90",
+  "VD-P-91",
+  "VD-P-92",
+  "VD-P-93",
+  "VD-P-94",
+  "VD-P-95",
+  "VD-P-96",
+  "VD-P-97",
+  "VD-P-98",
+  "VD-P-99"
+ ],
+ "fonti": {
+  "changelog/CHANGELOG-2026-11-14-rilascio-R18_2.md": "0920a8224ab26fb34d21161be58b738ac6939deef8382a61c0ce0aded62ca16b",
+  "docs/architettura/PIANO_R03_R05.md": "b8d5499484444979963b254e30d58bb227d68b24a5bca879490165a63cf2b237",
+  "docs/architettura/ROADMAP_R07_R13.md": "9e97e91bc98dbd6b02bd883eccf3fc2219249dd01d0bc2b48a147033894358cc",
+  "docs/architettura/accesso_spid_cie.md": "e63175be304e04e87ff47763854ad3705bbec89e4bc375c0d5913a2060ab3a26",
+  "docs/architettura/catena.md": "83416f01e944762fdedb8ff1165bebb87e6e9f01ee229cba5c8e7fb0d89178d1",
+  "docs/architettura/ciclo_vita.md": "ed62babbbf3dd169ec01f138f4395f70ecac2459ebef3e8480fe209592ae2219",
+  "docs/architettura/documentazione.md": "c2d6741ccd72c291f4e7827a9bc46ffcdba01b8ab353ccdc56dbc288e6dcdf02",
+  "docs/architettura/firma_qualificata.md": "17ce8128010b2db8709960391d042f2068113fb20a04750f707bf6e3cb88b4c4",
+  "docs/architettura/giorno1_staging.md": "d01f4eb09bfceb50ec8af6249ab63790019fd0725aa982d739f463ab34f0763a",
+  "docs/architettura/infrastruttura.md": "1ac6ab48a784c4f3a6827681eaeacb6ee46107199293ec0394023f69a5a16949",
+  "docs/architettura/regole.md": "b3336fd99a559364208e5b1ec387253a845faf24ba2bf941d59e8eb859f77d84",
+  "docs/architettura/sicurezza.md": "31a5ea757f0030274063ba31f8d022daf7f25866fdb6abbaf06c52180c24dcd8",
+  "docs/audit/allegati/ricerca_normativa.md": "7be24e62a7f308c604186cdf6e3f069b24ee313895703fe413be2c4185881a7f",
+  "docs/catalogo/openapi.yaml": "3d381d1cb9ae887b2108f590e95d61dc14106b6b23f4125d6f91f4b5d481f5b2",
+  "docs/registro/DECISIONI_DA_PRENDERE.md": "a74f1270e61563fd701ff42ff70fe661767625818995259b90b6d10a6b1ebb5d",
+  "docs/registro/criticita.md": "cc965372a2b67dbf45bb1ecafe8666727b29ecf8bd9c4ab164d609354ebe6877",
+  "docs/registro/decisioni.md": "777ced8fe842b6acd9ac50ef5c195d82c11a0f553f350632c9d287e41b77915d",
+  "docs/runbooks/audit_worm.md": "f0bccb2da0cb86a4711326f428b203ce7ade4a2c252489b2567d3b71e6bcd294",
+  "docs/runbooks/conferme_decisione.md": "03900eb503927fb706418477c2febde0a8b083669e3836ed5796483525ed31a7",
+  "docs/runbooks/disaster_recovery.md": "810a690727e39c61e620bbcfecbe8f11e84768ee3ce4b9cc93ff53cdc36169a6",
+  "docs/runbooks/health-check.md": "f21cb958a01e38d58c365e6fd1e406bcbccd2795426950521bbe3941066e97f7",
+  "docs/runbooks/migrazioni_audit.md": "88172edfcf3b952ec975a40ca212a4ee6ed248a2d572abbe10eafa5f4e4879a8",
+  "docs/runbooks/pratica_sospesa.md": "fdfa0ff4f220323f162708e77374164f172ea109583bd3294efe57d8d1f8b1e4",
+  "docs/runbooks/ripristino_registro_da_backup.md": "020c54a7f6d26e6bba180de1288f79301b63daf034ad73104a0e612ee50b8754",
+  "docs/runbooks/rotazione_chiavi_jwt.md": "9215ffd92b5bf98bab62691d1d6b3a2852333d43f7995687bc4760802c54aa29",
+  "docs/runbooks/scarto_incompleto.md": "04cce37da2eb79d21a56c1b600a91ff53417b24eb22db2845983a8189d5be5ad",
+  "frontend/src/App.tsx": "82581f4de9361b4d4f3b0fc1bac7c328c1b33eb437cf4591068379601442459b",
+  "frontend/src/auth/permessi.ts": "970ba1a90379922ba3f57982934bbd1b89e35e9664cfccfcbcd910e6f58ed7b9",
+  "frontend/src/auth/ruoli.ts": "4ee5477868dff76051b1ad7bb2074db2d74c3bd4617ea60f2387bf7af5888d9a",
+  "frontend/src/components/Layout.tsx": "81b8052d3a8255af13f4d4566522e501d135638f63a6f680a777cd5062c396f1",
+  "infra/helm/values.yaml": "d5fbbed98f8cf1f4b444783b41186d49d7ed211f823d1b802c4d4fe038d3f342",
+  "infra/observability/regole/verumdoc-r04.yml": "6a6ba736b0231ca00bcf8a9df4cf20326ef060ae69f313f8526731685f2dab10",
+  "infra/observability/regole/verumdoc-r05.yml": "4c30c29410988d671dd2e4e816bc55b369b9c88db3c18aa4a8106a11a5eccd9d",
+  "infra/observability/regole/verumdoc-r06.yml": "d144f3127a6bd82e51e162f99b549de04437f928586430f6ef792848e4e051c4",
+  "infra/observability/regole/verumdoc-r09.yml": "8bf74308317366d94b7104f9680cf95113de3389c278e83b9c2757dff103d963",
+  "infra/observability/regole/verumdoc-r12.yml": "45ad048c78b1acf736d61a1b8e5379c4bde7101ba2e68fed1a87bd30fe50fdbc",
+  "infra/observability/regole/verumdoc-r13.yml": "f6f9c67e8fcdb4fc2e398000fec226fda9beeecc5acb590bbf35767d760ddb9e",
+  "infra/observability/regole/verumdoc-r14.yml": "3018bce10632ea51524fa9324ab6439e441e2780fd295716c56267029327fe57",
+  "infra/observability/regole/verumdoc-r15.yml": "6ce4b7f4733f8bdf46849a73ed9b603ca12ee8f453a7dc18890b14faad0c7502",
+  "infra/observability/regole/verumdoc-r16.yml": "b7a831b0312a4a9c8946aa7aa2bbd9dd44d59939d1e6c50bbcaa2758aa4f7bc1",
+  "infra/terraform/environments/prod/main.tf": "00b4c7c84a7e9ff14e545ff4ba66ad30077ae33854c766f3b3d191d0fe889742",
+  "infra/terraform/modules/rds/main.tf": "e8fb9f5c5fd3c29377f09af19789d3fab0eebe82c02e3cc62869ea535c5a6150",
+  "infra/terraform/modules/s3/main.tf": "23ad6f75b9daa7ef76e6481d7c3491147f603de3d0c491d69a09a18adc449c94",
+  "libs/verumdoc_rules/dati/formati/allegato2.v1.json": "7176cecf1f193400dd6cf7cd40119bd83e9cefb8512d16a087fec6a5318351ca",
+  "libs/verumdoc_rules/dati/profili/aggregazione_documentale.v1.json": "2a254c26b525242f859214c15a76dc35a65e6ef02c4339f2d3791d4f74713c1f",
+  "libs/verumdoc_rules/dati/profili/aggregazione_documentale.v2.json": "421361580b7b3cf5beca3366c9bbe37ec1b2d7d8e959d5415d9559792a3215ea",
+  "libs/verumdoc_rules/dati/profili/contratto.v1.json": "ef172900f14fba295b0c9525a52ce902504076a64daadb1bf8065f87e67a6c11",
+  "libs/verumdoc_rules/dati/profili/contratto.v2.json": "1807ce2e97f848d642f511fc1a383b8dbc888a593ff82e0ed46e133ad76ac09d",
+  "libs/verumdoc_rules/dati/profili/documento_amministrativo_informatico.v1.json": "860f903a4da61eebbe9876f3940dc6d53aeb545ec9a2dfb0221933a38280cfe8",
+  "libs/verumdoc_rules/dati/profili/documento_amministrativo_informatico.v2.json": "aa74ed681dd750aeaf79d164588134a937b8f3786d30fb5a5a5e7547634a5002",
+  "libs/verumdoc_rules/dati/profili/documento_informatico.v1.json": "8f72bc5ccd4a8240ca7750aad0d28e664a8fc424ea7f85753cc98a5926be8f55",
+  "libs/verumdoc_rules/dati/profili/documento_informatico.v2.json": "28ca7915fd40d44e6350c2f7d14da8fd28d740584e89865e1c60e796112199b8",
+  "libs/verumdoc_rules/dati/profili/documento_informatico.v3.json": "7665929fb8c28c180673ad27da04939c16c176c6c900fbec84b00bf70b0cb821",
+  "libs/verumdoc_rules/dati/profili/fattura.v1.json": "0365d9bd9cc591ec5530e3ce071265892675a19bdaf9ed3f0fc5cebe50bc16be",
+  "libs/verumdoc_rules/dati/profili/fattura.v2.json": "afac9afc2688621d0ade2715ef65158f74c9219fa58d85b9889c3059c261fcb3",
+  "libs/verumdoc_rules/dati/profili/registro_protocollo.v1.json": "078a8df28e844b1fec817336807e5a95c7ad0c9d68357f6fb283c7fb01a0ee73",
+  "libs/verumdoc_rules/dati/profili/registro_protocollo.v2.json": "fa57498baec86f8cdabf3f70462d76391a667344c3a03c08a160708ac5f7592b",
+  "libs/verumdoc_rules/parametri_servizio.py": "fc01e472dfb66a09abcdc5921e034d4b4960077f61918ea9d1c7f3036b611184",
+  "libs/verumdoc_rules/permessi.py": "8916b032a2ee15b8163d135f5d6981a5d3f7543d6671be44f0a11c9a4895b0f8"
+ },
+ "formati": {
+  "fonte": "libs/verumdoc_rules/dati/formati/allegato2.v1.json",
+  "formati": [
+   {
+    "esito": "AMMESSO",
+    "famiglia": "documenti impaginati",
+    "id": "PDFA",
+    "mime": [
+     "application/pdf"
+    ],
+    "nome": "PDF/A (ISO 19005)"
+   },
+   {
+    "esito": "AMMESSO",
+    "famiglia": "documenti impaginati",
+    "id": "PDF",
+    "mime": [
+     "application/pdf"
+    ],
+    "nome": "PDF (ISO 32000)"
+   },
+   {
+    "esito": "AMMESSO",
+    "famiglia": "dati strutturati",
+    "id": "XML",
+    "mime": [
+     "application/xml",
+     "text/xml"
+    ],
+    "nome": "XML"
+   },
+   {
+    "esito": "AMMESSO",
+    "famiglia": "firme elettroniche",
+    "id": "P7M",
+    "mime": [
+     "application/pkcs7-mime",
+     "application/pkcs7-signature"
+    ],
+    "nome": "Busta CAdES (PKCS#7/CMS)"
+   },
+   {
+    "esito": "AMMESSO",
+    "famiglia": "immagini raster",
+    "id": "TIFF",
+    "mime": [
+     "image/tiff"
+    ],
+    "nome": "TIFF"
+   },
+   {
+    "esito": "AMMESSO",
+    "famiglia": "immagini raster",
+    "id": "JPEG",
+    "mime": [
+     "image/jpeg"
+    ],
+    "nome": "JPEG / JFIF"
+   },
+   {
+    "esito": "AMMESSO",
+    "famiglia": "immagini raster",
+    "id": "PNG",
+    "mime": [
+     "image/png"
+    ],
+    "nome": "PNG"
+   },
+   {
+    "esito": "AMMESSO",
+    "famiglia": "testo",
+    "id": "TXT",
+    "mime": [
+     "text/plain"
+    ],
+    "nome": "Testo semplice"
+   },
+   {
+    "esito": "AMMESSO",
+    "famiglia": "documenti modificabili",
+    "id": "ODF",
+    "mime": [
+     "application/vnd.oasis.opendocument.text",
+     "application/vnd.oasis.opendocument.spreadsheet",
+     "application/vnd.oasis.opendocument.presentation"
+    ],
+    "nome": "OpenDocument (ISO/IEC 26300)"
+   },
+   {
+    "esito": "AMMESSO",
+    "famiglia": "documenti modificabili",
+    "id": "OOXML",
+    "mime": [
+     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+     "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    ],
+    "nome": "Office Open XML (ISO/IEC 29500)"
+   },
+   {
+    "esito": "AMMESSO",
+    "famiglia": "posta elettronica",
+    "id": "EML",
+    "mime": [
+     "message/rfc822"
+    ],
+    "nome": "Messaggio di posta (RFC 5322)"
+   },
+   {
+    "esito": "DA_CONVERTIRE",
+    "famiglia": "documenti modificabili",
+    "id": "OFFICE_BINARIO",
+    "mime": [
+     "application/msword",
+     "application/vnd.ms-excel",
+     "application/vnd.ms-powerpoint"
+    ],
+    "nome": "Formati binari Microsoft Office 97-2003 (DOC, XLS, PPT)"
+   },
+   {
+    "esito": "RIFIUTATO",
+    "famiglia": "—",
+    "id": "NON_IDENTIFICATO",
+    "mime": [],
+    "nome": "File non identificato dal contenuto"
+   }
+  ],
+  "norm_ref": "Linee guida AgID sul documento informatico (2021), Allegato 2 «Formati di file e riversamento»",
+  "valido_dal": "2026-10-31",
+  "versione": "1"
+ },
+ "formato": "verumdoc-fonti-repository-1",
+ "frontend": {
+  "nomi_ruoli": {
+   "ADMIN_TENANT": "Amministrazione dell'ente",
+   "API_SYSTEM": "Sistema versante",
+   "OPERATORE": "Operatore",
+   "RSC_CONSERVATORE": "Responsabile del servizio",
+   "SUPER_ADMIN": "Amministrazione del servizio",
+   "VIEWER": "Consultazione"
+  },
+  "route": [
+   {
+    "menu": null,
+    "pagina": "LoginPage",
+    "percorso": "/login",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   },
+   {
+    "menu": null,
+    "pagina": "AttivaPage",
+    "percorso": "/attiva",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   },
+   {
+    "menu": null,
+    "pagina": null,
+    "percorso": "/",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   },
+   {
+    "menu": null,
+    "pagina": "PreferenzePage",
+    "percorso": "/preferenze",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   },
+   {
+    "menu": null,
+    "pagina": "NotifichePreferenzePage",
+    "percorso": "/preferenze/notifiche",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   },
+   {
+    "menu": null,
+    "pagina": "CredenzialiPage",
+    "percorso": "/preferenze/credenziali",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Servizio",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "VIEWER",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Quadro del servizio"
+    },
+    "pagina": "OverviewPage",
+    "percorso": "/overview",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Versamento",
+     "permesso": "versamento:esegui",
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT",
+      "OPERATORE"
+     ],
+     "scope": "versamento:ud",
+     "voce": "Versa un documento"
+    },
+    "pagina": "VersamentoLivePage",
+    "percorso": "/versamento",
+    "permesso": "versamento:esegui",
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT",
+     "OPERATORE"
+    ],
+    "scope": "versamento:ud"
+   },
+   {
+    "menu": {
+     "area": "Versamento",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Pacchetti in arrivo"
+    },
+    "pagina": "VersamentPage",
+    "percorso": "/versamenti",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Archivio",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "VIEWER",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Pacchetti conservati"
+    },
+    "pagina": "AIPPage",
+    "percorso": "/aip",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Integrità",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "VIEWER",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Blocchi"
+    },
+    "pagina": "BlockchainExplorerPage",
+    "percorso": "/blockchain",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Integrità",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Catena delle impronte"
+    },
+    "pagina": "HashchainPage",
+    "percorso": "/hashchain",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "ADMIN_TENANT",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Archivio",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "VIEWER",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Ricerca"
+    },
+    "pagina": "SearchPage",
+    "percorso": "/search",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Esibizioni",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "VIEWER",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Esibizioni e copie"
+    },
+    "pagina": "DistributionPage",
+    "percorso": "/distribution",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "VIEWER",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Enti",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Classi documentali"
+    },
+    "pagina": "ClassiDocumentaliPage",
+    "percorso": "/classi-documentali",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "ADMIN_TENANT",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Enti",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN"
+     ],
+     "scope": null,
+     "voce": "Enti serviti"
+    },
+    "pagina": "TenantsPage",
+    "percorso": "/tenants",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Enti",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT"
+     ],
+     "scope": null,
+     "voce": "Utenti e chiavi API"
+    },
+    "pagina": "UtentiPage",
+    "percorso": "/utenti",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Servizio",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Notifiche"
+    },
+    "pagina": "NotifichePage",
+    "percorso": "/notifiche",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Conformità",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Livelli di servizio"
+    },
+    "pagina": "SLAPage",
+    "percorso": "/sla",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "ADMIN_TENANT",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Conformità",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Manuale di conservazione"
+    },
+    "pagina": "ManualePage",
+    "percorso": "/manuale",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Conformità",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Documentazione del servizio"
+    },
+    "pagina": "DocumentazioneServizioPage",
+    "percorso": "/documentazione-servizio",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Conformità",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Registro delle operazioni"
+    },
+    "pagina": "AuditLogPage",
+    "percorso": "/audit",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Archivio",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Fascicoli"
+    },
+    "pagina": "FascicoliPage",
+    "percorso": "/fascicoli",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Conformità",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Contratti"
+    },
+    "pagina": "ContrattiPage",
+    "percorso": "/contratti",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Conformità",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Nomine"
+    },
+    "pagina": "NomineRSCPage",
+    "percorso": "/nomine-rsc",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Servizio",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Messaggi non elaborati"
+    },
+    "pagina": "CodeScartoPage",
+    "percorso": "/code-scarto",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "VIEWER"
+     ],
+     "scope": null,
+     "voce": "Impostazioni e regole"
+    },
+    "pagina": "ConfImpostazioniPage",
+    "percorso": "/configurazione",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "VIEWER"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "VIEWER"
+     ],
+     "scope": null,
+     "voce": "Profili di metadati"
+    },
+    "pagina": "ConfProfiliPage",
+    "percorso": "/configurazione/profili",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "VIEWER"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT"
+     ],
+     "scope": null,
+     "voce": "Classi e accordi"
+    },
+    "pagina": "ConfClassiAccordiPage",
+    "percorso": "/configurazione/classi-accordi",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Quote degli enti"
+    },
+    "pagina": "ConfQuotePage",
+    "percorso": "/configurazione/quote",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "VIEWER"
+     ],
+     "scope": null,
+     "voce": "Verifica delle firme"
+    },
+    "pagina": "ConfFirmePage",
+    "percorso": "/configurazione/firme",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "VIEWER"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "VIEWER"
+     ],
+     "scope": null,
+     "voce": "Catalogo dei formati"
+    },
+    "pagina": "ConfFormatiPage",
+    "percorso": "/configurazione/formati",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "VIEWER"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "VIEWER"
+     ],
+     "scope": null,
+     "voce": "Ciclo di vita automatico"
+    },
+    "pagina": "ConfCicloVitaPage",
+    "percorso": "/configurazione/ciclo-vita",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "VIEWER"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT"
+     ],
+     "scope": null,
+     "voce": "Accesso e notifiche"
+    },
+    "pagina": "ConfAccessoPage",
+    "percorso": "/configurazione/accesso",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Fornitori di firma e marca"
+    },
+    "pagina": "ConfFirmaQualificataPage",
+    "percorso": "/configurazione/firma-qualificata",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Conformità",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Firme del responsabile"
+    },
+    "pagina": "FirmeResponsabilePage",
+    "percorso": "/firme-responsabile",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Enti",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT"
+     ],
+     "scope": null,
+     "voce": "Inviti e metodi d'accesso"
+    },
+    "pagina": "InvitiPage",
+    "percorso": "/utenti/inviti",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Enti",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT"
+     ],
+     "scope": null,
+     "voce": "Ruoli personalizzati"
+    },
+    "pagina": "RuoliPage",
+    "percorso": "/utenti/ruoli",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT"
+     ],
+     "scope": null,
+     "voce": "Bozze"
+    },
+    "pagina": "ConfBozzePage",
+    "percorso": "/configurazione/bozze",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": null,
+    "pagina": "ConfBozzaPage",
+    "percorso": "/configurazione/bozze/:id",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT"
+     ],
+     "scope": null,
+     "voce": "Proposte"
+    },
+    "pagina": "ConfPropostePage",
+    "percorso": "/configurazione/proposte",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Configurazione",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT",
+      "OPERATORE"
+     ],
+     "scope": null,
+     "voce": "Validatore"
+    },
+    "pagina": "ValidatorePage",
+    "percorso": "/configurazione/validatore",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT",
+     "OPERATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Canali",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT"
+     ],
+     "scope": null,
+     "voce": "Account SFTP"
+    },
+    "pagina": "CanaliSftpPage",
+    "percorso": "/canali/sftp",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Canali",
+     "permesso": null,
+     "ruoli": [
+      "ADMIN_TENANT"
+     ],
+     "scope": null,
+     "voce": "Webhook"
+    },
+    "pagina": "CanaliWebhookPage",
+    "percorso": "/canali/webhook",
+    "permesso": null,
+    "ruoli": [
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Canali",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE",
+      "ADMIN_TENANT"
+     ],
+     "scope": null,
+     "voce": "Canali PEC"
+    },
+    "pagina": "CanaliPecPage",
+    "percorso": "/canali/pec",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE",
+     "ADMIN_TENANT"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Integrità",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Registro e verifiche"
+    },
+    "pagina": "RegistroPage",
+    "percorso": "/registro",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Pratiche",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Pratiche"
+    },
+    "pagina": "PratichePage",
+    "percorso": "/pratiche",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": {
+     "area": "Pratiche",
+     "permesso": null,
+     "ruoli": [
+      "SUPER_ADMIN",
+      "ADMIN_TENANT",
+      "OPERATORE",
+      "RSC_CONSERVATORE"
+     ],
+     "scope": null,
+     "voce": "Nuova pratica"
+    },
+    "pagina": "NuovaPraticaPage",
+    "percorso": "/pratiche/nuova",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": null,
+    "pagina": "PraticaPage",
+    "percorso": "/pratiche/:id",
+    "permesso": null,
+    "ruoli": [
+     "SUPER_ADMIN",
+     "ADMIN_TENANT",
+     "OPERATORE",
+     "RSC_CONSERVATORE"
+    ],
+    "scope": null
+   },
+   {
+    "menu": null,
+    "pagina": "DaRealizzarePage",
+    "percorso": "/da-realizzare/:funzione",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   },
+   {
+    "menu": null,
+    "pagina": null,
+    "percorso": "/*",
+    "permesso": null,
+    "ruoli": null,
+    "scope": null
+   }
+  ]
+ },
+ "impostazioni": [
+  {
+   "applicata_da": "gateway (accesso), onboarding (inviti)",
+   "codice": "ACCESSO_BLOCCO_MINUTI",
+   "descrizione": "Minuti di blocco dopo troppi tentativi sbagliati",
+   "gruppo": "accesso",
+   "norm_ref": null,
+   "predefinito": 15,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "gateway (accesso), onboarding (inviti)",
+   "codice": "ACCESSO_METODI_AMMESSI",
+   "descrizione": "Metodi con cui le persone accedono: SPID_CIE (tramite aggregatore), PASSKEY, PASSWORD_TOTP (password più codice a tempo). Il conservatore li abilita, l'ente sceglie fra quelli abilitati",
+   "gruppo": "accesso",
+   "norm_ref": "CAD, art. 64 (SPID e CIE per l'accesso ai servizi in rete)",
+   "predefinito": [
+    "SPID_CIE"
+   ],
+   "riservata": false,
+   "tipo": "codes"
+  },
+  {
+   "applicata_da": "gateway (gestione delle proprie credenziali)",
+   "codice": "ACCESSO_RIAUTENTICAZIONE_MINUTI",
+   "descrizione": "Minuti di validità della conferma dell'identità (password e codice a tempo, o passkey) richiesta per modificare le proprie credenziali nella console",
+   "gruppo": "accesso",
+   "norm_ref": null,
+   "predefinito": 5,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "gateway (accesso), onboarding (inviti)",
+   "codice": "ACCESSO_TENTATIVI_MASSIMI",
+   "descrizione": "Tentativi sbagliati (password, codice a tempo o d'invito) dopo cui l'accesso si blocca per un po'",
+   "gruppo": "accesso",
+   "norm_ref": null,
+   "predefinito": 5,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "ciclo-vita (annullamento: API e lavoratore)",
+   "codice": "ANNULLAMENTO_DOPPIA_APPROVAZIONE",
+   "descrizione": "Doppia approvazione dell'annullamento (quattro occhi): SEMPRE, solo DOPO_CONSERVAZIONE o MAI; l'ente può solo renderla più severa",
+   "gruppo": "annullamento",
+   "norm_ref": null,
+   "predefinito": "DOPO_CONSERVAZIONE",
+   "riservata": false,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "ciclo-vita (lavoratore: autorizzazioni, nulla osta, annullamento)",
+   "codice": "ANNULLAMENTO_RICHIESTA_FIRMATA",
+   "descrizione": "Richiesta di annullamento con documento firmato che cita il versamento: FACOLTATIVA (se presente si verifica) o OBBLIGATORIA",
+   "gruppo": "firme",
+   "norm_ref": null,
+   "predefinito": "FACOLTATIVA",
+   "riservata": false,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "ciclo-vita (annullamento: API e lavoratore)",
+   "codice": "ANNULLAMENTO_RUOLI_APPROVAZIONE",
+   "descrizione": "Ruoli dell'ente che approvano un annullamento con doppia approvazione: sempre una persona diversa da chi l'ha chiesto, con un account nato prima della richiesta; solo ADMIN_TENANT (gli OPERATORE li crea l'amministratore dell'ente)",
+   "gruppo": "annullamento",
+   "norm_ref": null,
+   "predefinito": [
+    "ADMIN_TENANT"
+   ],
+   "riservata": true,
+   "tipo": "codes"
+  },
+  {
+   "applicata_da": "ciclo-vita (annullamento: API e lavoratore)",
+   "codice": "ANNULLAMENTO_RUOLI_DOPO_CONSERVAZIONE",
+   "descrizione": "Ruoli dell'ente che possono annullare un versamento già conservato (vuoto = annullamento dopo la conservazione non ammesso)",
+   "gruppo": "annullamento",
+   "norm_ref": null,
+   "predefinito": [
+    "ADMIN_TENANT"
+   ],
+   "riservata": true,
+   "tipo": "codes"
+  },
+  {
+   "applicata_da": "ciclo-vita (annullamento: API e lavoratore)",
+   "codice": "ANNULLAMENTO_RUOLI_PRIMA_CONSERVAZIONE",
+   "descrizione": "Ruoli dell'ente che possono annullare un versamento non ancora conservato (vuoto = annullamento non ammesso in quello stato)",
+   "gruppo": "annullamento",
+   "norm_ref": null,
+   "predefinito": [
+    "ADMIN_TENANT",
+    "OPERATORE",
+    "API_SYSTEM"
+   ],
+   "riservata": true,
+   "tipo": "codes"
+  },
+  {
+   "applicata_da": "hashchain (prove d'inclusione)",
+   "codice": "ATTESTAZIONE_SIGILLO",
+   "descrizione": "Sigillo qualificato sull'attestazione del ciclo di vita nelle prove d'inclusione: SEMPRE, SU_RICHIESTA (parametro «sigillo») o DISATTIVO",
+   "gruppo": "firma_qualificata",
+   "norm_ref": null,
+   "predefinito": "DISATTIVO",
+   "riservata": true,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "hashchain (export dell'audit)",
+   "codice": "AUDIT_EXPORT_PERIODO_MINUTI",
+   "descrizione": "Durata dei periodi dell'audit esportati nel WORM (minuti)",
+   "gruppo": "audit",
+   "norm_ref": null,
+   "predefinito": 15,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "hashchain (CronJob verifica-audit)",
+   "codice": "AUDIT_VERIFICA_COMPLETA_GIORNO",
+   "descrizione": "Giorno del mese della verifica COMPLETA dell'audit (tutti i segmenti nel WORM); negli altri giorni la verifica è incrementale",
+   "gruppo": "audit",
+   "norm_ref": null,
+   "predefinito": 1,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "hashchain (CronJob verifica-audit)",
+   "codice": "AUDIT_VERIFICA_FINESTRA_GIORNI",
+   "descrizione": "Verifica giornaliera INCREMENTALE dell'audit: segmenti nel WORM degli ultimi giorni (agganciati al segmento precedente)",
+   "gruppo": "audit",
+   "norm_ref": null,
+   "predefinito": 2,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "hashchain (checkpoint)",
+   "codice": "CATENA_MARCA_INTERVALLO_MINUTI",
+   "descrizione": "Minuti al più fra due marche temporali dell'ultimo checkpoint del registro (ancoraggio esterno della catena)",
+   "gruppo": "firma_qualificata",
+   "norm_ref": null,
+   "predefinito": 60,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "ciclo-vita (lavoratore: autorizzazioni, nulla osta, annullamento)",
+   "codice": "CICLO_VITA_FIRMATARI_AUTORIZZATI",
+   "descrizione": "Firmatari ammessi per l'autorizzazione allo scarto e la richiesta di annullamento: codice fiscale del titolare del certificato o impronta SHA-256 del certificato. Vuoto = nessuno (documento rifiutato)",
+   "gruppo": "firme",
+   "norm_ref": "DPCM 3/12/2013 conservazione, art. 7; Linee guida AgID 2021, §4.11",
+   "predefinito": [],
+   "riservata": true,
+   "tipo": "codes"
+  },
+  {
+   "applicata_da": "ciclo-vita (lavoratore: autorizzazioni, nulla osta, annullamento)",
+   "codice": "CICLO_VITA_FIRMATARI_NULLA_OSTA",
+   "descrizione": "Firmatari ammessi per il nulla osta allo scarto (Soprintendenza competente): codice fiscale o impronta SHA-256 del certificato. Un firmatario non ammesso segue NULLA_OSTA_FIRMA (BLOCCANTE o AVVISO)",
+   "gruppo": "firme",
+   "norm_ref": "D.Lgs. 42/2004, art. 21",
+   "predefinito": [],
+   "riservata": true,
+   "tipo": "codes"
+  },
+  {
+   "applicata_da": "ciclo-vita (lavoratore: autorizzazioni, nulla osta, annullamento)",
+   "codice": "CICLO_VITA_FIRME_LIVELLO",
+   "descrizione": "Livello di verifica delle firme di autorizzazione allo scarto, nulla osta e richiesta di annullamento: CRITTOGRAFICA o CON_REVOCHE (OCSP/CRL)",
+   "gruppo": "firme",
+   "norm_ref": "Regolamento (UE) 910/2014 (eIDAS), art. 32",
+   "predefinito": "CRITTOGRAFICA",
+   "riservata": false,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "hashchain (rimarcatura), signature",
+   "codice": "FIRMA_ALGORITMI_AMMESSI",
+   "descrizione": "Algoritmi d'impronta ancora considerati sicuri: le firme e le marche fatte con un algoritmo tolto da qui si rimarcano",
+   "gruppo": "firma_qualificata",
+   "norm_ref": "ETSI TS 119 312 (algoritmi crittografici)",
+   "predefinito": [
+    "sha256",
+    "sha384",
+    "sha512"
+   ],
+   "riservata": true,
+   "tipo": "codes"
+  },
+  {
+   "applicata_da": "signature (firma e marca)",
+   "codice": "FIRMA_ALGORITMO_IMPRONTA",
+   "descrizione": "Algoritmo d'impronta delle firme e delle marche del conservatore",
+   "gruppo": "firma_qualificata",
+   "norm_ref": "ETSI TS 119 312 (algoritmi crittografici)",
+   "predefinito": "sha256",
+   "riservata": true,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "signature (firma dei documenti)",
+   "codice": "FIRMA_LIVELLO_DOCUMENTI",
+   "descrizione": "Livello ETSI delle firme del conservatore (IPdA, RdV, manuale, piano): B-LTA (con marca d'archivio), B-LT (con certificati e revoche), B-T (solo marca)",
+   "gruppo": "firma_qualificata",
+   "norm_ref": "ETSI EN 319 122-1 (CAdES), EN 319 142-1 (PAdES)",
+   "predefinito": "B-LT",
+   "riservata": true,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "hashchain (rimarcatura)",
+   "codice": "FIRMA_RINNOVO_PREAVVISO_GIORNI",
+   "descrizione": "Giorni prima della scadenza del certificato di firma o della TSA in cui i documenti firmati si rimarcano",
+   "gruppo": "firma_qualificata",
+   "norm_ref": null,
+   "predefinito": 90,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "hashchain (documenti del conservatore, conservazione)",
+   "codice": "FIRMA_SENZA_FORNITORE",
+   "descrizione": "Senza un fornitore qualificato di firma: BLOCCA (i documenti del conservatore restano da firmare, il PdA non va a CONSERVATO e scatta l'allarme) o NON_FIRMATO (si dichiarano non firmati, con allarme, e si firmano appena il fornitore è attivo)",
+   "gruppo": "firma_qualificata",
+   "norm_ref": "Linee guida AgID 2021, §4.7 e Allegato 4 (indice e rapporto firmati)",
+   "predefinito": "NON_FIRMATO",
+   "riservata": true,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "hashchain (sigillo dei documenti)",
+   "codice": "FIRMA_TENTATIVI_MASSIMI",
+   "descrizione": "Errori dopo i quali un documento da sigillare va in ERRORE (allarme, nessun nuovo tentativo né firma pagata finché un operatore non lo rimette DA_FIRMARE)",
+   "gruppo": "firma_qualificata",
+   "norm_ref": null,
+   "predefinito": 10,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "gateway (accesso), onboarding (inviti)",
+   "codice": "INVITO_VALIDITA_ORE",
+   "descrizione": "Ore di validità del collegamento d'invito inviato per e-mail",
+   "gruppo": "accesso",
+   "norm_ref": null,
+   "predefinito": 72,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "notification (campanella e posta)",
+   "codice": "NOTIFICHE_OBBLIGATORIE",
+   "descrizione": "Avvisi che le persone non possono spegnere, nella forma CATEGORIA.CANALE (es. ALLARMI.EMAIL); l'ente può solo aggiungerne",
+   "gruppo": "notifiche",
+   "norm_ref": null,
+   "predefinito": [],
+   "riservata": false,
+   "tipo": "codes"
+  },
+  {
+   "applicata_da": "notification (lavoratore della posta, pulizia periodica)",
+   "codice": "NOTIFICHE_PERSONALI_GIORNI",
+   "descrizione": "Giorni dopo i quali le voci personali della campanella (modifiche delle proprie credenziali) si cancellano dal lavoratore della posta; il database non scende mai sotto 30 giorni",
+   "gruppo": "notifiche",
+   "norm_ref": null,
+   "predefinito": 365,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "ciclo-vita (lavoratore: autorizzazioni, nulla osta, annullamento)",
+   "codice": "NULLA_OSTA_FIRMA",
+   "descrizione": "Nulla osta allo scarto senza firma: AVVISO (accettato con avviso nella pratica) o BLOCCANTE (rifiutato); se firmato, la firma si verifica sempre",
+   "gruppo": "firme",
+   "norm_ref": "D.Lgs. 42/2004, art. 21; DPR 445/2000, art. 69",
+   "predefinito": "AVVISO",
+   "riservata": false,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "gateway (accesso), onboarding (inviti)",
+   "codice": "PASSWORD_LUNGHEZZA_MINIMA",
+   "descrizione": "Lunghezza minima della password (accesso con password e codice a tempo)",
+   "gruppo": "accesso",
+   "norm_ref": null,
+   "predefinito": 12,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "distribution (PdD ZIP)",
+   "codice": "PDD_VALIDITA_ORE",
+   "descrizione": "Ore di validità di un pacchetto di distribuzione ZIP (anche di restituzione); scaduto, si rigenera con un clic",
+   "gruppo": "restituzione",
+   "norm_ref": null,
+   "predefinito": 72,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "notification (canale PEC)",
+   "codice": "PEC_CASI_USO",
+   "descrizione": "Comunicazioni formali all'ente inviate ANCHE per PEC (all'indirizzo PEC del referente), con ricevute di accettazione e consegna: SCARTO (proposta ed esecuzione), RESTITUZIONE, RIVERSAMENTO (in uscita), SCADENZE (copie di un versamento rifiutato in scadenza). Vuoto = nessuna (comportamento di prima); l'ente può solo aggiungerne",
+   "gruppo": "pec",
+   "norm_ref": "DPR 68/2005; CAD art. 48 (trasmissione con PEC)",
+   "predefinito": [],
+   "riservata": false,
+   "tipo": "codes"
+  },
+  {
+   "applicata_da": "notification (console PEC)",
+   "codice": "PEC_CONSEGNA_ATTESA_ORE",
+   "descrizione": "Ore dopo l'accettazione oltre le quali un messaggio PEC senza ricevuta di consegna si segnala in console come «consegna non confermata» (il gestore manda l'avviso di mancata consegna entro 24 ore)",
+   "gruppo": "pec",
+   "norm_ref": "DM 2/11/2005, art. 12 (avviso di mancata consegna per superamento dei tempi massimi)",
+   "predefinito": 24,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "libs/shared/security/quote (tutti i servizi)",
+   "codice": "QUOTA_PIANO_BUSINESS_PDV_GIORNO",
+   "descrizione": "Pacchetti di versamento al giorno del piano «business»",
+   "gruppo": "quote",
+   "norm_ref": null,
+   "predefinito": 20000,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "libs/shared/security/quote (tutti i servizi)",
+   "codice": "QUOTA_PIANO_BUSINESS_RICHIESTE_MINUTO",
+   "descrizione": "Richieste al minuto su tutte le API del piano «business»",
+   "gruppo": "quote",
+   "norm_ref": null,
+   "predefinito": 600,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "libs/shared/security/quote (tutti i servizi)",
+   "codice": "QUOTA_PIANO_ENTERPRISE_PDV_GIORNO",
+   "descrizione": "Pacchetti di versamento al giorno del piano «enterprise»",
+   "gruppo": "quote",
+   "norm_ref": null,
+   "predefinito": 200000,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "libs/shared/security/quote (tutti i servizi)",
+   "codice": "QUOTA_PIANO_ENTERPRISE_RICHIESTE_MINUTO",
+   "descrizione": "Richieste al minuto su tutte le API del piano «enterprise»",
+   "gruppo": "quote",
+   "norm_ref": null,
+   "predefinito": 6000,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "libs/shared/security/quote (tutti i servizi)",
+   "codice": "QUOTA_PIANO_STARTER_PDV_GIORNO",
+   "descrizione": "Pacchetti di versamento al giorno del piano «starter»",
+   "gruppo": "quote",
+   "norm_ref": null,
+   "predefinito": 1000,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "libs/shared/security/quote (tutti i servizi)",
+   "codice": "QUOTA_PIANO_STARTER_RICHIESTE_MINUTO",
+   "descrizione": "Richieste al minuto su tutte le API del piano «starter»",
+   "gruppo": "quote",
+   "norm_ref": null,
+   "predefinito": 120,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "gateway (quota giornaliera)",
+   "codice": "QUOTA_RALLENTAMENTO_SECONDI",
+   "descrizione": "Con RALLENTA, oltre la quota: secondi fra un versamento e il successivo",
+   "gruppo": "consumi",
+   "norm_ref": null,
+   "predefinito": 30,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "gateway (quota giornaliera)",
+   "codice": "QUOTA_SUPERAMENTO",
+   "descrizione": "Oltre la quota giornaliera dei versamenti: RIFIUTA (429 fino a mezzanotte) o RALLENTA (un versamento ogni QUOTA_RALLENTAMENTO_SECONDI)",
+   "gruppo": "consumi",
+   "norm_ref": null,
+   "predefinito": "RIFIUTA",
+   "riservata": false,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "aip-builder, hashchain, ciclo-vita (lavoratore: rinnovo)",
+   "codice": "RETENTION_PERMANENTE_ANNI",
+   "descrizione": "Anni di blocco WORM (Object Lock) per le classi a conservazione permanente e per allegati, verbali e atti; si rinnova da solo",
+   "gruppo": "retention",
+   "norm_ref": "Linee guida AgID 2021, §4.6 e allegato 4",
+   "predefinito": 30,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "aip-builder, hashchain, ciclo-vita (lavoratore: rinnovo)",
+   "codice": "RETENTION_RINNOVO_SOGLIA_ANNI",
+   "descrizione": "Il blocco WORM si rinnova di RETENTION_PERMANENTE_ANNI quando ne mancano meno di questi anni (mai ridotto)",
+   "gruppo": "retention",
+   "norm_ref": null,
+   "predefinito": 5,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "ciclo-vita (riversamento in uscita)",
+   "codice": "RIVERSAMENTO_USCITA_AUTORIZZAZIONE_PRODUTTORE",
+   "descrizione": "Riversamento in uscita verso un altro conservatore: RICHIESTA (predefinito: prima dell'esecuzione serve l'autorizzazione firmata del produttore che cita la pratica, riverificata dal lavoratore come per la restituzione) o NON_RICHIESTA (deroga per un singolo ente, concessa solo dal conservatore quando il contratto regola già il trasferimento). Si fissa alla creazione della pratica (VD-P-155)",
+   "gruppo": "riversamento",
+   "norm_ref": null,
+   "predefinito": "RICHIESTA",
+   "riservata": true,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "onboarding (ruoli personalizzati), gateway (accesso)",
+   "codice": "RUOLI_PERMESSI_CONCEDIBILI",
+   "descrizione": "Permessi che l'ente può mettere nei ruoli personalizzati. Esecuzione e autorizzazione dello scarto, approvazione degli annullamenti, firmatari, «chiudi con eccezioni» e gestione di utenti e accessi non sono mai delegabili",
+   "gruppo": "ruoli",
+   "norm_ref": null,
+   "predefinito": [
+    "archivio:consulta",
+    "versamento:esegui",
+    "esibizione:richiedi",
+    "rettifica:richiedi",
+    "annullamento:richiedi"
+   ],
+   "riservata": true,
+   "tipo": "codes"
+  },
+  {
+   "applicata_da": "ciclo-vita (lavoro periodico del lavoratore)",
+   "codice": "SCARTO_MINIMIZZAZIONE_GIORNI",
+   "descrizione": "Giorni dopo lo scarto oltre i quali dei pacchetti scartati restano solo i dati dell'elenco di scarto (identificativo, classe, date, impronta, pratica, verbale): gli altri metadati si cancellano",
+   "gruppo": "scarto",
+   "norm_ref": "Regolamento (UE) 2016/679, art. 5, par. 1, lett. c) ed e)",
+   "predefinito": 30,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "ciclo-vita (lavoro periodico del lavoratore)",
+   "codice": "SCARTO_PROPOSTA_AUTOMATICA",
+   "descrizione": "Proposta di scarto automatica: il sistema prepara periodicamente una pratica in bozza con l'anteprima dei pacchetti scartabili e avvisa l'ente; l'esecuzione resta manuale (autorizzazioni e nulla osta)",
+   "gruppo": "scarto",
+   "norm_ref": "Linee guida AgID 2021, §4.11; D.Lgs. 42/2004, art. 21",
+   "predefinito": "DISATTIVA",
+   "riservata": false,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "ciclo-vita (lavoro periodico del lavoratore)",
+   "codice": "SCARTO_PROPOSTA_CLASSI_ESCLUSE",
+   "descrizione": "Codici delle classi documentali escluse dalla proposta di scarto automatica (restano scartabili con una proposta manuale)",
+   "gruppo": "scarto",
+   "norm_ref": null,
+   "predefinito": [],
+   "riservata": true,
+   "tipo": "codes"
+  },
+  {
+   "applicata_da": "ciclo-vita (lavoro periodico del lavoratore)",
+   "codice": "SCARTO_PROPOSTA_FREQUENZA_GIORNI",
+   "descrizione": "Ogni quanti giorni si prepara la proposta di scarto automatica",
+   "gruppo": "scarto",
+   "norm_ref": null,
+   "predefinito": 30,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "ciclo-vita (lavoro periodico del lavoratore)",
+   "codice": "SCARTO_RIPRESE_AUTOMATICHE",
+   "descrizione": "Riprese automatiche al più di uno scarto concluso con eccezioni, quando il blocco legale cessa (oltre: ripresa manuale o «chiudi con eccezioni» del conservatore)",
+   "gruppo": "scarto",
+   "norm_ref": null,
+   "predefinito": 3,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "ciclo-vita (lavoratore: scarto)",
+   "codice": "SCARTO_TENTATIVI_PDA",
+   "descrizione": "Tentativi al più per la cancellazione di un pacchetto con errori dello storage; oltre, eliminazione incompleta e allarme",
+   "gruppo": "scarto",
+   "norm_ref": null,
+   "predefinito": 5,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "gateway (accesso al portale)",
+   "codice": "SESSIONE_INATTIVITA_MINUTI_ADMIN_TENANT",
+   "descrizione": "Minuti di inattività dopo cui la sessione del portale del ruolo ADMIN_TENANT si chiude; l'ente può solo ridurre il valore del conservatore",
+   "gruppo": "sessione",
+   "norm_ref": null,
+   "predefinito": 15,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "gateway (accesso al portale)",
+   "codice": "SESSIONE_INATTIVITA_MINUTI_OPERATORE",
+   "descrizione": "Minuti di inattività dopo cui la sessione del portale del ruolo OPERATORE si chiude; l'ente può solo ridurre il valore del conservatore",
+   "gruppo": "sessione",
+   "norm_ref": null,
+   "predefinito": 30,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "gateway (accesso al portale)",
+   "codice": "SESSIONE_INATTIVITA_MINUTI_RSC_CONSERVATORE",
+   "descrizione": "Minuti di inattività dopo cui la sessione del portale del ruolo RSC_CONSERVATORE si chiude; l'ente può solo ridurre il valore del conservatore",
+   "gruppo": "sessione",
+   "norm_ref": null,
+   "predefinito": 15,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "gateway (accesso al portale)",
+   "codice": "SESSIONE_INATTIVITA_MINUTI_SUPER_ADMIN",
+   "descrizione": "Minuti di inattività dopo cui la sessione del portale del ruolo SUPER_ADMIN si chiude; l'ente può solo ridurre il valore del conservatore",
+   "gruppo": "sessione",
+   "norm_ref": null,
+   "predefinito": 15,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "gateway (accesso al portale)",
+   "codice": "SESSIONE_INATTIVITA_MINUTI_VIEWER",
+   "descrizione": "Minuti di inattività dopo cui la sessione del portale del ruolo VIEWER si chiude; l'ente può solo ridurre il valore del conservatore",
+   "gruppo": "sessione",
+   "norm_ref": null,
+   "predefinito": 30,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "sftp-ingest (accesso), onboarding (elenco degli indirizzi)",
+   "codice": "SFTP_ALLOWLIST_OBBLIGATORIA",
+   "descrizione": "OBBLIGATORIA: un account SFTP senza elenco di indirizzi non si collega; FACOLTATIVA: senza elenco si collega da ogni indirizzo",
+   "gruppo": "sftp",
+   "norm_ref": null,
+   "predefinito": "FACOLTATIVA",
+   "riservata": false,
+   "tipo": "choice"
+  },
+  {
+   "applicata_da": "sftp-ingest (accesso), onboarding (elenco degli indirizzi)",
+   "codice": "SFTP_ALLOWLIST_PREFISSO_MINIMO_IPV4",
+   "descrizione": "Rete IPv4 più ampia ammessa nell'elenco (prefisso minimo, es. 16 = /16)",
+   "gruppo": "sftp",
+   "norm_ref": null,
+   "predefinito": 16,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "sftp-ingest (accesso), onboarding (elenco degli indirizzi)",
+   "codice": "SFTP_ALLOWLIST_PREFISSO_MINIMO_IPV6",
+   "descrizione": "Rete IPv6 più ampia ammessa nell'elenco (prefisso minimo)",
+   "gruppo": "sftp",
+   "norm_ref": null,
+   "predefinito": 48,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "sftp-ingest (accesso), onboarding (elenco degli indirizzi)",
+   "codice": "SFTP_ALLOWLIST_VOCI_MASSIME",
+   "descrizione": "Indirizzi o reti al massimo nell'elenco di un account SFTP",
+   "gruppo": "sftp",
+   "norm_ref": null,
+   "predefinito": 20,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "gateway (pulizia dello staging), dashboard-api",
+   "codice": "STAGING_SCARTATI_GIORNI",
+   "descrizione": "Giorni per cui restano le copie di transito di un versamento rifiutato («Rielabora»); avviso al cliente 7 giorni prima",
+   "gruppo": "staging",
+   "norm_ref": null,
+   "predefinito": 90,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "hashchain (verifica continua)",
+   "codice": "VERIFICA_CAMPIONE_INCIDENTE_PDA",
+   "descrizione": "Pacchetti riletti subito, a campione, dopo un incidente dello storage (anomalia d'integrità o errori di lettura ripetuti)",
+   "gruppo": "verifiche",
+   "norm_ref": null,
+   "predefinito": 200,
+   "riservata": true,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "hashchain (verifica continua)",
+   "codice": "VERIFICA_CICLO_GIORNI",
+   "descrizione": "Ogni pacchetto si rilegge e si verifica almeno una volta in questi giorni; per enti o classi più critici il valore si può solo ridurre (verifica più frequente)",
+   "gruppo": "verifiche",
+   "norm_ref": "Linee guida AgID 2021, §4.7 (verifica periodica dell'integrità)",
+   "predefinito": 365,
+   "riservata": false,
+   "tipo": "int"
+  },
+  {
+   "applicata_da": "notification (webhook)",
+   "codice": "WEBHOOK_PORTE_AGGIUNTIVE",
+   "descrizione": "Porte di destinazione dei webhook ammesse oltre alla 443 (sempre ammessa); da allineare con la NetworkPolicy di uscita di notification",
+   "gruppo": "webhook",
+   "norm_ref": null,
+   "predefinito": [],
+   "riservata": true,
+   "tipo": "codes"
+  }
+ ],
+ "infrastruttura": {
+  "helm": {
+   "ambiente": "production",
+   "segnaposto": [
+    "global.awsAccountId",
+    "global.imageRegistry",
+    "global.imageTag",
+    "ingress.annotations.alb.ingress.kubernetes.io/certificate-arn",
+    "services.aip-builder.config.CONSERVATORE_CF",
+    "services.ciclo-vita.config.CONFERME_CHIAVI_PUBBLICHE",
+    "services.gateway.config.PDND_AUDIENCE",
+    "services.hashchain.config.TESTIMONE_VERIFICATORE",
+    "services.notification.config.SMTP_HOST",
+    "services.testimone.config.TESTIMONE_CHIAVI_REGISTRO",
+    "services.testimone.config.TESTIMONE_IMPRONTE_TOKEN_REGISTRO"
+   ],
+   "servizi": [
+    {
+     "cronjob": [],
+     "esposto": false,
+     "lavoratori": [],
+     "nome": "aip-builder",
+     "repliche": 2
+    },
+    {
+     "cronjob": [],
+     "esposto": true,
+     "lavoratori": [
+      "lavoratore"
+     ],
+     "nome": "ciclo-vita",
+     "repliche": 2
+    },
+    {
+     "cronjob": [],
+     "esposto": true,
+     "lavoratori": [
+      "scarti"
+     ],
+     "nome": "dashboard-api",
+     "repliche": 2
+    },
+    {
+     "cronjob": [],
+     "esposto": true,
+     "lavoratori": [
+      "lavoratori"
+     ],
+     "nome": "distribution",
+     "repliche": 2
+    },
+    {
+     "cronjob": [],
+     "esposto": true,
+     "lavoratori": [],
+     "nome": "frontend",
+     "repliche": 2
+    },
+    {
+     "cronjob": [
+      "db-manutenzione",
+      "pulizia-orfani",
+      "pulizia-staging"
+     ],
+     "esposto": true,
+     "lavoratori": [
+      "verifica-caricamenti"
+     ],
+     "nome": "gateway",
+     "repliche": 2
+    },
+    {
+     "cronjob": [
+      "verifica-audit"
+     ],
+     "esposto": true,
+     "lavoratori": [
+      "verifica"
+     ],
+     "nome": "hashchain",
+     "repliche": 1
+    },
+    {
+     "cronjob": [],
+     "esposto": true,
+     "lavoratori": [
+      "posta",
+      "webhook"
+     ],
+     "nome": "notification",
+     "repliche": 2
+    },
+    {
+     "cronjob": [],
+     "esposto": true,
+     "lavoratori": [],
+     "nome": "onboarding",
+     "repliche": 2
+    },
+    {
+     "cronjob": [],
+     "esposto": false,
+     "lavoratori": [
+      "lavoratore"
+     ],
+     "nome": "sftp-ingest",
+     "repliche": 2
+    },
+    {
+     "cronjob": [],
+     "esposto": false,
+     "lavoratori": [],
+     "nome": "signature",
+     "repliche": 2
+    },
+    {
+     "cronjob": [],
+     "esposto": true,
+     "lavoratori": [],
+     "nome": "testimone",
+     "repliche": 2
+    },
+    {
+     "cronjob": [],
+     "esposto": false,
+     "lavoratori": [],
+     "nome": "validation",
+     "repliche": 2
+    },
+    {
+     "cronjob": [],
+     "esposto": false,
+     "lavoratori": [],
+     "nome": "verifica-firme",
+     "repliche": 2
+    }
+   ]
+  },
+  "terraform": {
+   "ambienti": [
+    "prod",
+    "staging",
+    "testimone"
+   ],
+   "backup_giorni": "35",
+   "moduli": [
+    "ecr",
+    "efs",
+    "eks",
+    "elasticache",
+    "iam_servizi",
+    "kafka",
+    "kms",
+    "opensearch",
+    "rds",
+    "s3",
+    "vpc",
+    "waf"
+   ],
+   "object_lock": "COMPLIANCE",
+   "postgresql": "16.1",
+   "rds_cifrato": true,
+   "rds_protezione_eliminazione": true,
+   "regione": "eu-south-1",
+   "regione_replica": "eu-central-1",
+   "retention_predefinita_anni": "10"
+  }
+ },
+ "permessi": {
+  "concedibili": [
+   "archivio:consulta",
+   "versamento:esegui",
+   "esibizione:richiedi",
+   "rettifica:richiedi",
+   "annullamento:richiedi"
+  ],
+  "mai_delegabili": [
+   "accesso:configura",
+   "annullamento:approva",
+   "documentazione:genera",
+   "firma_fornitori:gestisci",
+   "firmatari:gestisci",
+   "pec_canali:gestisci",
+   "pratica:chiudi_eccezioni",
+   "pratica:riprendi",
+   "ruoli:gestisci",
+   "scarto:autorizza",
+   "scarto:esegui",
+   "utenti:gestisci"
+  ],
+  "modelli": {
+   "ADMIN_TENANT": [
+    "accesso:configura",
+    "annullamento:approva",
+    "annullamento:richiedi",
+    "archivio:consulta",
+    "esibizione:richiedi",
+    "rettifica:richiedi",
+    "ruoli:gestisci",
+    "scarto:autorizza",
+    "utenti:gestisci",
+    "versamento:esegui"
+   ],
+   "API_SYSTEM": [
+    "archivio:consulta",
+    "versamento:esegui"
+   ],
+   "OPERATORE": [
+    "annullamento:richiedi",
+    "archivio:consulta",
+    "esibizione:richiedi",
+    "rettifica:richiedi",
+    "versamento:esegui"
+   ],
+   "RSC_CONSERVATORE": [
+    "accesso:configura",
+    "annullamento:approva",
+    "annullamento:richiedi",
+    "archivio:consulta",
+    "documentazione:genera",
+    "esibizione:richiedi",
+    "firma_fornitori:gestisci",
+    "firmatari:gestisci",
+    "pec_canali:gestisci",
+    "pratica:chiudi_eccezioni",
+    "pratica:riprendi",
+    "rettifica:richiedi",
+    "ruoli:gestisci",
+    "scarto:autorizza",
+    "scarto:esegui",
+    "utenti:gestisci",
+    "versamento:esegui"
+   ],
+   "SUPER_ADMIN": [
+    "accesso:configura",
+    "annullamento:approva",
+    "annullamento:richiedi",
+    "archivio:consulta",
+    "documentazione:genera",
+    "esibizione:richiedi",
+    "firma_fornitori:gestisci",
+    "firmatari:gestisci",
+    "pec_canali:gestisci",
+    "pratica:chiudi_eccezioni",
+    "pratica:riprendi",
+    "rettifica:richiedi",
+    "ruoli:gestisci",
+    "scarto:autorizza",
+    "scarto:esegui",
+    "utenti:gestisci",
+    "versamento:esegui"
+   ],
+   "VIEWER": [
+    "archivio:consulta"
+   ]
+  },
+  "permessi": {
+   "accesso:configura": "Scegliere i metodi d'accesso dell'ente",
+   "annullamento:approva": "Approvare un annullamento come seconda persona (solo l'amministratore dell'ente)",
+   "annullamento:richiedi": "Chiedere l'annullamento di un versamento",
+   "archivio:consulta": "Vedere i pacchetti dell'ente, il loro stato e i rapporti di versamento",
+   "documentazione:genera": "Generare e scaricare il manuale di conservazione, il piano della sicurezza e la documentazione del servizio (solo il conservatore)",
+   "esibizione:richiedi": "Chiedere pacchetti di distribuzione ed esibizioni",
+   "firma_fornitori:gestisci": "Registrare e provare i fornitori di firma, sigillo e marca temporale qualificati (solo il conservatore)",
+   "firmatari:gestisci": "Gestire i firmatari autorizzati (solo il conservatore)",
+   "pec_canali:gestisci": "Registrare e provare i canali PEC del conservatore e leggerne le ricevute (solo il conservatore)",
+   "pratica:chiudi_eccezioni": "Chiudere uno scarto con eccezioni (solo il conservatore)",
+   "pratica:riprendi": "Riprendere una pratica ferma dopo ripetuti errori del servizio (solo il conservatore)",
+   "rettifica:richiedi": "Chiedere la rettifica dei metadati di un versamento",
+   "ruoli:gestisci": "Creare e assegnare ruoli personalizzati",
+   "scarto:autorizza": "Autorizzare lo scarto come produttore (solo l'amministratore dell'ente)",
+   "scarto:esegui": "Eseguire lo scarto (solo il conservatore)",
+   "utenti:gestisci": "Invitare e gestire gli utenti dell'ente",
+   "versamento:esegui": "Versare pacchetti (API, SFTP, portale)"
+  },
+  "ruoli_base": [
+   "OPERATORE",
+   "VIEWER"
+  ],
+  "ruoli_conservatore": [
+   "RSC_CONSERVATORE",
+   "SUPER_ADMIN"
+  ]
+ },
+ "profili": [
+  {
+   "campi": 17,
+   "codice": "aggregazione_documentale",
+   "da_riscontrare": 16,
+   "estende": null,
+   "nome": "Aggregazione documentale (fascicolo o serie)",
+   "norm_ref": "Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici (2021), Allegato 5 — metadati delle aggregazioni documentali informatiche",
+   "obbligatori": 7,
+   "origine": null,
+   "valido_dal": "2022-01-01",
+   "versione": "1"
+  },
+  {
+   "campi": 18,
+   "codice": "aggregazione_documentale",
+   "da_riscontrare": 6,
+   "estende": null,
+   "nome": "Aggregazione documentale",
+   "norm_ref": "Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici, Allegato 5 «I metadati» (edizione maggio 2021, pubblicata su agid.gov.it) — §4",
+   "obbligatori": 9,
+   "origine": "allegato5",
+   "valido_dal": "2026-11-03",
+   "versione": "2"
+  },
+  {
+   "campi": 8,
+   "codice": "contratto",
+   "da_riscontrare": 8,
+   "estende": "documento_informatico",
+   "nome": "Contratto",
+   "norm_ref": "Profilo di servizio (l'Allegato 5 non ha un profilo dedicato ai contratti); D.Lgs. 36/2023 per i contratti pubblici — da riscontrare",
+   "obbligatori": 2,
+   "origine": null,
+   "valido_dal": "2022-01-01",
+   "versione": "1"
+  },
+  {
+   "campi": 8,
+   "codice": "contratto",
+   "da_riscontrare": 0,
+   "estende": "documento_informatico",
+   "nome": "Contratto",
+   "norm_ref": "Profilo di servizio (l'Allegato 5 non ha un profilo dedicato ai contratti); D.Lgs. 36/2023 per i contratti pubblici — profilo proprio del conservatore",
+   "obbligatori": 2,
+   "origine": "conservatore",
+   "valido_dal": "2026-11-03",
+   "versione": "2"
+  },
+  {
+   "campi": 7,
+   "codice": "documento_amministrativo_informatico",
+   "da_riscontrare": 7,
+   "estende": "documento_informatico",
+   "nome": "Documento amministrativo informatico",
+   "norm_ref": "Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici (2021), Allegato 5 — metadati del documento amministrativo informatico",
+   "obbligatori": 3,
+   "origine": null,
+   "valido_dal": "2022-01-01",
+   "versione": "1"
+  },
+  {
+   "campi": 8,
+   "codice": "documento_amministrativo_informatico",
+   "da_riscontrare": 0,
+   "estende": "documento_informatico",
+   "nome": "Documento amministrativo informatico",
+   "norm_ref": "Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici, Allegato 5 «I metadati» (edizione maggio 2021, pubblicata su agid.gov.it) — §3",
+   "obbligatori": 6,
+   "origine": "allegato5",
+   "valido_dal": "2026-11-03",
+   "versione": "2"
+  },
+  {
+   "campi": 33,
+   "codice": "documento_informatico",
+   "da_riscontrare": 24,
+   "estende": null,
+   "nome": "Documento informatico",
+   "norm_ref": "Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici (2021), Allegato 5 — metadati del documento informatico",
+   "obbligatori": 14,
+   "origine": null,
+   "valido_dal": "2022-01-01",
+   "versione": "1"
+  },
+  {
+   "campi": 37,
+   "codice": "documento_informatico",
+   "da_riscontrare": 0,
+   "estende": null,
+   "nome": "Documento informatico",
+   "norm_ref": "Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici, Allegato 5 «I metadati» (edizione maggio 2021, pubblicata su agid.gov.it) — §2",
+   "obbligatori": 18,
+   "origine": "allegato5",
+   "valido_dal": "2026-11-03",
+   "versione": "2"
+  },
+  {
+   "campi": 37,
+   "codice": "documento_informatico",
+   "da_riscontrare": 0,
+   "estende": null,
+   "nome": "Documento informatico",
+   "norm_ref": "Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici, Allegato 5 «I metadati» (edizione maggio 2021, pubblicata su agid.gov.it) — §2",
+   "obbligatori": 18,
+   "origine": "allegato5",
+   "valido_dal": "2026-11-10",
+   "versione": "3"
+  },
+  {
+   "campi": 12,
+   "codice": "fattura",
+   "da_riscontrare": 12,
+   "estende": "documento_informatico",
+   "nome": "Fattura elettronica",
+   "norm_ref": "DM MEF 17 giugno 2014, art. 3 (metadati dei documenti rilevanti ai fini tributari); specifiche tecniche FatturaPA — da riscontrare",
+   "obbligatori": 5,
+   "origine": null,
+   "valido_dal": "2022-01-01",
+   "versione": "1"
+  },
+  {
+   "campi": 12,
+   "codice": "fattura",
+   "da_riscontrare": 0,
+   "estende": "documento_informatico",
+   "nome": "Fattura elettronica",
+   "norm_ref": "DM MEF 17 giugno 2014, art. 3 (metadati dei documenti rilevanti ai fini tributari); specifiche tecniche FatturaPA — profilo proprio del conservatore",
+   "obbligatori": 5,
+   "origine": "conservatore",
+   "valido_dal": "2026-11-03",
+   "versione": "2"
+  },
+  {
+   "campi": 10,
+   "codice": "registro_protocollo",
+   "da_riscontrare": 10,
+   "estende": "documento_amministrativo_informatico",
+   "nome": "Registro giornaliero di protocollo",
+   "norm_ref": "DPCM 3 dicembre 2013 (protocollo informatico), art. 7 c. 5; Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici (2021), Allegato 5 — da riscontrare",
+   "obbligatori": 6,
+   "origine": null,
+   "valido_dal": "2022-01-01",
+   "versione": "1"
+  },
+  {
+   "campi": 6,
+   "codice": "registro_protocollo",
+   "da_riscontrare": 0,
+   "estende": "documento_amministrativo_informatico",
+   "nome": "Registro giornaliero di protocollo",
+   "norm_ref": "DPCM 3 dicembre 2013 (protocollo informatico), art. 7 c. 5; Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici (2021), Allegato 5 — profilo proprio del conservatore",
+   "obbligatori": 3,
+   "origine": "conservatore",
+   "valido_dal": "2026-11-03",
+   "versione": "2"
+  }
+ ],
+ "rilascio": {
+  "changelog": "changelog/CHANGELOG-2026-11-14-rilascio-R18_2.md",
+  "data": "2026-11-14",
+  "titolo": "CHANGELOG — R18.2 — Rimozione degli adattatori di compatibilità (14/11/2026)"
+ },
+ "runbook": [
+  {
+   "file": "docs/runbooks/audit_worm.md",
+   "titolo": "Audit nel WORM: export, verifica e differenze"
+  },
+  {
+   "file": "docs/runbooks/conferme_decisione.md",
+   "titolo": "Runbook — conferma firmata delle decisioni sensibili (R17, VD-P-164)"
+  },
+  {
+   "file": "docs/runbooks/disaster_recovery.md",
+   "titolo": "Disaster recovery: ripristino del database e ricostruzione del registro dal WORM"
+  },
+  {
+   "file": "docs/runbooks/health-check.md",
+   "titolo": "Runbook: Health Check Servizi"
+  },
+  {
+   "file": "docs/runbooks/migrazioni_audit.md",
+   "titolo": "Migrazioni sulle tabelle dell'audit e degli altri registri"
+  },
+  {
+   "file": "docs/runbooks/pratica_sospesa.md",
+   "titolo": "Runbook — pratica sospesa dopo i tentativi esauriti (`LC-409-TENTATIVI-ESAURITI`)"
+  },
+  {
+   "file": "docs/runbooks/ripristino_registro_da_backup.md",
+   "titolo": "Ripristino del registro delle impronte da backup senza biforcazioni"
+  },
+  {
+   "file": "docs/runbooks/rotazione_chiavi_jwt.md",
+   "titolo": "Rotazione delle chiavi JWT (RS256) senza disconnettere gli utenti"
+  },
+  {
+   "file": "docs/runbooks/scarto_incompleto.md",
+   "titolo": "Runbook — scarto con cancellazione incompleta (PdA `ELIMINAZIONE_INCOMPLETA`)"
+  }
+ ]
+}

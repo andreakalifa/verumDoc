@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "verumdoc-sdk"
+version = "3.2.0"
+description = "SDK Python ufficiale per VerumDoc — conservazione digitale a norma AgID"
+readme = "README.md"
+license = { text = "EUPL-1.2" }  # R18 (VD-P-190): come il resto del progetto
+requires-python = ">=3.11"
+authors = [{ name = "Contributori di VerumDoc" }]
+keywords = ["conservazione", "digitale", "agid", "archiviazione", "sdk"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Archiving",
+]
+# Versioni bloccate nell'intervallo provato (REGOLE §24.3); httpx BSD, pydantic MIT
+dependencies = [
+    "httpx>=0.27.0,<1",
+    "pydantic>=2.7.0,<3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2,<10", "pytest-asyncio>=0.23,<2"]
+
+[project.urls]
+Homepage = "https://verumdoc.it"
+Documentation = "https://docs.verumdoc.it"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["verumdoc_sdk*"]
+
+[tool.setuptools.package-data]
+verumdoc_sdk = ["py.typed"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

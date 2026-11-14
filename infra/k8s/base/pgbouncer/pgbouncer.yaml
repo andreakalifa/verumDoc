@@ -1,0 +1,176 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+# PgBouncer in modalità transaction davanti a PostgreSQL (R04, piano §4.2).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pgbouncer
+  namespace: verumdoc
+  labels:
+    app: pgbouncer
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/part-of: verumdoc
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbouncer-config
+  namespace: verumdoc
+  labels:
+    app: pgbouncer
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/part-of: verumdoc
+data:
+  pgbouncer.ini: "; FILE GENERATO da infra/helm/values.yaml (pgbouncer): non modificare a mano.\n[databases]\nverumdoc = host=DA_TERRAFORM:rds_endpoint\
+    \ port=5432 dbname=verumdoc\nverumdoc_lettura = host=DA_TERRAFORM:rds_reader_endpoint port=5432 dbname=verumdoc\n\n[pgbouncer]\n\
+    listen_addr = 0.0.0.0\nlisten_port = 6432\npool_mode = transaction\nauth_type = scram-sha-256\nauth_file = /etc/pgbouncer/segreti/userlist.txt\n\
+    max_client_conn = 5000\ndefault_pool_size = 40\nreserve_pool_size = 5\nreserve_pool_timeout = 3\nmax_db_connections =\
+    \ 45\nmax_prepared_statements = 200\ntrack_extra_parameters = IntervalStyle, default_transaction_read_only\nserver_tls_sslmode\
+    \ = verify-full\nserver_tls_ca_file = /etc/pgbouncer/ca/global-bundle.pem\nserver_idle_timeout = 300\nserver_lifetime\
+    \ = 3600\nquery_wait_timeout = 30\nlog_connections = 0\nlog_disconnections = 0\nstats_period = 60\npidfile = /tmp/pgbouncer.pid\n\
+    unix_socket_dir = \n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbouncer
+  namespace: verumdoc
+  labels:
+    app: pgbouncer
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/part-of: verumdoc
+    app.kubernetes.io/component: pool
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pgbouncer
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: pgbouncer
+        app.kubernetes.io/name: pgbouncer
+        app.kubernetes.io/component: pool
+      annotations:
+        prometheus.io/scrape: 'false'
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      serviceAccountName: pgbouncer
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: pgbouncer
+        image: verumdoc-pgbouncer
+        imagePullPolicy: IfNotPresent
+        args:
+        - /etc/pgbouncer/pgbouncer.ini
+        ports:
+        - containerPort: 6432
+          name: postgres
+          protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 1000m
+            memory: 256Mi
+        livenessProbe:
+          tcpSocket:
+            port: postgres
+          initialDelaySeconds: 10
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: postgres
+          initialDelaySeconds: 3
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: configurazione
+          mountPath: /etc/pgbouncer/pgbouncer.ini
+          subPath: pgbouncer.ini
+          readOnly: true
+        - name: segreti
+          mountPath: /etc/pgbouncer/segreti
+          readOnly: true
+        - name: ca
+          mountPath: /etc/pgbouncer/ca
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: configurazione
+        configMap:
+          name: pgbouncer-config
+      - name: segreti
+        secret:
+          secretName: pgbouncer-secrets
+          defaultMode: 256
+      - name: ca
+        configMap:
+          name: pgbouncer-ca
+      - name: tmp
+        emptyDir:
+          sizeLimit: 64Mi
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: pgbouncer
+            topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgbouncer
+  namespace: verumdoc
+  labels:
+    app: pgbouncer
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/part-of: verumdoc
+spec:
+  type: ClusterIP
+  selector:
+    app: pgbouncer
+  ports:
+  - name: postgres
+    port: 6432
+    targetPort: postgres
+    protocol: TCP
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pgbouncer
+  namespace: verumdoc
+  labels:
+    app: pgbouncer
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/part-of: verumdoc
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: pgbouncer

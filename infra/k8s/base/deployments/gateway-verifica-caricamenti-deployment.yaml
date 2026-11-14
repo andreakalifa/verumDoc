@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-verifica-caricamenti
+  namespace: verumdoc
+  labels:
+    app: gateway-verifica-caricamenti
+    app.kubernetes.io/name: gateway-verifica-caricamenti
+    app.kubernetes.io/part-of: verumdoc
+    app.kubernetes.io/component: verifica-caricamenti
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gateway-verifica-caricamenti
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: gateway-verifica-caricamenti
+        app.kubernetes.io/name: gateway-verifica-caricamenti
+        app.kubernetes.io/component: verifica-caricamenti
+      annotations:
+        prometheus.io/scrape: 'false'
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      serviceAccountName: gateway
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: gateway
+        image: verumdoc-gateway
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - -m
+        - app.services.caricamenti
+        - verifica
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 500m
+            memory: 256Mi
+          limits:
+            cpu: 2000m
+            memory: 1Gi
+        envFrom:
+        - configMapRef:
+            name: gateway-config
+        - secretRef:
+            name: gateway-secrets
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 2Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: gateway-verifica-caricamenti
+              topologyKey: kubernetes.io/hostname

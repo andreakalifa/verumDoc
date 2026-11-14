@@ -1,0 +1,25 @@
+{{- /*
+SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+SPDX-License-Identifier: EUPL-1.2
+*/ -}}
+{{/*
+Classi di storage (values.storageClasses, R03 i2): risorse di cluster. Il file
+system EFS viene da Terraform (output efs_file_system_id).
+*/}}
+{{- $root := . }}
+{{- range $name, $sc := .Values.storageClasses }}
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "verumdoc.labels" $root | nindent 4 }}
+provisioner: {{ $sc.provisioner }}
+reclaimPolicy: {{ $sc.reclaimPolicy | default "Retain" }}
+volumeBindingMode: {{ $sc.volumeBindingMode | default "Immediate" }}
+parameters:
+  {{- range $k, $v := $sc.parameters }}
+  {{ $k }}: {{ toString $v | quote }}
+  {{- end }}
+{{- end }}

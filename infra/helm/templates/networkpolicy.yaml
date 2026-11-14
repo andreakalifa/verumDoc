@@ -1,0 +1,117 @@
+{{- /*
+SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+SPDX-License-Identifier: EUPL-1.2
+*/ -}}
+{{/*
+NetworkPolicy: tutto negato salvo DNS e i flussi dichiarati in values.services
+(exposed → dall'ALB; publicTcp → dal NLB; callers → da altri pod; egress →
+servizi, dati, Internet solo su IP pubblici). Una politica per servizio, per
+lavoratore e per job periodico (R03 i2).
+*/}}
+{{- $root := . }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "verumdoc.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "verumdoc.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - ports:
+        - {port: 53, protocol: UDP}
+        - {port: 53, protocol: TCP}
+{{- range $name, $svc := .Values.services }}
+{{- if include "verumdoc.attivo" (dict "root" $root "svc" $svc) }}
+---
+{{ include "verumdoc.networkpolicy" (dict "root" $root "nome" $name "svc" $svc "eg" $svc.egress "callers" $svc.callers "exposed" $svc.exposed "publicTcp" $svc.publicTcp "http" true) }}
+{{- range $wn, $w := $svc.workers }}
+{{- if ne (toString $w.enabled) "false" }}
+---
+{{ include "verumdoc.networkpolicy" (dict "root" $root "nome" (printf "%s-%s" $name $wn) "svc" $svc "eg" (default $svc.egress $w.egress) "callers" (list) "exposed" false "publicTcp" (dict) "http" (ne (toString $w.http) "false") "metricsPort" $w.metricsPort) }}
+{{- end }}
+{{- end }}
+{{- range $jn, $j := $svc.cronJobs }}
+{{- if ne (toString $j.enabled) "false" }}
+---
+{{ include "verumdoc.networkpolicy" (dict "root" $root "nome" (printf "%s-%s" $name $jn) "svc" $svc "eg" (default $svc.egress $j.egress) "callers" (list) "exposed" false "publicTcp" (dict) "http" false) }}
+{{- end }}
+{{- end }}
+{{- range $jn, $j := $svc.jobs }}
+{{- if ne (toString $j.enabled) "false" }}
+---
+{{ include "verumdoc.networkpolicy" (dict "root" $root "nome" (printf "%s-%s" $name $jn) "svc" $svc "eg" (default $svc.egress $j.egress) "callers" (list) "exposed" false "publicTcp" (dict) "http" false) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- /* R04: PgBouncer ammette in ingresso solo i carichi con «pgbouncer» in egress.data */}}
+{{- $pb := .Values.pgbouncer }}
+{{- if and $pb.enabled (eq (toString (default "principale" .Values.global.account)) "principale") }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-pgbouncer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: pgbouncer
+    {{- include "verumdoc.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: pgbouncer
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        {{- range $name, $svc := .Values.services }}
+        {{- if include "verumdoc.attivo" (dict "root" $root "svc" $svc) }}
+        {{- if has "pgbouncer" $svc.egress.data }}
+        - podSelector:
+            matchLabels: {app: {{ $name }}}
+        {{- end }}
+        {{- range $wn, $w := $svc.workers }}
+        {{- if and (ne (toString $w.enabled) "false") (has "pgbouncer" (default $svc.egress $w.egress).data) }}
+        - podSelector:
+            matchLabels: {app: {{ $name }}-{{ $wn }}}
+        {{- end }}
+        {{- end }}
+        {{- range $jn, $j := $svc.cronJobs }}
+        {{- if and (ne (toString $j.enabled) "false") (has "pgbouncer" (default $svc.egress $j.egress).data) }}
+        - podSelector:
+            matchLabels: {app: {{ $name }}-{{ $jn }}}
+        {{- end }}
+        {{- end }}
+        {{- range $jn, $j := $svc.jobs }}
+        {{- if and (ne (toString $j.enabled) "false") (has "pgbouncer" (default $svc.egress $j.egress).data) }}
+        - podSelector:
+            matchLabels: {app: {{ $name }}-{{ $jn }}}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+      ports:
+        - {port: {{ $pb.port }}, protocol: TCP}
+  egress:
+    - to:
+        {{- range $c := .Values.network.dataCidrs }}
+        - ipBlock: {cidr: {{ $c }}}
+        {{- end }}
+      ports:
+        {{- range $p := .Values.network.dataPorts.postgres }}
+        - {port: {{ $p }}, protocol: TCP}
+        {{- end }}
+{{- end }}

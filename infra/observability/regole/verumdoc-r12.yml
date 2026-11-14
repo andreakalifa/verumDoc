@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Allarmi R12a (VD-C-150, VD-C-148): passi periodici del lavoratore di ciclo-vita
+# per passo e rinnovo del blocco WORM degli oggetti registro/ della hashchain.
+# La verifica giornaliera dell'audit ha già i suoi allarmi (VerificaAuditFallita,
+# VerificaAuditNonEseguita in verumdoc-r06.yml). Gravità come in verumdoc-r04.yml
+# (pagina = subito; avviso = in orario).
+# Runbook: docs/runbooks/scarto_incompleto.md (§ lavoro automatico),
+# docs/runbooks/disaster_recovery.md (§ registro dal WORM).
+groups:
+  - name: verumdoc-r12-periodici
+    rules:
+      - alert: PassoPeriodicoFermo
+        expr: >-
+          max by (passo) (verumdoc_ciclo_vita_passo_periodico_eta_secondi
+          - 2 * verumdoc_ciclo_vita_passo_periodico_intervallo_secondi) > 3600
+        for: 15m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Un passo automatico del ciclo di vita non gira da oltre due intervalli"
+          description: "Il passo {{ $labels.passo }} non ha un giro riuscito da più di due intervalli più un'ora: lavoratore di ciclo-vita fermo, lease bloccato o passo che fallisce a ogni tentativo. Console del conservatore → «Lavoro automatico»; log del Deployment ciclo-vita-lavoratore."
+      - alert: PassoPeriodicoSingoloInErrore
+        expr: max by (passo) (verumdoc_ciclo_vita_passo_periodico_in_errore) > 0
+        for: 30m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Il passo periodico {{ $labels.passo }} ha l'ultimo giro in errore"
+          description: "Vedi PassoPeriodicoInErrore (verumdoc-r09.yml): qui il nome del passo. Per il rinnovo WORM la gravità è quella della pagina del passo fermo."
+  - name: verumdoc-r12-registro-worm
+    rules:
+      - alert: RegistroWormRinnovoInErrore
+        expr: >-
+          max(verumdoc_catena_worm_rinnovo_in_errore) > 0
+          or max(verumdoc_catena_worm_rinnovo_elementi_in_errore) > 0
+        for: 1h
+        labels: {severity: pagina}
+        annotations:
+          summary: "Il rinnovo del blocco WORM degli oggetti del registro non riesce"
+          description: "L'ultimo passo di rinnovo della hashchain è fallito (RETENTION_PERMANENTE_ANNI non superiore a RETENTION_RINNOVO_SOGLIA_ANNI, storage o permessi s3:PutObjectRetention su registro/) o ha lasciato oggetti non rinnovati. Log «registro_worm_rinnovo_fallito»."
+      - alert: RegistroWormInScadenza
+        expr: max(verumdoc_catena_worm_in_scadenza) > 0
+        for: 2d
+        labels: {severity: avviso}
+        annotations:
+          summary: "Oggetti del registro con il blocco WORM entro la soglia di rinnovo"
+          description: "Dopo i passi di rinnovo restano oggetti registro/ con il termine entro RETENTION_RINNOVO_SOGLIA_ANNI (lotto insufficiente o errori ripetuti): aumentare RINNOVO_WORM_LOTTO o indagare gli errori."

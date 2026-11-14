@@ -1,0 +1,6 @@
+# Contesto di build del frontend (docker build frontend/): il Dockerfile copia solo
+# i sorgenti; node_modules e dist dell'host non devono nemmeno essere inviati.
+node_modules
+dist
+.env
+.env.*

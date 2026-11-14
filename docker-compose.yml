@@ -1,0 +1,784 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# VerumDoc — Ambiente di sviluppo locale
+#
+# Prima dell'avvio: bash tools/dev/genera_chiavi_dev.sh (oppure il .ps1) crea
+# infra/dev_jwt.env con chiavi JWT e API_KEY_PEPPER di sviluppo (mai committare).
+# R03: bash infra/scripts/genera_segreti_dev_r03.sh crea infra/dev_sftp.env,
+# infra/dev_canali_pub.env e infra/dev_webhook.env (token del canale SFTP e
+# cifratura dei webhook; «make dev-up» lo lancia da sé se mancano). Senza,
+# sftp-ingest non parte (il lavoratore non ha la chiave dei token) e i webhook
+# risultano «non configurati»; gli altri servizi funzionano.
+# R04: python tools/dev/genera_segreti_dev.py crea tutti i file sopra e in più
+# infra/dev_catena.env (chiave del registro, verifier key e token per il
+# testimone: hashchain) e infra/dev_testimone.env (chiave del testimone, chiave
+# pubblica del registro, impronta del token: testimone). «make dev-up» lo lancia.
+
+# Orizzonte (anni) della retention per le classi a conservazione permanente:
+# R09 (D04) parametro RETENTION_PERMANENTE_ANNI del motore (console), non più
+# una variabile d'ambiente.
+
+# R04: i servizi che usano S3 aspettano che lo storage sia PRONTO (minio-pronto:
+# R05, l'immagine dello storage non ha shell né curl per un healthcheck proprio).
+x-minio-pronto: &minio_pronto
+  minio-pronto: {condition: service_completed_successfully}
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: vd-postgres
+    environment:
+      POSTGRES_DB: verumdoc_dev
+      POSTGRES_USER: vd_user
+      POSTGRES_PASSWORD: vd_secret_dev_only
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # init.sql eseguito al primo avvio — crea solo le estensioni (lo schema
+      # lo producono le migrazioni Alembic del gateway)
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vd_user -d verumdoc_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: vd-redis
+    command: redis-server --requirepass redis_secret_dev_only --loglevel warning
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redis_secret_dev_only", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: vd-kafka
+    environment:
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_HOURS: 72
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/localhost/9092'"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
+
+  # Storage S3 di SVILUPPO con Object Lock (R05, VD-C-115): versitygw (Versity
+  # S3 Gateway, Apache-2.0) con backend POSIX e versioning, al posto di
+  # cgr.dev/chainguard/minio:latest (immagine non fissabile per digest, MinIO
+  # community senza correzioni). Provato il 23/10/2026 con
+  # infra/tests/test_storage_reale.py (bucket con Object Lock, retention
+  # COMPLIANCE per oggetto, legal hold, nessuna sovrascrittura, eliminazione
+  # della versione rifiutata anche con bypass, retention non accorciabile:
+  # 6/6), con le prove del registro delle impronte della hashchain (checkpoint,
+  # segmenti, ricostruzione dal WORM, export dell'audit: 45/45) e con controlli
+  # extra (checksum SHA-256 sbagliato rifiutato, If-None-Match, elenco con
+  # StartAfter e prefisso esatto, versione che resta dopo un DELETE).
+  # Immagine: il binario statico della release v1.9.0 scaricato da GitHub e
+  # verificato con lo SHA-256 della release (checksums.txt, confrontato con il
+  # file scaricato), in un'immagine «scratch» che contiene solo quello: nessuna
+  # immagine di terzi per tag nell'immagine finale (alpine serve solo a estrarre).
+  # Il nome del servizio resta «minio» (gli altri servizi usano
+  # http://minio:9000 e le stesse credenziali di sviluppo). Il volume è nuovo
+  # (storage_data): i dati di un vecchio volume MinIO non si leggono (down -v).
+  # Requisiti: filesystem del volume con attributi estesi (ext4, xfs, overlay).
+  # Salute: il contenitore minio-pronto interroga /health (immagine senza shell).
+  minio:
+    build:
+      context: ./infra
+      dockerfile_inline: |
+        FROM alpine:3.20 AS estrazione
+        ARG TARGETARCH
+        ARG VERSIONE=1.9.0
+        RUN set -e; \
+            case "$${TARGETARCH:-amd64}" in \
+              amd64) A=x86_64; S=0c28ccda3452451d7c71a0427f6aa7d0db5cac5e2b98a8e4dd2970967e1aadc1 ;; \
+              arm64) A=arm64; S=1ab234dc11d540d861898d391bfda5914eaff78f20d162c3ce7c84337b3d9204 ;; \
+              *) echo "architettura non supportata: $${TARGETARCH}"; exit 1 ;; \
+            esac; \
+            wget -q -O /tmp/vgw.tgz "https://github.com/versity/versitygw/releases/download/v$${VERSIONE}/versitygw_v$${VERSIONE}_Linux_$${A}.tar.gz"; \
+            echo "$${S}  /tmp/vgw.tgz" | sha256sum -c -; \
+            tar -xzf /tmp/vgw.tgz -C /tmp; \
+            install -m 0755 "/tmp/versitygw_v$${VERSIONE}_Linux_$${A}/versitygw" /versitygw; \
+            mkdir -p /radice/data/dati /radice/data/versioni /radice/tmp; chmod 1777 /radice/tmp
+        FROM scratch
+        COPY --from=estrazione /versitygw /versitygw
+        COPY --from=estrazione /radice/ /
+        ENTRYPOINT ["/versitygw"]
+    image: verumdoc/storage-sviluppo:versitygw-1.9.0
+    container_name: vd-minio
+    command: ["--port", ":9000", "--health", "/health", "posix",
+              "--versioning-dir", "/data/versioni", "/data/dati"]
+    environment:
+      ROOT_ACCESS_KEY: minioadmin
+      ROOT_SECRET_KEY: minioadmin_dev_only
+      # Stessa regione dei servizi (s3_region = eu-south-1): con il valore
+      # predefinito us-east-1 ogni firma S3 viene rifiutata (AuthorizationHeaderMalformed)
+      VGW_REGION: eu-south-1
+    volumes:
+      - storage_data:/data
+    ports:
+      - "9000:9000"
+
+  # Attesa dello storage pronto (l'immagine non ha shell né curl per un
+  # healthcheck proprio): termina con successo quando /health risponde 200.
+  minio-pronto:
+    image: python:3.12-slim
+    container_name: vd-minio-pronto
+    command:
+      - python
+      - -c
+      - |
+        import time, urllib.request
+        for _ in range(120):
+            try:
+                if urllib.request.urlopen("http://minio:9000/health", timeout=2).status == 200:
+                    raise SystemExit(0)
+            except OSError:
+                pass
+            time.sleep(1)
+        raise SystemExit("storage S3 non pronto dopo 120 s")
+    depends_on:
+      minio: {condition: service_started}
+
+  # Server di posta di SVILUPPO (cattura i messaggi, nessun inoltro):
+  # interfaccia web http://localhost:8025, SMTP mailpit:1025 per il servizio notification.
+  mailpit:
+    image: axllent/mailpit:v1.20
+    container_name: vd-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: vd-opensearch
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  vault:
+    image: hashicorp/vault:1.16
+    container_name: vd-vault
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: dev-root-token-local-only
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "8200:8200"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8200/v1/sys/health?standbyok=true > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
+
+  # ── Servizi applicativi — context: . per tutti (libs/ accessibile) ──
+
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    container_name: vd-gateway
+    env_file:
+      - infra/dev_jwt.env
+      - path: infra/dev_canali_pub.env   # SFTP_TOKEN_CHIAVE_PUBBLICA (R03, canale SFTP)
+        required: false
+      - path: infra/dev_ciclo_vita_pub.env   # CICLO_VITA_TOKEN_CHIAVE_PUBBLICA (R05)
+        required: false
+      - path: infra/dev_conferme.env   # CONFERME_CHIAVE_PRIVATA e CONFERME_KID (R17, VD-P-164)
+        required: false
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_app:vd_app_dev_only@postgres:5432/verumdoc_dev
+      # Ruoli separati (R04 secondo giro): i servizi entrano come vd_app (membro di
+      # verumdoc_applicazione, non proprietario); migrazioni con l'amministratore,
+      # manutenzione delle partizioni con vd_manutenzione (verumdoc_manutenzione).
+      DATABASE_URL_MIGRAZIONI: postgresql+asyncpg://vd_user:vd_secret_dev_only@postgres:5432/verumdoc_dev
+      DATABASE_URL_MANUTENZIONE: postgresql+asyncpg://vd_manutenzione:vd_manutenzione_dev_only@postgres:5432/verumdoc_dev
+      REDIS_URL: redis://:redis_secret_dev_only@redis:6379/0
+      KAFKA_BOOTSTRAP: kafka:9092
+      VAULT_URL: http://vault:8200
+      VAULT_TOKEN: dev-root-token-local-only
+      # Login di sviluppo (dev-token, mock SPID): attivo solo con questo flag E
+      # con ENV development/test. Mai fuori dallo sviluppo locale (VD-C-002).
+      VERUMDOC_DEV_AUTH: "1"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+      redis:    {condition: service_healthy}
+      kafka:    {condition: service_healthy}
+      <<: *minio_pronto                       # il seed crea i bucket (PdA con Object Lock)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health/live', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 150s   # migrazioni + seed (attesa dello storage fino a 90 s)
+      retries: 5
+
+  validation:
+    build:
+      context: .
+      dockerfile: services/validation/Dockerfile
+    container_name: vd-validation
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_app:vd_app_dev_only@postgres:5432/verumdoc_dev
+      KAFKA_BOOTSTRAP: kafka:9092
+    ports:
+      - "8001:8000"
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+      kafka:    {condition: service_healthy}
+
+  hashchain:
+    build:
+      context: .
+      dockerfile: services/hashchain/Dockerfile
+    container_name: vd-hashchain
+    env_file:
+      - infra/dev_jwt.env   # JWT_PUBLIC_KEY: le API della catena verificano il token
+      # R04: CATENA_CHIAVE_PRIVATA, TESTIMONE_VERIFICATORE, TESTIMONE_SERVICE_TOKEN
+      - path: infra/dev_catena.env
+        required: false
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_app:vd_app_dev_only@postgres:5432/verumdoc_dev
+      KAFKA_BOOTSTRAP: kafka:9092
+      # R04 (K3): testimone locale (database separato verumdoc_testimone)
+      TESTIMONE_URL: http://testimone:8000
+      CATENA_CHECKPOINT_SECONDI: "30"
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin_dev_only
+      S3_BUCKET_AIP: verumdoc-aip
+    ports:
+      - "8004:8000"
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+      kafka:    {condition: service_healthy}
+      <<: *minio_pronto                       # RdV definitivo e registro in WORM sul bucket dei PdA
+
+  onboarding:
+    build:
+      context: .
+      dockerfile: services/onboarding/Dockerfile
+    container_name: vd-onboarding
+    env_file:
+      - infra/dev_jwt.env
+      - path: infra/dev_posta_pub.env   # R12a (VD-C-152): POSTA_CHIAVE_PUBBLICA
+        required: false
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_app:vd_app_dev_only@postgres:5432/verumdoc_dev
+      REDIS_URL: redis://:redis_secret_dev_only@redis:6379/0
+      KAFKA_BOOTSTRAP: kafka:9092
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin_dev_only
+    ports:
+      - "8007:8000"
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+      redis:    {condition: service_healthy}
+      kafka:    {condition: service_healthy}
+      <<: *minio_pronto
+
+  aip-builder:
+    build:
+      context: .
+      dockerfile: services/aip-builder/Dockerfile
+    container_name: vd-aip-builder
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_app:vd_app_dev_only@postgres:5432/verumdoc_dev
+      KAFKA_BOOTSTRAP: kafka:9092
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin_dev_only
+      S3_BUCKET_AIP: verumdoc-aip
+    ports:
+      - "8005:8000"
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+      kafka:    {condition: service_healthy}
+      <<: *minio_pronto
+
+  dashboard-api:
+    build:
+      context: .
+      dockerfile: services/dashboard-api/Dockerfile
+    container_name: vd-dashboard-api
+    env_file:
+      - infra/dev_jwt.env
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_app:vd_app_dev_only@postgres:5432/verumdoc_dev
+      GATEWAY_URL: http://gateway:8000
+      ONBOARDING_URL: http://onboarding:8000
+      HASHCHAIN_URL: http://hashchain:8000
+      DISTRIBUTION_URL: http://distribution:8000
+      KAFKA_BOOTSTRAP: kafka:9092   # R04: «Rielabora» delle code di scarto (outbox)
+      # Limite di richieste al minuto per piano (R03 f2, REV-03)
+      REDIS_URL: redis://:redis_secret_dev_only@redis:6379/0
+    ports:
+      - "8009:8000"
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      postgres:     {condition: service_healthy}
+      redis:        {condition: service_healthy}
+      onboarding:   {condition: service_started}
+      hashchain:    {condition: service_started}
+      distribution: {condition: service_started}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/live', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  signature:
+    build:
+      context: .
+      dockerfile: services/signature/Dockerfile
+    container_name: vd-signature
+    env_file:
+      - infra/dev_jwt.env
+    # Collaudo con il simulatore CSC avviato sul computer (python -m tools.simulatore_firma
+    # --host 0.0.0.0 --url-pubblico http://host.docker.internal:8099): su Linux serve la voce
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      ENV: development
+      # Segreti del fornitore di sviluppo (blocco «segreti» stampato dal simulatore); vuoto =
+      # nessun fornitore utilizzabile
+      FIRMA_SEGRETI_JSON: ${VD_FIRMA_SEGRETI_JSON:-}
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      # R13a: registro dei fornitori (console) con il login di sola lettura vd_firma
+      # (infra/postgres/ruoli_sviluppo.sql); FIRMA_SEGRETI_JSON per il simulatore:
+      # docs/architettura/firma_qualificata.md
+      DATABASE_URL: postgresql+asyncpg://vd_firma:vd_firma_dev_only@postgres:5432/verumdoc_dev
+      # R16 (VD-C-168): limiti condivisi fra le repliche (prove e firme personali)
+      REDIS_URL: redis://:redis_secret_dev_only@redis:6379/0
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      redis: {condition: service_started}
+    ports:
+      - "8003:8000"
+
+
+  # R08 (D01): verifica delle firme con EU DSS (Java). Facoltativo in locale
+  # (profilo «firme»: docker compose --profile firme up): senza, validation e
+  # ciclo-vita usano pyHanko (FIRME_VERIFICATORE=pyhanko, predefinito).
+  # Modo «locale»: trust anchor da VERIFICA_RADICI_PEM, nessuna rete.
+  verifica-firme:
+    build:
+      context: .
+      dockerfile: services/verifica-firme/Dockerfile
+    container_name: vd-verifica-firme
+    profiles: ["firme"]
+    env_file:
+      - infra/dev_jwt.env
+    environment:
+      VERIFICA_MODO: locale
+      VERIFICA_RADICI_PEM: ""
+      VERIFICA_REVOCHE_IN_RETE: "false"
+    ports:
+      - "8013:8080"
+
+  distribution:
+    build:
+      context: .
+      dockerfile: services/distribution/Dockerfile
+    container_name: vd-distribution
+    env_file:
+      - infra/dev_jwt.env
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_app:vd_app_dev_only@postgres:5432/verumdoc_dev
+      KAFKA_BOOTSTRAP: kafka:9092
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin_dev_only
+      OPENSEARCH_URL: http://opensearch:9200
+      S3_BUCKET_PDD: verumdoc-pdd   # PdD ZIP (R03 b4): bucket temporaneo
+      # Limite di richieste al minuto per piano (R03 f2, REV-03)
+      REDIS_URL: redis://:redis_secret_dev_only@redis:6379/0
+    ports:
+      - "8008:8000"
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+      redis:    {condition: service_healthy}
+      kafka:    {condition: service_healthy}
+      <<: *minio_pronto
+
+  notification:
+    build:
+      context: .
+      dockerfile: services/notification/Dockerfile
+    container_name: vd-notification
+    env_file:
+      - infra/dev_jwt.env   # JWT_PUBLIC_KEY e API_KEY_PEPPER: API eventi e webhook (R03 b3)
+      - path: infra/dev_webhook.env   # WEBHOOK_CHIAVE_CIFRATURA
+        required: false
+      - path: infra/dev_posta_priv.env   # R12a (VD-C-152): POSTA_CHIAVE_PRIVATA
+        required: false
+      # R13b (VD-C-078): PEC_SEGRETI_JSON del canale di SVILUPPO verso il simulatore
+      # (python -m tools.simulatore_pec, docs/integrazione/pec.md)
+      - path: infra/dev_pec.env
+        required: false
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_app:vd_app_dev_only@postgres:5432/verumdoc_dev
+      KAFKA_BOOTSTRAP: kafka:9092
+      # Posta di sviluppo: mailpit, in chiaro (SMTP_SICUREZZA=nessuna è vietata
+      # in produzione: il servizio lo rifiuta). Mittente non segnaposto.
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_SICUREZZA: nessuna
+      SMTP_MITTENTE: conservazione@sviluppo.verumdoc.it
+      SMTP_NOME_MITTENTE: VerumDoc (sviluppo)
+      # Solo in sviluppo: webhook verso indirizzi privati (ricevitore locale).
+      # Vietato in produzione: il servizio non parte (R03 b3, §19.4).
+      WEBHOOK_CONSENTI_INDIRIZZI_PRIVATI: "true"
+      # Limite di richieste al minuto per piano (R03 f2, REV-03)
+      REDIS_URL: redis://:redis_secret_dev_only@redis:6379/0
+    ports:
+      - "8006:8000"
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+      redis:    {condition: service_healthy}
+      kafka:    {condition: service_healthy}
+      mailpit:  {condition: service_healthy}
+      gateway:  {condition: service_healthy}   # migrazioni (tabella notifications) applicate
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health/live', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+  # ── R05: ciclo di vita (contratto Q2, VD-P-06) ─────────────────────
+  # Pratiche di rettifica, annullamento, scarto, riversamento e restituzione.
+  # In sviluppo il lavoratore gira nello stesso processo (LAVORATORE_ATTIVO);
+  # in esercizio è il Deployment ciclo-vita-lavoratore (infra/helm).
+  # infra/dev_ciclo_vita.env (facoltativo): HASHCHAIN_TOKEN_REGISTRO,
+  # CICLO_VITA_TOKEN_CHIAVE_PRIVATA, DISTRIBUTION_TOKEN_SERVIZIO; senza, il
+  # servizio parte e le pratiche che ne hanno bisogno restano in attesa con
+  # l'errore visibile (in produzione invece non parte).
+  ciclo-vita:
+    build:
+      context: .
+      dockerfile: services/ciclo-vita/Dockerfile
+    container_name: vd-ciclo-vita
+    env_file:
+      - infra/dev_jwt.env   # JWT_PUBLIC_KEY e API_KEY_PEPPER
+      - path: infra/dev_ciclo_vita.env
+        required: false
+      - path: infra/dev_conferme_pub.env   # CONFERME_CHIAVI_PUBBLICHE (R17, VD-P-164)
+        required: false
+    environment:
+      ENV: development
+      # R17 (VD-P-164): conferma firmata delle decisioni sensibili; in sviluppo vuoto =
+      # DISATTIVO, VD_CONFERME=ATTIVO per provarla (servono le chiavi di genera_segreti_dev.py)
+      CONFERMA_DECISIONI: ${VD_CONFERME:-}
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      # Revisione 3 di R05 (T5): il lavoratore gira qui (LAVORATORE_ATTIVO) e
+      # scrive gli esiti di esecuzione: login del LAVORATORE (membro anche di
+      # verumdoc_ciclo_vita_lavoratore). In esercizio l'API ha un login suo,
+      # senza quel ruolo (Secret ciclo-vita-secrets ≠ ciclo-vita-lavoratore-secrets).
+      DATABASE_URL: postgresql+asyncpg://vd_ciclo_vita_lavoratore:vd_ciclo_vita_lavoratore_dev_only@postgres:5432/verumdoc_dev
+      KAFKA_BOOTSTRAP: kafka:9092
+      REDIS_URL: redis://:redis_secret_dev_only@redis:6379/0
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin_dev_only
+      S3_BUCKET_AIP: verumdoc-aip
+      S3_BUCKET_PDV: verumdoc-pdv
+      HASHCHAIN_URL: http://hashchain:8000
+      GATEWAY_URL: http://gateway:8000
+      DISTRIBUTION_URL: http://distribution:8000
+      LAVORATORE_ATTIVO: "true"
+    ports:
+      - "8012:8000"
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+      redis:    {condition: service_healthy}
+      kafka:    {condition: service_healthy}
+      <<: *minio_pronto
+      gateway:  {condition: service_healthy}   # migrazioni (tabelle pratiche*) applicate
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health/live', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+  # Canale SFTP (R03 b2): server e lavoratore nello stesso processo in sviluppo
+  # (in esercizio sono due Deployment sullo stesso volume RWX, infra/helm).
+  # Collegamento: sftp -P 2222 <nome_utente>@localhost (account e chiavi da
+  # onboarding). La chiave host di sviluppo si rigenera a ogni nuovo container.
+  sftp-ingest:
+    build:
+      context: .
+      dockerfile: services/sftp-ingest/Dockerfile
+    container_name: vd-sftp-ingest
+    env_file:
+      - path: infra/dev_sftp.env   # SFTP_TOKEN_CHIAVE_PRIVATA (contratto C2)
+        required: false
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_app:vd_app_dev_only@postgres:5432/verumdoc_dev
+      SFTP_COMPONENTI: server,lavoratore
+      GATEWAY_URL: http://gateway:8000
+      URL_PUBBLICO_API: http://localhost:8000
+    volumes:
+      - sftp_data:/var/lib/verumdoc/sftp
+    ports:
+      - "2222:2222"   # SFTP
+      - "8010:8000"   # salute e metriche
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+      gateway:  {condition: service_healthy}   # migrazioni (tabelle sftp_*) applicate
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health/live', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+  # ── R04: testimone della catena (contratto K3) ─────────────────────
+  # In esercizio sta in un ACCOUNT separato (infra/helm/values.testimone.yaml);
+  # in sviluppo un database separato nello stesso PostgreSQL (verumdoc_testimone,
+  # utente vd_testimone), creato da testimone-db anche su un volume esistente.
+  # ── R04 secondo giro: ruoli di login separati (rilievo 5) ───────────────
+  # Idempotente, anche su un volume esistente: vd_app (servizi, membro di
+  # verumdoc_applicazione: solo DML, non proprietario) e vd_manutenzione
+  # (manutenzione delle partizioni: verumdoc_manutenzione + verumdoc_applicazione).
+  # vd_user (superutente dell'immagine) resta SOLO per le migrazioni del gateway
+  # (DATABASE_URL_MIGRAZIONI). Gli stessi ruoli in esercizio: docs/architettura/
+  # infrastruttura.md, «Ruoli del database».
+  db-ruoli:
+    image: postgres:16-alpine
+    container_name: vd-db-ruoli
+    environment:
+      PGPASSWORD: vd_secret_dev_only
+    volumes:
+      - ./infra/postgres/ruoli_sviluppo.sql:/ruoli_sviluppo.sql:ro
+    command: ["psql", "-h", "postgres", "-U", "vd_user", "-d", "verumdoc_dev",
+              "-v", "ON_ERROR_STOP=1", "-f", "/ruoli_sviluppo.sql"]
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  testimone-db:
+    image: postgres:16-alpine
+    container_name: vd-testimone-db
+    environment:
+      PGPASSWORD: vd_secret_dev_only
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        psql -h postgres -U vd_user -d verumdoc_dev -v ON_ERROR_STOP=1 <<'SQL'
+        DO $$$$ BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'vd_testimone') THEN
+            CREATE ROLE vd_testimone LOGIN PASSWORD 'vd_testimone_dev_only';
+          END IF;
+        END $$$$;
+        SELECT 'CREATE DATABASE verumdoc_testimone OWNER vd_testimone'
+        WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'verumdoc_testimone')\gexec
+        REVOKE ALL ON DATABASE verumdoc_testimone FROM PUBLIC;
+        SQL
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  testimone:
+    build:
+      context: .
+      dockerfile: services/testimone/Dockerfile
+    container_name: vd-testimone
+    env_file:
+      # TESTIMONE_CHIAVE_PRIVATA, TESTIMONE_CHIAVI_REGISTRO, TESTIMONE_IMPRONTE_TOKEN_REGISTRO
+      - path: infra/dev_testimone.env
+        required: false
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_testimone:vd_testimone_dev_only@postgres:5432/verumdoc_testimone
+      # Origine dei checkpoint del registro fuori produzione: verumdoc.it/registro/v1/<ENV>
+      TESTIMONE_ORIGINI_AMMESSE: verumdoc.it/registro/v1/development
+    ports:
+      - "8011:8000"
+    depends_on:
+      testimone-db: {condition: service_completed_successfully}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health/live', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+  # Verifica continua dell'integrità (R04): processo separato di hashchain
+  hashchain-verifica:
+    build:
+      context: .
+      dockerfile: services/hashchain/Dockerfile
+    container_name: vd-hashchain-verifica
+    entrypoint: ["python", "-m", "app.verifica_continua"]
+    env_file:
+      - infra/dev_jwt.env
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_app:vd_app_dev_only@postgres:5432/verumdoc_dev
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin_dev_only
+      S3_BUCKET_AIP: verumdoc-aip
+    ports:
+      - "9108:9108"   # metriche Prometheus (VERIFICA_METRICHE_PORTA)
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      <<: *minio_pronto
+      gateway: {condition: service_healthy}   # migrazioni (tabelle della verifica) applicate
+
+  # Code di scarto (R04, r04-servizi): consumer delle DLQ e relay dell'outbox
+  # di dashboard-api («Rielabora»)
+  dashboard-scarti:
+    build:
+      context: .
+      dockerfile: services/dashboard-api/Dockerfile
+    container_name: vd-dashboard-scarti
+    entrypoint: ["python", "-m", "app.services.consumer_scarti"]
+    env_file:
+      - infra/dev_jwt.env
+    environment:
+      ENV: development
+      # R16 (VD-C-176): tracce verso Tempo (profilo osservabilità); VD_TRACCE=true per attivarle
+      OTEL_TRACCE_ATTIVE: ${VD_TRACCE:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      OTEL_CAMPIONAMENTO: ${VD_TRACCE_CAMPIONAMENTO:-1.0}
+      DATABASE_URL: postgresql+asyncpg://vd_app:vd_app_dev_only@postgres:5432/verumdoc_dev
+      KAFKA_BOOTSTRAP: kafka:9092
+      REDIS_URL: redis://:redis_secret_dev_only@redis:6379/0
+    depends_on:
+      db-ruoli: {condition: service_completed_successfully}
+      kafka:   {condition: service_healthy}
+      gateway: {condition: service_healthy}   # migrazioni (tabella scarti) applicate
+
+  # PgBouncer in modalità transaction (R04), solo con il profilo «pool»:
+  #   docker compose --profile pool up -d pgbouncer
+  # e DATABASE_URL dei servizi su pgbouncer:6432 per provare asyncpg attraverso il
+  # pool come in esercizio (infra/pgbouncer/pgbouncer.dev.ini, credenziali di sviluppo).
+  pgbouncer:
+    profiles: ["pool"]
+    build:
+      context: infra/pgbouncer
+    container_name: vd-pgbouncer
+    volumes:
+      - ./infra/pgbouncer/pgbouncer.dev.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./infra/pgbouncer/userlist.dev.txt:/etc/pgbouncer/segreti/userlist.txt:ro
+    ports:
+      - "6432:6432"
+    depends_on:
+      postgres: {condition: service_healthy}
+
+volumes:
+  postgres_data:
+  storage_data:
+  opensearch_data:
+  sftp_data:

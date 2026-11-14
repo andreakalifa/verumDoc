@@ -1,0 +1,548 @@
+{
+ "formato": "verumdoc-profilo-tipologia-2",
+ "codice": "aggregazione_documentale",
+ "nome": "Aggregazione documentale",
+ "versione": 2,
+ "valido_dal": "2026-11-03",
+ "valido_al": null,
+ "norm_ref": "Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici, Allegato 5 «I metadati» (edizione maggio 2021, pubblicata su agid.gov.it) — §4",
+ "estende": null,
+ "adozione": "esplicita",
+ "origine": "allegato5",
+ "nota": "Versione R11 riscontrata sul testo ufficiale dell'Allegato 5 (docs/conformita/riscontro_allegato5.md). Adozione esplicita: la classe la sceglie con PROFILO_TIPOLOGIA_VERSIONE = 2 (bozza con anteprima); i PdV già versati restano con la versione fotografata. I metadati descritti oltre p. 84 restano da riscontrare.",
+ "campi": [
+  {
+   "nome": "identificativo_aggregazione",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "IdAgg.IdAggregazione",
+   "descrizione": "Identificativo secondo il sistema di identificazione",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 74"
+  },
+  {
+   "nome": "tipo_aggregazione",
+   "tipo": "enum",
+   "obbligatorio": true,
+   "allegato5": "IdAgg.TipoAggregazione",
+   "descrizione": "",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 75",
+   "valori_ammessi": [
+    "Fascicolo",
+    "Serie Documentale",
+    "Serie Di Fascicoli"
+   ]
+  },
+  {
+   "nome": "tipologia_fascicolo",
+   "tipo": "enum",
+   "obbligatorio": false,
+   "allegato5": "TipologiaFascicolo",
+   "descrizione": "Obbligatoria per i fascicoli",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 76",
+   "obbligatorio_se": [
+    {
+     "campo": "tipo_aggregazione",
+     "in": [
+      "Fascicolo"
+     ]
+    }
+   ],
+   "valori_ammessi": [
+    "affare",
+    "attività",
+    "persona fisica",
+    "persona giuridica",
+    "procedimento amministrativo"
+   ]
+  },
+  {
+   "nome": "soggetti",
+   "tipo": "elenco_strutture",
+   "obbligatorio": true,
+   "allegato5": "Soggetti",
+   "descrizione": "Soggetti dell'aggregazione con ruolo e tipo; l'obbligatorietà dei singoli ruoli e le stringhe dei ruoli nello schema (§4, p. 89) restano da riscontrare",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "origine": "allegato5",
+   "rif": "§4, pp. 76-79",
+   "min_elementi": 1,
+   "sottocampi": [
+    {
+     "nome": "ruolo",
+     "tipo": "enum",
+     "obbligatorio": true,
+     "allegato5": "Ruolo.TipoRuolo",
+     "descrizione": "Ruolo del soggetto",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79",
+     "valori_ammessi": [
+      "Amministrazione titolare",
+      "Amministrazioni partecipanti",
+      "Assegnatario",
+      "Soggetto intestatario persona fisica",
+      "Soggetto intestatario persona giuridica",
+      "RUP"
+     ]
+    },
+    {
+     "nome": "tipo_soggetto",
+     "tipo": "enum",
+     "obbligatorio": true,
+     "allegato5": "TipoSoggetto",
+     "descrizione": "PF persona fisica, PG persona giuridica, PAI/PAE amministrazione italiana/estera, AS soggetto assegnatario, SW sistema software, RUP",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79",
+     "valori_ammessi": [
+      "PF",
+      "PG",
+      "PAI",
+      "AS",
+      "RUP"
+     ],
+     "valori_ammessi_se": [
+      {
+       "campo": "ruolo",
+       "in": [
+        "Amministrazione titolare",
+        "Amministrazioni partecipanti"
+       ],
+       "valori": [
+        "PAI"
+       ]
+      },
+      {
+       "campo": "ruolo",
+       "in": [
+        "Assegnatario"
+       ],
+       "valori": [
+        "AS"
+       ]
+      },
+      {
+       "campo": "ruolo",
+       "in": [
+        "Soggetto intestatario persona fisica"
+       ],
+       "valori": [
+        "PF"
+       ]
+      },
+      {
+       "campo": "ruolo",
+       "in": [
+        "Soggetto intestatario persona giuridica"
+       ],
+       "valori": [
+        "PG"
+       ]
+      },
+      {
+       "campo": "ruolo",
+       "in": [
+        "RUP"
+       ],
+       "valori": [
+        "RUP"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "cognome",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "Cognome",
+     "descrizione": "Obbligatorio per PF e RUP",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "PF",
+        "RUP"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "nome",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "Nome",
+     "descrizione": "Obbligatorio per PF e RUP",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "PF",
+        "RUP"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "codice_fiscale",
+     "tipo": "codice_fiscale",
+     "obbligatorio": false,
+     "allegato5": "CodiceFiscale",
+     "descrizione": "Codice fiscale o partita IVA (facoltativo)",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79",
+     "sensibile": true
+    },
+    {
+     "nome": "denominazione",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneOrganizzazione / DenominazioneAmministrazione",
+     "descrizione": "Obbligatoria per PG, PAE e AS",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "PG",
+        "PAE",
+        "AS"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "codice_ipa",
+     "tipo": "codice_ipa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneAmministrazioneCodiceIPA",
+     "descrizione": "Codice IPA dell'amministrazione: obbligatorio per PAI e RUP",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "PAI",
+        "RUP"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "aoo",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneAmministrazioneAOO",
+     "descrizione": "Area organizzativa omogenea",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79"
+    },
+    {
+     "nome": "uor",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneUfficioUOR",
+     "descrizione": "Unità organizzativa responsabile: obbligatoria per RUP",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "RUP"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "denominazione_ufficio",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneUfficio",
+     "descrizione": "Obbligatoria per AS",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "AS"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "indirizzi_digitali",
+     "tipo": "elenco",
+     "obbligatorio": false,
+     "allegato5": "IndirizziDigitaliDiRiferimento",
+     "descrizione": "Indirizzi digitali di riferimento",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79"
+    },
+    {
+     "nome": "denominazione_sistema",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneSistema",
+     "descrizione": "Obbligatoria per SW",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, pp. 76-79",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "SW"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "nome": "assegnazione",
+   "tipo": "elenco_strutture",
+   "obbligatorio": false,
+   "allegato5": "Assegnazione",
+   "descrizione": "Obbligatoria per i fascicoli",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 80",
+   "obbligatorio_se": [
+    {
+     "campo": "tipo_aggregazione",
+     "in": [
+      "Fascicolo"
+     ]
+    }
+   ],
+   "sottocampi": [
+    {
+     "nome": "tipo_assegnazione",
+     "tipo": "enum",
+     "obbligatorio": true,
+     "allegato5": "TipoAssegnazione",
+     "descrizione": "",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, p. 80",
+     "valori_ammessi": [
+      "Per competenza",
+      "Per conoscenza"
+     ]
+    },
+    {
+     "nome": "soggetto_assegnatario",
+     "tipo": "stringa",
+     "obbligatorio": true,
+     "allegato5": "SoggettoAssegnatario",
+     "descrizione": "",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, p. 80"
+    },
+    {
+     "nome": "data_inizio",
+     "tipo": "data_ora",
+     "obbligatorio": true,
+     "allegato5": "DataInizioAssegnazione",
+     "descrizione": "",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, p. 80"
+    },
+    {
+     "nome": "data_fine",
+     "tipo": "data_ora",
+     "obbligatorio": false,
+     "allegato5": "DataFineAssegnazione",
+     "descrizione": "",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§4, p. 80"
+    }
+   ]
+  },
+  {
+   "nome": "data_apertura",
+   "tipo": "data",
+   "obbligatorio": true,
+   "allegato5": "DataApertura",
+   "descrizione": "",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 81"
+  },
+  {
+   "nome": "classificazione",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "Classificazione.IndiceDiClassificazione",
+   "descrizione": "",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 82"
+  },
+  {
+   "nome": "classificazione_descrizione",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "Classificazione.Descrizione",
+   "descrizione": "",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 82"
+  },
+  {
+   "nome": "piano_classificazione",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "Classificazione.PianoDiClassificazione",
+   "descrizione": "URI del piano",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 82"
+  },
+  {
+   "nome": "progressivo",
+   "tipo": "intero",
+   "obbligatorio": true,
+   "allegato5": "Progressivo",
+   "descrizione": "Numero progressivo dell'aggregazione",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 82",
+   "minimo": 1
+  },
+  {
+   "nome": "oggetto",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "ChiaveDescrittiva.Oggetto",
+   "descrizione": "",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 82"
+  },
+  {
+   "nome": "parole_chiave",
+   "tipo": "elenco",
+   "obbligatorio": false,
+   "allegato5": "ChiaveDescrittiva.ParoleChiave",
+   "descrizione": "Fino a 5",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 83",
+   "max_elementi": 5
+  },
+  {
+   "nome": "data_chiusura",
+   "tipo": "data",
+   "obbligatorio": false,
+   "allegato5": "DataChiusura",
+   "descrizione": "Obbligatoria alla chiusura dell'aggregazione (non verificabile al versamento)",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§4, p. 84"
+  },
+  {
+   "nome": "procedimento_amministrativo",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "ProcedimentoAmministrativo",
+   "descrizione": "Procedimento (materia, denominazione, riferimento al catalogo) — Testo dell'Allegato 5 oltre p. 84 non estratto dalla fonte ufficiale in R11: da riscontrare",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "origine": "allegato5"
+  },
+  {
+   "nome": "id_aggregazione_precedente",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "IdAggPrimario / collegamenti",
+   "descrizione": "Aggregazione precedente — Testo dell'Allegato 5 oltre p. 84 non estratto dalla fonte ufficiale in R11: da riscontrare",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "origine": "allegato5"
+  },
+  {
+   "nome": "indice_documenti",
+   "tipo": "elenco",
+   "obbligatorio": true,
+   "allegato5": "IndiceDocumenti",
+   "descrizione": "Identificativi dei documenti: calcolati dal servizio — Testo dell'Allegato 5 oltre p. 84 non estratto dalla fonte ufficiale in R11: da riscontrare",
+   "calcolato": true,
+   "da_riscontrare": true,
+   "origine": "allegato5"
+  },
+  {
+   "nome": "tempo_conservazione",
+   "tipo": "intero",
+   "obbligatorio": false,
+   "allegato5": "TempoDiConservazione",
+   "descrizione": "Anni di conservazione — Testo dell'Allegato 5 oltre p. 84 non estratto dalla fonte ufficiale in R11: da riscontrare",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "origine": "allegato5"
+  },
+  {
+   "nome": "note",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "Note",
+   "descrizione": "Note — Testo dell'Allegato 5 oltre p. 84 non estratto dalla fonte ufficiale in R11: da riscontrare",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "origine": "allegato5"
+  }
+ ]
+}

@@ -1,0 +1,2 @@
+"vd_app" "vd_app_dev_only"
+"vd_testimone" "vd_testimone_dev_only"

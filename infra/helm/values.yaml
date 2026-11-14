@@ -1,0 +1,1691 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Helm values — VerumDoc (predefiniti = produzione; values.staging.yaml sovrascrive)
+#
+# UNICA FONTE della topologia di deploy (VD-C-038): da questo file
+#   - il chart Helm (templates/) genera Deployment, Service, ConfigMap, Secret
+#     (solo se secrets.create), NetworkPolicy, Ingress, HPA, ServiceAccount;
+#   - infra/k8s/genera_manifest.py genera i manifest kustomize di infra/k8s/base
+#     e le patch degli overlay (staging, prod);
+#   - infra/k8s/verifica_manifest.py controlla che percorsi di salute, chiavi
+#     di ConfigMap e Secret corrispondano al codice (rotte /health nei main.py,
+#     campi delle Settings in app/config.py).
+#
+# Segnaposto «DA_TERRAFORM:<output>»: valori presi dagli output dell'ambiente
+# Terraform (infra/terraform/environments/<amb>/outputs.tf), sostituiti dalla
+# pipeline di rilascio; «DA_IMPOSTARE»: valori da decidere fuori da Terraform.
+# I Secret NON contengono mai valori in questo file: si elencano solo le chiavi.
+
+global:
+  project: verumdoc
+  environment: production
+  imageRegistry: "DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com"
+  imageTag: "DA_IMPOSTARE_IN_PIPELINE"   # mai «latest»: tag immutabile dell'immagine
+  imagePullPolicy: IfNotPresent
+  # ARN dei ruoli IRSA: arn:aws:iam::<account>:role/verumdoc-<ambienteIam>-<servizio>
+  awsAccountId: "DA_IMPOSTARE"
+  # Ambiente come lo chiama Terraform (environments/prod → «prod»): nome dei ruoli
+  # IRSA (modulo iam_servizi, es. verumdoc-prod-gateway). R03 i3, R04.
+  ambienteIam: prod
+  # R04 (contratto K3): account di questo rilascio. «principale» = registro e
+  # servizi; «testimone» = solo il testimone della catena, in un account AWS e
+  # con amministratori diversi (helm ... -f values.yaml -f values.testimone.yaml).
+  # Un servizio con «account: testimone» non compare mai nel rilascio principale.
+  account: principale
+  namespace: verumdoc
+
+# Secret dei servizi (chiavi in services.<nome>.secretKeys).
+# create: false (predefinito) → i Secret <servizio>-secrets vanno creati fuori dal
+# chart (SealedSecret / External Secrets da AWS Secrets Manager), con le stesse
+# chiavi: vedi infra/k8s/secrets/README.md.
+# create: true → il chart crea i Secret con i valori passati SOLO a riga di
+# comando (--set-string secrets.values.gateway.DATABASE_URL=...), mai in un file
+# versionato; le chiavi senza valore restano vuote.
+secrets:
+  create: false
+  values: {}
+
+network:
+  # Sorgenti del traffico dall'ALB (target-type ip): subnet pubbliche della VPC
+  albSourceCidrs: ["10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20"]
+  # Subnet isolate con RDS, ElastiCache, MSK, OpenSearch (modules/vpc)
+  dataCidrs: ["10.0.96.0/20", "10.0.112.0/20", "10.0.128.0/20"]
+  vpcCidr: "10.0.0.0/16"
+  # Uscita verso Internet (egress.internetPorts): 0.0.0.0/0 TRANNE le reti interne
+  # e riservate, così un servizio con uscita su Internet (es. i webhook dei
+  # clienti, R03 b3) non raggiunge mai la VPC, i metadati dell'istanza
+  # (169.254.169.254) o altre reti private, nemmeno sulle porte ammesse.
+  # verifica_manifest.py controlla che l'elenco copra la VPC e i blocchi RFC 1918.
+  internetExcept:
+    - "10.0.0.0/8"        # RFC 1918 (comprende la VPC)
+    - "172.16.0.0/12"     # RFC 1918
+    - "192.168.0.0/16"    # RFC 1918
+    - "100.64.0.0/10"     # CGNAT (RFC 6598)
+    - "169.254.0.0/16"    # link-local, metadati dell'istanza
+    - "127.0.0.0/8"       # loopback
+  # Sorgenti del traffico dal Network Load Balancer TCP (SFTP, target-type ip,
+  # preserve_client_ip disattivato): le subnet pubbliche come per l'ALB.
+  nlbSourceCidrs: ["10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20"]
+  dataPorts:
+    postgres: [5432]
+    redis: [6379]
+    kafka: [9092, 9094, 9098]
+    opensearch: [443]
+  monitoringNamespace: monitoring
+
+# ── PostgreSQL e PgBouncer (R04, piano §4.2) ───────────────────────────────
+# Connessioni massime del cluster Aurora (parametro max_connections, modulo
+# Terraform rds: lo legge da qui). verifica_manifest.py controlla che
+# PgBouncer (repliche × max_db_connections per database) più i client diretti
+# (repliche massime × pool di libs/shared/db) più le riservate stiano sotto.
+postgres:
+  maxConnessioni: 200
+  connessioniRiservate: 20        # superuser, manutenzione, KEDA, psql di emergenza
+  # Pool per processo di libs/shared/db (pool_size + max_overflow)
+  poolPerProcesso: 30
+
+# PgBouncer in modalità TRANSACTION davanti a PostgreSQL: i servizi scalati
+# orizzontalmente (egress.data: [pgbouncer]) aprono connessioni verso PgBouncer,
+# che ne tiene poche verso Aurora. Due database logici: «verumdoc» → istanza
+# primaria (scrittura), «verumdoc_lettura» → endpoint dei reader (repliche di
+# sola lettura, DATABASE_URL_LETTURA, letture di cruscotti e ricerca).
+# Compatibilità con asyncpg (libs/shared/db): PgBouncer ≥ 1.21 con
+# max_prepared_statements > 0 gestisce i prepared statement di protocollo che
+# asyncpg usa (immagine infra/pgbouncer/Dockerfile: la build fallisce sotto la
+# 1.21); default_transaction_read_only (connessioni della replica) è fra i
+# parametri tracciati. NON passano da PgBouncer: hashchain (sequenziatore della
+# catena con lock di sessione, verifica asincrona con pg_try_advisory_lock di
+# sessione) e le migrazioni (Job gateway-migrazioni, URL diretto).
+# Segreti: Secret «pgbouncer-secrets» con userlist.txt (utente e password SCRAM
+# di ogni utente applicativo, sincronizzati dal secret manager); ConfigMap
+# «pgbouncer-ca» con il bundle delle CA di RDS (global-bundle.pem, verify-full).
+pgbouncer:
+  enabled: true
+  image: verumdoc-pgbouncer
+  replicas: 2
+  port: 6432
+  runAsUser: 1000
+  secret: pgbouncer-secrets
+  caConfigMap: pgbouncer-ca
+  resources:
+    requests: {cpu: 250m, memory: 128Mi}
+    limits: {cpu: 1000m, memory: 256Mi}
+  databases:
+    verumdoc: {host: "DA_TERRAFORM:rds_endpoint", port: 5432, dbname: verumdoc}
+    verumdoc_lettura: {host: "DA_TERRAFORM:rds_reader_endpoint", port: 5432, dbname: verumdoc}
+  # Sezione [pgbouncer] di pgbouncer.ini (stringhe, scritte così come sono)
+  impostazioni:
+    pool_mode: transaction
+    auth_type: scram-sha-256
+    auth_file: /etc/pgbouncer/segreti/userlist.txt
+    max_client_conn: "5000"
+    default_pool_size: "40"
+    reserve_pool_size: "5"
+    reserve_pool_timeout: "3"
+    # Tetto per database e per istanza di PgBouncer, qualunque sia l'utente
+    max_db_connections: "45"
+    max_prepared_statements: "200"
+    track_extra_parameters: "IntervalStyle, default_transaction_read_only"
+    server_tls_sslmode: verify-full
+    server_tls_ca_file: /etc/pgbouncer/ca/global-bundle.pem
+    server_idle_timeout: "300"
+    server_lifetime: "3600"
+    query_wait_timeout: "30"
+    log_connections: "0"
+    log_disconnections: "0"
+    stats_period: "60"
+    pidfile: /tmp/pgbouncer.pid
+    unix_socket_dir: ""
+
+# ── KEDA (R04): scalatura sul ritardo dei gruppi Kafka e sulle code in PostgreSQL ──
+# I carichi con autoscaling.keda hanno uno ScaledObject (KEDA crea e governa
+# l'HPA, con la CPU come attivatore in più) invece dell'HPA. Operatore KEDA
+# installato nel cluster (namespace keda) con il ruolo IRSA «keda-operatore»
+# del modulo Terraform iam_servizi (MSK con autenticazione IAM). Versione
+# minima: sasl aws_msk_iam e identityOwner keda nelle TriggerAuthentication.
+keda:
+  versioneMinima: "2.16"
+  kafka:
+    authenticationRef: keda-msk-iam
+    metadata:
+      sasl: aws_msk_iam
+      tls: enable
+      awsRegion: eu-south-1
+  postgresql:
+    authenticationRef: keda-postgres
+    # Secret «keda-postgres», chiave «connection»: stringa libpq verso il reader
+    # (host=<rds_reader_endpoint> port=5432 dbname=verumdoc user=keda_lettura
+    # sslmode=verify-full password=...). Utente con SELECT sulle sole tabelle di coda.
+    secret: keda-postgres
+
+# ── Classi di storage (create dal chart / dai manifest, risorse di cluster) ──
+# verumdoc-efs: volumi ReadWriteMany su Amazon EFS (driver EFS CSI, file system
+# del modulo Terraform efs), un access point per volume con proprietario 1000
+# (utente dei container). Serve al volume condiviso di sftp-ingest.
+storageClasses:
+  verumdoc-efs:
+    provisioner: efs.csi.aws.com
+    reclaimPolicy: Retain          # i file dei clienti non spariscono con il PVC
+    volumeBindingMode: Immediate
+    parameters:
+      provisioningMode: efs-ap
+      fileSystemId: "DA_TERRAFORM:efs_file_system_id"
+      directoryPerms: "700"
+      uid: "1000"
+      gid: "1000"
+      basePath: /verumdoc
+
+# ── Ingress (AWS Load Balancer Controller) ───────────────────────
+# Le rotte sono in ordine: prima i prefissi più specifici (l'ALB valuta le regole
+# nell'ordine scritto, quindi l'instradamento è «a prefisso più lungo» solo se
+# l'elenco lo è: verifica_manifest.py lo impone). Il frontend (/) solo sull'host
+# dell'applicazione.
+#
+# maxBodyMB: limite del corpo della richiesta per prefisso (REGOLE §27.3: limiti
+# del proxy allineati a quelli applicativi). L'ALB non ha un limite proprio: lo
+# applica il WAF (modulo Terraform waf, che legge QUESTO elenco) bloccando le
+# richieste con Content-Length oltre il limite. Vale il limite della rotta più
+# specifica; un prefisso più specifico non può avere un limite più alto di quello
+# che lo contiene (regole WAF in OR). verifica_manifest.py controlla che ogni
+# limite copra le impostazioni applicative corrispondenti (tabella LIMITI_CORPO).
+# Le richieste senza Content-Length (chunked) non sono limitate dal WAF: resta il
+# limite applicativo (413 del catalogo).
+#   - multipart REST: 100 MB per file (VERSAMENTO_REST_MAX_FILE_MB) più
+#     margine per l'indice e le intestazioni multipart; oltre si usano le sessioni
+#     di caricamento (5 GiB);
+#   - parti delle sessioni (PUT): CARICAMENTI_DIMENSIONE_PARTE_MB (8) + margine,
+#     fino a 16 MB per poter alzare la parte senza toccare il WAF;
+#   - PDND: file di PDND_MAX_FILE_MB (50) in base64 nel JSON ≈ 67 MB + metadati;
+#   - API di sola consultazione/gestione: 1-10 MB.
+ingress:
+  enabled: true
+  className: alb
+  hosts:
+    app: "app.verumdoc.it"
+    api: "api.verumdoc.it"
+  tlsSecretName: ""   # con ALB il certificato è ACM (annotazione certificate-arn)
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443},{"HTTP":80}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: "DA_IMPOSTARE:acm_certificate_arn"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: "DA_TERRAFORM:waf_web_acl_arn"
+    # Timeout di inattività dell'ALB (predefinito AWS 60 s): un multipart da
+    # 100 MB o un PDND da 67 MB da un client lento, più il completamento del
+    # caricamento sullo staging dopo l'ultimo byte, superano il minuto. 300 s è
+    # anche il tempo massimo di attesa del client di sftp-ingest verso il gateway
+    # moltiplicato per i ritentativi (GATEWAY_TIMEOUT_SECONDI 60). L'ALB non ha
+    # timeout per rotta: le API brevi restano limitate dai loro timeout applicativi.
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
+    # La salute dei target la dichiara ogni Service esposto con l'annotazione
+    # healthcheck-path = health.ready del servizio (templates/service.yaml).
+  routes:
+    - {path: /api/v1/onboarding, service: onboarding, maxBodyMB: 10}
+    # Sessioni di caricamento (R03 b1, contratto C1): parti binarie
+    - {path: /api/v1/caricamenti, service: gateway, maxBodyMB: 16}
+    # Catena delle impronte (VD-C-098: router hashchain con prefisso /api/v1/hashchain)
+    - {path: /api/v1/hashchain, service: hashchain, maxBodyMB: 1}
+    # Eventi per i clienti e webhook firmati (R03 b3, contratto C3)
+    - {path: /api/v1/eventi, service: notification, maxBodyMB: 1}
+    - {path: /api/v1/webhook, service: notification, maxBodyMB: 1}
+    # R10 (D32): campanella «da fare per te» e preferenze delle notifiche
+    - {path: /api/v1/notifiche, service: notification, maxBodyMB: 1}
+    # Stato del PdD e link rigenerati (R03 b4); già sotto /api/v2, esplicita perché
+    # è un contratto pubblico nuovo (resta di distribution anche se /api/v2 cambiasse)
+    - {path: /api/v2/distribution/pdd, service: distribution, maxBodyMB: 1}
+    # Ciclo di vita (R05, contratto Q2): pratiche, allegati fino ad ALLEGATI_MAX_MB (50)
+    - {path: /api/v1/ciclo-vita, service: ciclo-vita, maxBodyMB: 60}
+    # Configurazione con bozze, anteprima e applica, validatore preventivo (R05, contratto Q1)
+    - {path: /api/v1/configurazione, service: onboarding, maxBodyMB: 10}
+    - {path: /api/dashboard, service: dashboard-api, maxBodyMB: 10}
+    - {path: /api/info, service: dashboard-api, maxBodyMB: 1}
+    - {path: /api/health, service: dashboard-api, maxBodyMB: 1}
+    - {path: /api/v2, service: distribution, maxBodyMB: 1}
+    - {path: /api/v1, service: gateway, maxBodyMB: 110}
+    - {path: /api/pdnd, service: gateway, maxBodyMB: 72}
+    - {path: /, service: frontend, onlyHost: app}
+
+# ── Servizi ───────────────────────────────────────────────────────
+# Per ogni servizio:
+#   port         porta del container (le app ascoltano su 8000, il frontend su 8080)
+#   health       percorsi reali delle rotte di salute (grep @app.get(".../health/...") nei main.py)
+#   config       ConfigMap <nome>-config: SOLO variabili lette dalle Settings del servizio
+#   secretKeys   chiavi del Secret <nome>-secrets (valori mai qui)
+#   exposed      raggiungibile dall'ALB (deve comparire in ingress.routes)
+#   callers      altri servizi che lo chiamano (NetworkPolicy in ingresso)
+#   egress       servizi interni chiamati, dati (postgres/redis/kafka/opensearch), porte Internet
+#   tmpSizeLimit dimensione di /tmp (emptyDir: oltre, kubelet sfratta il pod); predefinito 1Gi
+services:
+  gateway:
+    enabled: true
+    image: verumdoc-gateway
+    port: 8000
+    replicas: 2
+    # R03 f3 (REV-N2): /tmp ospita le parti dei multipart REST e i file
+    # PDND decodificati. verifica_manifest.py controlla che copra il budget
+    # DISCO_TEMPORANEO_BUDGET_MB (1536) e i tetti di concorrenza
+    # (8 multipart × 110 MB + 8 PDND × 50 MB = 1280 MB) più il 10% di margine.
+    tmpSizeLimit: 2Gi
+    resources:
+      requests: {cpu: 200m, memory: 256Mi}
+      limits: {cpu: 1000m, memory: 1Gi}
+    autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 20, targetCPUUtilization: 70}
+    health: {live: /api/v1/health/live, ready: /api/v1/health/ready}
+    config:
+      ENV: production
+      LOG_LEVEL: INFO
+      LOG_JSON: "true"
+      KAFKA_BOOTSTRAP: "DA_TERRAFORM:kafka_bootstrap"
+      # R04: MSK accetta solo TLS + IAM (libs/shared/kafka/connessione.py); in locale PLAINTEXT
+      KAFKA_AUTENTICAZIONE: iam
+      KAFKA_REGIONE: eu-south-1
+      CORS_ORIGINS: '["https://app.verumdoc.it"]'
+      JWT_ISSUER: verumdoc.it
+      JWT_AUDIENCE: verumdoc-api
+      # SPID/CIE: il ritorno dall'aggregatore (BASE_URL/api/v1/auth/spid/callback) deve
+      # arrivare sullo STESSO host del frontend, dove il browser ha il cookie di sessione
+      # SPID (vd_spid_sessione): quindi l'host app, non api (R02 g2-auth).
+      BASE_URL: "https://app.verumdoc.it"
+      VERUMDOC_DEV_AUTH: "false"
+      # R07 (D14): l'inattività della sessione per ruolo è un'impostazione della console
+      # (SESSIONE_INATTIVITA_MINUTI_<RUOLO>); tolte le variabili SESSIONE_INATTIVITA_*
+      SPID_MOCK_ENABLED: "false"
+      SPID_AGGREGATOR_URL: ""
+      SPID_CLIENT_ID: ""
+      SPID_ISSUER: ""
+      SPID_JWKS_URL: ""
+      SPID_JWKS_CACHE_SECONDS: "3600"
+      # Livello minimo dall'`acr` dell'id_token verificato (2 o 3; mai L1)
+      SPID_LIVELLO_MINIMO: "2"
+      SPID_ALLOWED_REDIRECTS: "[]"   # ritorni del frontend oltre a https://app.verumdoc.it
+      # R13b (VD-C-069): host dell'aggregatore a cui possono andare SPID_CLIENT_SECRET e le
+      # asserzioni private_key_jwt (fissati al deploy; in produzione obbligatori con un
+      # segreto: il gateway non parte senza). Da riempire con gli host del contratto.
+      SPID_HOST_AMMESSI: "[]"
+      SPID_CHIAVE_CLIENT_KID: ""
+      # R10 (D08): console per i collegamenti d'invito e l'origine delle passkey;
+      # la chiave dei segreti TOTP è nel Secret (CREDENZIALI_CHIAVE_CIFRATURA)
+      BASE_URL_CONSOLE: "https://app.verumdoc.it"
+      WEBAUTHN_RP_NOME: "VerumDoc"
+      CREDENZIALI_CHIAVE_CIFRATURA_ID: "c1"
+      # R17 (VD-P-164): identificativo della chiave con cui il gateway firma le conferme
+      # delle decisioni sensibili (la chiave privata è nel Secret: CONFERME_CHIAVE_PRIVATA;
+      # la pubblica va in CONFERME_CHIAVI_PUBBLICHE di ciclo-vita). Rotazione: nuovo kid,
+      # entrambe le pubbliche in ciclo-vita per la durata di una conferma, poi la vecchia
+      # in CONFERME_KID_REVOCATI (runbook conferme_decisione)
+      CONFERME_KID: "gw-1"
+      CONFERME_DURATA_SECONDI: "300"
+      # Revisione R10 (V1): IP reale del cliente da X-Forwarded-For solo se la connessione
+      # arriva da queste reti = network.albSourceCidrs (verifica_manifest lo controlla);
+      # si contano solo i tentativi sbagliati
+      PROXY_FIDATI: '["10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20"]'
+      ACCESSO_FALLIMENTI_IP_15_MINUTI: "30"
+      ACCESSO_OPZIONI_PASSKEY_IP_15_MINUTI: "300"
+      S3_ENDPOINT_URL: "https://s3.eu-south-1.amazonaws.com"
+      S3_REGION: eu-south-1
+      # Bucket di staging (versamenti/ e caricamenti/): NON WORM, lifecycle per i
+      # multipart incompleti (modulo Terraform s3, R03 i2)
+      S3_BUCKET_PDV: "DA_TERRAFORM:s3_staging_bucket"
+      # PDND (app/routers/pdnd.py, PdndSettings): voucher verificati con la chiave
+      # pubblica PDND (Secret PDND_PUBLIC_KEY; senza → 503 esplicito), audience
+      # dell'e-service registrato ed emittente. Audience segnaposto = ogni voucher
+      # rifiutato finché non è impostata (mai controllo spento).
+      PDND_AUDIENCE: "DA_IMPOSTARE:audience_eservice_pdnd"
+      PDND_ISSUER: "interop.pagopa.it"
+      # Relay dell'outbox (libs/shared/outbox.py): pubblica gli eventi di TUTTI i
+      # servizi (gateway, onboarding, distribution). false solo se gira come
+      # processo dedicato (python -m app.services.outbox).
+      OUTBOX_RELAY_ATTIVO: "true"
+      OUTBOX_INTERVALLO_SECONDI: "2"
+      # ── Versamento unico in streaming (R03 a2) ──
+      VERSAMENTO_REST_MAX_FILE_MB: "100"   # oltre: sessioni di caricamento (ingress maxBodyMB 110)
+      # Corpo multipart intero (REST), contato anche in chunked → 413 UPL-413
+      # (R03 f1, REV-09): uguale al maxBodyMB 110 di /api/v1
+      VERSAMENTO_REST_MAX_CORPO_MB: "110"
+      VERSAMENTO_MAX_FILE_PER_PDV: "500"
+      STAGING_PARTE_MB: "8"
+      # IDEMPOTENZA_OBBLIGATORIA / IDEMPOTENZA_TRANSIZIONE_FINO_AL non impostate:
+      # valgono i predefiniti del registro delle regole (vero / 31/03/2027).
+      IDEMPOTENZA_DEPRECATA_DAL: "2026-10-21"
+      # ── Sessioni di caricamento (R03 b1, contratto C1) ──
+      CARICAMENTI_MAX_DIMENSIONE_MB: "5120"
+      CARICAMENTI_DIMENSIONE_PARTE_MB: "8"   # ingress maxBodyMB di /api/v1/caricamenti: 16
+      CARICAMENTI_SCADENZA_ORE: "24"
+      # Verifica e pulizia delle sessioni nel Deployment dedicato
+      # gateway-verifica-caricamenti (workers sotto): spente nelle repliche API.
+      CARICAMENTI_LAVORATORE_ATTIVO: "false"
+      CARICAMENTI_INTERVALLO_SECONDI: "5"
+      CARICAMENTI_PULIZIA_INTERVALLO_SECONDI: "300"
+      CARICAMENTI_LEASE_VERIFICA_SECONDI: "900"
+      CARICAMENTI_VERIFICA_TENTATIVI_MAX: "5"
+      # Prenotazione di una parte senza ETag più vecchia di così: abbandonata (R03 f1, REV-07)
+      CARICAMENTI_PRENOTAZIONE_PARTE_SECONDI: "300"
+      # ── Pulizia delle copie di transito dei PdV già nel PdA (R03 f1, REV-08) ──
+      # Gira nel CronJob gateway-pulizia-staging (cronJobs sotto), non nei
+      # processi lunghi: spenta qui (API e gateway-verifica-caricamenti).
+      # Un giro = al più LOTTO × LOTTI_PER_GIRO PdV (10.000), ogni 10 minuti.
+      STAGING_PULIZIA_ATTIVO: "false"
+      STAGING_PULIZIA_ATTESA_ORE: "24"
+      STAGING_PULIZIA_LOTTO: "500"
+      STAGING_PULIZIA_LOTTI_PER_GIRO: "20"
+      STAGING_PULIZIA_VERIFICHE_PARALLELE: "16"
+      # Rinvio per PdV quando la verifica non riesce (R03 f3, REV-N1): 10, 20, 40…
+      # minuti fino a 24 ore; dopo 8 tentativi (≈ 2 giorni) il PdV è bloccato:
+      # log «staging_pulizia_bloccata» e metrica verumdoc_staging_pulizia_pdv_bloccati
+      # (letta dalle repliche API al più ogni 5 minuti, conteggio fermato a 100.000)
+      STAGING_PULIZIA_RINVIO_MINUTI: "10"
+      STAGING_PULIZIA_RINVIO_MAX_ORE: "24"
+      STAGING_PULIZIA_TENTATIVI_MAX: "8"
+      STAGING_PULIZIA_METRICHE_SECONDI: "300"
+      STAGING_PULIZIA_METRICHE_TETTO: "100000"
+      VERSAMENTO_JSON_MAX_MB: "16"
+      # ── PDND (R03 b1) ──
+      PDND_MAX_FILE_MB: "50"                 # in base64 ≈ 67 MB: ingress maxBodyMB di /api/pdnd 72
+      PDND_MAX_METADATI_MB: "4"              # campi diversi dal file (67 + 4 < 72)
+      # Richieste contemporanee per replica (R03 f1, REV-05): oltre → 503 ritentabile
+      PDND_RICHIESTE_CONTEMPORANEE_MAX: "8"          # PDND-503-OCCUPATO
+      # Disco temporaneo /tmp della replica (R03 f3, REV-N2; tmpSizeLimit sopra):
+      # multipart REST contemporanei (UPL-503-OCCUPATO) e budget unico di
+      # byte prenotati da multipart e PDND (oltre: 503 ritentabile del canale)
+      # R04 (prova di carico): 8 dava 503 UPL-503-OCCUPATO già a 25 versamenti/s per
+      # 2 processi con latenze di picco di qualche centinaio di ms; 16 regge le code
+      # brevi. Il disco resta limitato dal budget di byte (DISCO_TEMPORANEO_BUDGET_MB).
+      VERSAMENTO_MULTIPART_RICHIESTE_CONTEMPORANEE_MAX: "16"
+      DISCO_TEMPORANEO_BUDGET_MB: "1536"
+      # ── Quote per piano (R03 b4, VD-C-099; valori R03 i3, da confermare) ──
+      # STESSI valori in distribution, dashboard-api e notification (àncore YAML:
+      # il limitatore dei servizi usa le stesse impostazioni QUOTE_*). Un ente
+      # fuori scala ha un valore proprio che prevale sul piano: impostazioni
+      # QUOTA_PDV_GIORNO / QUOTA_RICHIESTE_MINUTO al livello ENTE (impostazioni_valori).
+      QUOTE_RICHIESTE_MINUTO: &quote_richieste_minuto '{"starter": 120, "business": 600, "enterprise": 6000}'
+      QUOTE_PDV_GIORNO: &quote_pdv_giorno '{"starter": 1000, "business": 20000, "enterprise": 200000}'
+      QUOTE_PIANO_PREDEFINITO: &quote_piano_predefinito starter
+      QUOTE_FINESTRA_SECONDI: &quote_finestra_secondi "60"
+      QUOTE_PIANO_CACHE_SECONDI: &quote_piano_cache_secondi "60"
+      QUOTE_FUSO_GIORNATA: Europe/Rome
+      # ── Token di canale (R03 b4, contratto C2) ──
+      # La chiave pubblica di sftp-ingest è nel Secret (SFTP_TOKEN_CHIAVE_PUBBLICA):
+      # senza, in produzione il canale SFTP è escluso (log d'avvio).
+      # R05: canale CICLO_VITA del servizio ciclo-vita (rettifiche, riversamento in
+      # ingresso), chiave pubblica nel Secret (CICLO_VITA_TOKEN_CHIAVE_PUBBLICA).
+      CANALE_SERVIZI_AMMESSI: '{"sftp-ingest": ["SFTP"], "ciclo-vita": ["CICLO_VITA"]}'
+    # SFTP_TOKEN_CHIAVE_PUBBLICA: pubblica di SFTP_TOKEN_CHIAVE_PRIVATA di
+    # sftp-ingest (non segreta, gestita come PDND_PUBLIC_KEY);
+    # CICLO_VITA_TOKEN_CHIAVE_PUBBLICA: pubblica di CICLO_VITA_TOKEN_CHIAVE_PRIVATA
+    # di ciclo-vita (R05, stessa gestione).
+    # R13b (VD-C-069): SPID_CHIAVE_PRIVATA_CLIENT (PEM) per private_key_jwt, request object
+    # firmato e UserInfo cifrato, se l'aggregatore li usa (docs/architettura/accesso_spid_cie.md)
+    secretKeys: [DATABASE_URL, REDIS_URL, JWT_PRIVATE_KEY, JWT_PUBLIC_KEY, S3_ACCESS_KEY, S3_SECRET_KEY, SPID_CLIENT_SECRET, SPID_CHIAVE_PRIVATA_CLIENT, API_KEY_PEPPER, PDND_PUBLIC_KEY, SFTP_TOKEN_CHIAVE_PUBBLICA, CICLO_VITA_TOKEN_CHIAVE_PUBBLICA, CREDENZIALI_CHIAVE_CIFRATURA, CREDENZIALI_CHIAVI_CIFRATURA_PRECEDENTI, CONFERME_CHIAVE_PRIVATA]
+    # R04 (VD-C-101): ruolo IAM del ServiceAccount (modulo Terraform iam_servizi,
+    # che legge QUESTO blocco). Permessi per bucket: lettura, scrittura,
+    # eliminazione, elenco, multipart, worm; Kafka: produzione, consumo.
+    # Valgono anche per i lavoratori e i job del servizio (stesso ServiceAccount).
+    iam:
+      s3:
+        staging: [lettura, scrittura, eliminazione, elenco, multipart]
+        aip: [lettura]           # HEAD con checksum della pulizia dello staging, RdV
+      kafka: [produzione]        # relay dell'outbox
+    # Variabili lette dall'entrypoint dell'immagine (non dalle Settings)
+    entrypointEnv:
+      VD_SALTA_MIGRAZIONI: "1"   # migrazioni nel Job gateway-migrazioni, prima dei servizi
+    exposed: true
+    # dashboard-api (GATEWAY_URL) e il lavoratore di sftp-ingest (C1, versamento)
+    callers: [dashboard-api, sftp-ingest-lavoratore, ciclo-vita-lavoratore]   # ciclo-vita: versamenti di rettifica e riversamento (C1/C2)
+    egress:
+      services: []
+      data: [pgbouncer, redis, kafka]
+      internetPorts: [443]   # S3, aggregatore SPID/CIE, PDND
+    # Processi dedicati (R03): stessa immagine, ConfigMap e Secret del servizio;
+    # «env» prevale sulla ConfigMap. disattivaNelPadre: impostazione che nelle
+    # repliche API deve valere "false" quando il lavoratore è attivo.
+    workers:
+      verifica-caricamenti:
+        enabled: true
+        # Impronte SHA-256/SHA-512/SHA3-256 in streaming fino a 5 GiB, testa e
+        # formato, scadenza e pulizia delle sessioni (lease + SKIP LOCKED: più
+        # repliche insieme). Il comando sostituisce l'entrypoint (niente migrazioni).
+        command: ["python", "-m", "app.services.caricamenti", "verifica"]
+        http: false
+        disattivaNelPadre: CARICAMENTI_LAVORATORE_ATTIVO
+        replicas: 2
+        resources:
+          requests: {cpu: 500m, memory: 256Mi}
+          limits: {cpu: 2000m, memory: 1Gi}
+        autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 10, targetCPUUtilization: 70}
+        egress:
+          services: []
+          data: [pgbouncer]
+          internetPorts: [443]   # S3 (staging)
+    # R04: migrazioni Alembic in un passo dedicato PRIMA dei servizi (REGOLE §27.2),
+    # con l'URL DIRETTO di PostgreSQL (Secret gateway-migrazioni, chiave
+    # DATABASE_URL): CREATE INDEX CONCURRENTLY e lock non passano da PgBouncer.
+    # Ruolo AMMINISTRATORE (utente master di RDS, membro di rds_superuser): crea
+    # i ruoli di gruppo e gli event trigger dei registri (migrazioni 031 e 033).
+    # Solo qui: mai nei Secret dei servizi né della manutenzione.
+    # Helm: hook pre-install/pre-upgrade; kustomize/Argo CD: hook PreSync.
+    jobs:
+      migrazioni:
+        command: ["python", "-m", "alembic", "upgrade", "head"]
+        activeDeadlineSeconds: 3600
+        envSegreti:
+          DATABASE_URL: {secret: gateway-migrazioni, key: DATABASE_URL}
+        resources:
+          requests: {cpu: 100m, memory: 256Mi}
+          limits: {cpu: 1000m, memory: 512Mi}
+        egress:
+          services: []
+          data: [postgres]
+          internetPorts: []
+    cronJobs:
+      # R04 correzioni (rev4 rilievi 5 e 6, secondo giro): manutenzione delle
+      # partizioni con il ruolo DEDICATO e connessione DIRETTA (non PgBouncer):
+      # Secret «db-manutenzione», login membro di verumdoc_manutenzione
+      # (proprietario delle sole tabelle partizionate operative) e di
+      # verumdoc_applicazione. NON è proprietario dei registri (audit_global,
+      # verifiche_registro: verumdoc_audit_proprietario, NOLOGIN): ne crea le
+      # partizioni solo con vd_crea_partizione_registro, non le stacca mai.
+      # I ruoli dei servizi non possono creare, staccare o eliminare partizioni;
+      # nei servizi la manutenzione consolida solo i contatori
+      # (DB_MANUTENZIONE_PARTIZIONI=auto senza DATABASE_URL_MANUTENZIONE).
+      # Ogni distacco lascia una voce in audit_global.
+      db-manutenzione:
+        schedule: "17 * * * *"
+        command: ["python", "-m", "libs.shared.db.manutenzione"]
+        activeDeadlineSeconds: 3000
+        envSegreti:
+          DATABASE_URL_MANUTENZIONE: {secret: db-manutenzione, key: DATABASE_URL}
+        resources:
+          requests: {cpu: 50m, memory: 128Mi}
+          limits: {cpu: 500m, memory: 256Mi}
+        egress:
+          services: []
+          data: [postgres]
+          internetPorts: []
+      # Rete di sicurezza dello staging (VD-C-015): oggetti senza PdV e multipart
+      # rimasti aperti sotto versamenti/ (le sessioni hanno la loro pulizia).
+      pulizia-orfani:
+        schedule: "23 * * * *"
+        command: ["python", "-m", "app.services.pulizia_orfani"]
+        activeDeadlineSeconds: 3000
+        resources:
+          requests: {cpu: 100m, memory: 128Mi}
+          limits: {cpu: 500m, memory: 512Mi}
+        egress:
+          services: []
+          data: [pgbouncer]
+          internetPorts: [443]   # S3 (staging)
+      # Copie di transito dei PdV già conservati (R03 f1, REV-08): elimina dallo
+      # staging solo dopo aver verificato la copia nel PdA (riga documenti +
+      # HEAD con dimensione e checksum: lettura sul bucket dei PdA, ruolo IRSA
+      # del gateway in Terraform). Un solo lotto alla volta fra i pod
+      # (advisory lock), concurrencyPolicy Forbid.
+      pulizia-staging:
+        schedule: "7-59/10 * * * *"
+        command: ["python", "-m", "app.services.pulizia_staging"]
+        activeDeadlineSeconds: 540
+        resources:
+          requests: {cpu: 100m, memory: 256Mi}
+          limits: {cpu: 1000m, memory: 512Mi}
+        egress:
+          services: []
+          data: [pgbouncer]
+          internetPorts: [443]   # S3 (staging e PdA in lettura)
+
+  validation:
+    enabled: true
+    image: verumdoc-validation
+    port: 8000
+    replicas: 2
+    resources:
+      requests: {cpu: 300m, memory: 256Mi}
+      limits: {cpu: 1500m, memory: 1Gi}
+    # R04: KEDA sul ritardo del gruppo (pdv.received, 48 partizioni): una replica
+    # ogni lagThreshold messaggi in attesa, al più una per partizione utile.
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 16
+      targetCPUUtilization: 70
+      keda:
+        kafka:
+          - {gruppoSetting: KAFKA_GROUP_ID, gruppo: validation-service, topicSetting: KAFKA_TOPIC_IN, topic: pdv.received, lagThreshold: 100}
+    health: {live: /api/v1/health/live, ready: /api/v1/health/ready}
+    config:
+      ENV: production
+      LOG_LEVEL: INFO
+      LOG_JSON: "true"
+      KAFKA_BOOTSTRAP: "DA_TERRAFORM:kafka_bootstrap"
+      # R04: MSK accetta solo TLS + IAM (libs/shared/kafka/connessione.py); in locale PLAINTEXT
+      KAFKA_AUTENTICAZIONE: iam
+      KAFKA_REGIONE: eu-south-1
+      S3_ENDPOINT_URL: "https://s3.eu-south-1.amazonaws.com"
+      S3_REGION: eu-south-1
+      # Verifica in streaming (R03 b5): limite per file dalla fotografia delle
+      # regole del PdV; questo vale solo per i PdV senza fotografia (R02).
+      VALIDAZIONE_MAX_FILE_MB: "5120"
+      LETTURA_BLOCCO_KB: "1024"
+      # PdV in parallelo per replica (offset confermati in ordine) e tetto dei
+      # messaggi letti e non confermati
+      CONCORRENZA_PDV: "8"
+      MAX_MESSAGGI_IN_SOSPESO: "256"
+      ATTESA_DOPO_ERRORE_DLQ_SECONDI: "30"
+      # R08 (D01, D02): firme con EU DSS, formati con Siegfried nell'immagine
+      # (veraPDF non installato: PDF/A «dichiarato, non validato» = avviso).
+      # Revisione X7: niente ripiego pyHanko in esercizio (senza trust anchor
+      # equivalenti alla Trusted List darebbe solo esiti indeterminati); i file
+      # oltre FIRME_DIMENSIONE_MAX_MB (= VERIFICA_DIMENSIONE_MASSIMA di
+      # verifica-firme, verifica_manifest.py lo controlla) non si inviano
+      FIRME_VERIFICATORE: dss
+      FIRME_DSS_URL: "http://verifica-firme:8080"
+      FIRME_RIPIEGO_PDF: "false"
+      FIRME_REVOCHE_RETE: "false"
+      FIRME_DIMENSIONE_MAX_MB: "60"
+      FIRME_CONCORRENZA: "2"
+      FORMATI_RICONOSCITORE: siegfried
+      VERIFICA_CONTENUTO_MAX_MB: "512"
+    secretKeys: [DATABASE_URL, S3_ACCESS_KEY, S3_SECRET_KEY, FIRME_DSS_TOKEN]
+    iam:
+      s3:
+        staging: [lettura]       # rilettura dei file del PdV (impronte, formato)
+      kafka: [produzione, consumo]
+      # R04 correzioni: topic precisi da infra/kafka/topics.yaml; gruppi di consumo
+      gruppi_kafka: [validation-service]
+    exposed: false
+    callers: []
+    egress:
+      services: [verifica-firme]   # R08: verifica delle firme (passo 11)
+      data: [pgbouncer, kafka]
+      internetPorts: [443]   # S3
+
+  signature:
+    enabled: true
+    image: verumdoc-signature
+    irsa: false                # nessun accesso AWS (fornitore esterno di firma e marca)
+    port: 8000
+    replicas: 2
+    resources:
+      requests: {cpu: 200m, memory: 512Mi}
+      limits: {cpu: 1000m, memory: 2Gi}
+    autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 8, targetCPUUtilization: 70}
+    # readiness vera (g4): 503 se il servizio di firma non si costruisce dalla configurazione
+    health: {live: /api/v1/health/live, ready: /api/v1/health/ready}
+    config:
+      ENV: production
+      LOG_LEVEL: INFO
+      FIRMA_FORNITORE: non_configurato
+      MARCA_FORNITORE: non_configurato
+      CSC_URL_BASE: ""
+      CSC_URL_TOKEN: ""
+      CSC_CLIENT_ID: ""
+      CSC_CREDENTIAL_ID: ""
+      CSC_SIGN_ALGO_OID: ""
+      TSA_URL: ""
+      TSA_UTENTE: ""
+      TSA_POLICY_OID: ""
+      TSA_RADICI_PEM: ""
+      FIRMA_RADICI_PEM: ""
+      JWT_ISSUER: verumdoc.it
+      JWT_AUDIENCE: verumdoc-api
+      # /firma e /marca solo con il token di servizio di hashchain (audience
+      # dedicata, scope «firma:servizio»; revisione di sicurezza M2)
+      JWT_AUDIENCE_SERVIZIO: verumdoc-signature
+      # R13a: librerie PKCS#11 caricabili (percorsi assoluti, separati da virgola),
+      # fissate al deploy e mai dalla console; vuoto = nessun HSM locale
+      PKCS11_LIBRERIE_AMMESSE: ""
+      FIRMA_CONFIGURAZIONE_CACHE_SECONDI: "30"
+      FIRMA_PROVE_PER_ORA: "20"
+      # R16 (VD-C-166): richieste di OTP e tentativi di firma personale per persona ogni
+      # 15 minuti (riserva atomica in Redis condivisa fra le repliche)
+      FIRMA_PERSONALE_TENTATIVI: "5"
+    # R13a: i fornitori si registrano in console (tabella fornitori_firma) e il
+    # servizio li legge con un login di SOLA LETTURA (DATABASE_URL: membro SOLO di
+    # verumdoc_firma, migrazione 20261107_054: SELECT su fornitori_firma e
+    # impostazioni_valori), via PgBouncer. FIRMA_SEGRETI_JSON: segreti dei fornitori
+    # registrati (formato sotto). CSC_CLIENT_SECRET, CSC_PIN e TSA_PASSWORD restano
+    # per la configurazione d'ambiente precedente (senza fornitori in console).
+    # R16 (VD-C-168): REDIS_URL per i limiti condivisi fra le repliche (prove di connessione
+    # e firme personali); obbligatorio in produzione (senza, il servizio non parte)
+    secretKeys: [JWT_PUBLIC_KEY, DATABASE_URL, REDIS_URL, FIRMA_SEGRETI_JSON, CSC_CLIENT_SECRET, CSC_PIN, TSA_PASSWORD]
+    formatoSegreti:
+      FIRMA_SEGRETI_JSON: "JSON {\"<codice fornitore>\": {\"host\": [host a cui si inviano i segreti], \"pin_spki_sha256\": [...], \"client_secret\", \"pin\", \"otp\", \"mtls_certificato_pem\", \"mtls_chiave_pem\", \"utente\", \"password\"}} (libs/shared/firma_qualificata, docs/architettura/firma_qualificata.md)"
+    exposed: false
+    # R13a: onboarding inoltra stato e prova dei fornitori con il token della persona;
+    # R16 (VD-C-166): dashboard-api inoltra OTP e firma personale con il token della persona
+    callers: [hashchain, onboarding, dashboard-api]
+    egress:
+      services: []
+      data: [pgbouncer, redis]   # R16 (VD-C-168): limiti condivisi in Redis
+      internetPorts: [443, 80]   # fornitore CSC (firma remota), TSA RFC 3161, OCSP/CRL
+
+  # R08 (D01): verifica delle firme con EU DSS (Java 21). Solo interno: lo chiamano
+  # validation (passo 11) e ciclo-vita (caricamento e lavoratore) con un token di
+  # servizio (aud verumdoc-verifica-firme, scope «firme:verifica»). Trusted List UE
+  # dalla LOTL con aggiornamento periodico e cache su /tmp (emptyDir); OCSP/CRL in
+  # rete (porte 80 e 443). NON costruito né provato nell'ambiente di sviluppo di R08
+  # (Maven Central non raggiungibile): verificatore provato = pyHanko (ripiego).
+  verifica-firme:
+    enabled: true
+    image: verumdoc-verifica-firme
+    irsa: false                # nessun accesso AWS
+    metrics: false             # /actuator/prometheus, non /metrics come le API Python
+    port: 8080
+    replicas: 2
+    resources:
+      requests: {cpu: 250m, memory: 768Mi}
+      limits: {cpu: 1500m, memory: 2Gi}
+    autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 6, targetCPUUtilization: 70}
+    health: {live: /api/v1/health/live, ready: /api/v1/health/ready}
+    tmpSizeLimit: 2Gi          # cache delle Trusted List e dei documenti in verifica
+    config:
+      VERIFICA_MODO: trusted-list
+      VERIFICA_LOTL_URL: "https://ec.europa.eu/tools/lotl/eu-lotl.xml"
+      VERIFICA_OJ_URL: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.C_.2019.276.01.0001.01.ENG"
+      VERIFICA_LOTL_KEYSTORE: /opt/verifica-firme/lotl-keystore.p12
+      VERIFICA_CACHE_DIR: /tmp/verifica-firme
+      VERIFICA_AGGIORNAMENTO_MS: "21600000"   # 6 ore
+      VERIFICA_REVOCHE_IN_RETE: "true"
+      VERIFICA_DIMENSIONE_MASSIMA: "62914560"   # = FIRME_DIMENSIONE_MAX_MB dei chiamanti
+      # Revisione X8: richieste contemporanee per pod (memoria entro il limite di 2Gi)
+      VERIFICA_RICHIESTE_CONTEMPORANEE: "8"
+      # Revisione X10: AIA/CRL/OCSP dei certificati del versante solo con il
+      # caricatore protetto: http/https su 80/443, nessun redirect, solo indirizzi
+      # pubblici, 10 s, al più 64 MiB per risposta. VERIFICA_RETE_DOMINI: allow-list
+      # facoltativa (suffissi di dominio dei prestatori della Trusted List), vuota =
+      # qualunque host pubblico. IPv6 in uscita non è ammesso (nessuna regola ::/0).
+      VERIFICA_RETE_DOMINI: ""
+      VERIFICA_RETE_TEMPO_MS: "10000"
+      VERIFICA_RETE_RISPOSTA_MAX: "67108864"
+      JWT_AUDIENCE_SERVIZIO: verumdoc-verifica-firme
+      JWT_SCOPE_SERVIZIO: "firme:verifica"
+    secretKeys: [JWT_PUBLIC_KEY, VERIFICA_LOTL_KEYSTORE_PASSWORD]
+    exposed: false
+    callers: [validation, ciclo-vita, ciclo-vita-lavoratore]
+    egress:
+      services: []
+      data: []
+      internetPorts: [443, 80]   # LOTL/Trusted List UE, OCSP e CRL dei prestatori
+
+  aip-builder:
+    enabled: true
+    image: verumdoc-aip-builder
+    port: 8000
+    replicas: 2
+    resources:
+      requests: {cpu: 500m, memory: 1Gi}
+      limits: {cpu: 2000m, memory: 4Gi}
+    # R04: KEDA sul ritardo del gruppo (pdv.validated, 48 partizioni)
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 12
+      targetCPUUtilization: 70
+      keda:
+        kafka:
+          - {gruppoSetting: KAFKA_GROUP_ID, gruppo: aip-builder-service, topicSetting: KAFKA_TOPIC_IN, topic: pdv.validated, lagThreshold: 50}
+    health: {live: /api/v1/health/live, ready: /api/v1/health/ready}
+    config:
+      ENV: production
+      LOG_LEVEL: INFO
+      KAFKA_BOOTSTRAP: "DA_TERRAFORM:kafka_bootstrap"
+      # R04: MSK accetta solo TLS + IAM (libs/shared/kafka/connessione.py); in locale PLAINTEXT
+      KAFKA_AUTENTICAZIONE: iam
+      KAFKA_REGIONE: eu-south-1
+      S3_ENDPOINT_URL: "https://s3.eu-south-1.amazonaws.com"
+      S3_REGION: eu-south-1
+      S3_BUCKET_AIP: "verumdoc-prod-aip-prod"
+      CONSERVATORE_CF: "DA_IMPOSTARE"
+      CONSERVATORE_NOME: "VerumDoc S.r.l."
+      # Conservazione permanente (R09, D04, VD-C-070): anni della retention Object
+      # Lock COMPLIANCE = parametro RETENTION_PERMANENTE_ANNI del motore (30, con
+      # rinnovo automatico del lavoratore di ciclo-vita), uguale per costruzione in
+      # aip-builder e hashchain: nessuna variabile d'ambiente
+      # PdA in streaming (R03 b5): lettura a blocchi e copia server-side nel WORM
+      # (UploadPartCopy oltre la soglia). Servono s3:GetObject sullo staging e
+      # s3:PutObjectRetention/PutObjectLegalHold sul bucket dei PdA (modulo eks).
+      LETTURA_BLOCCO_KB: "1024"
+      COPIA_MULTIPART_SOGLIA_MB: "1024"
+      COPIA_PARTE_MB: "256"
+    secretKeys: [DATABASE_URL, S3_ACCESS_KEY, S3_SECRET_KEY]
+    iam:
+      s3:
+        staging: [lettura]                          # sorgente della copia server-side
+        aip: [lettura, scrittura, worm, multipart]  # PdA con retention e legal hold
+      # Revisione R05 (R3): solo la hashchain scrive sotto registro/ (segmenti
+      # delle foglie, checkpoint, audit) e solo ciclo-vita sotto pratiche/
+      nega_prefissi:
+        aip: ["registro/", "pratiche/"]
+      kafka: [produzione, consumo]
+      gruppi_kafka: [aip-builder-service]
+    exposed: false
+    callers: []
+    egress:
+      services: []
+      data: [pgbouncer, kafka]
+      internetPorts: [443]   # S3
+
+  hashchain:
+    enabled: true
+    image: verumdoc-hashchain
+    port: 8000
+    replicas: 1   # CRITICO: sempre 1 (sequenzialità della catena)
+    strategy: Recreate
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+    autoscaling: {enabled: false}
+    health: {live: /api/v1/health/live, ready: /api/v1/health/ready}
+    config:
+      ENV: production
+      LOG_LEVEL: INFO
+      KAFKA_BOOTSTRAP: "DA_TERRAFORM:kafka_bootstrap"
+      # R04: MSK accetta solo TLS + IAM (libs/shared/kafka/connessione.py); in locale PLAINTEXT
+      KAFKA_AUTENTICAZIONE: iam
+      KAFKA_REGIONE: eu-south-1
+      SIGNATURE_URL: "http://signature:8000"
+      CONSERVATORE_NOME: "VerumDoc S.r.l."
+      S3_ENDPOINT_URL: "https://s3.eu-south-1.amazonaws.com"
+      S3_REGION: eu-south-1
+      S3_BUCKET_AIP: "verumdoc-prod-aip-prod"
+      # API della catena: token RS256 del gateway (inoltrato da dashboard-api)
+      JWT_ISSUER: verumdoc.it
+      JWT_AUDIENCE: verumdoc-api
+      # Verifica completa asincrona (g4): durata massima dell'esecuzione di fondo,
+      # oltre la quale la verifica si chiude INTERROTTA
+      HASHCHAIN_VERIFICA_TIMEOUT_SECONDS: "300"
+      # ── Registro delle impronte a due livelli (R04, contratti K1-K3) ──
+      # Un checkpoint ogni N secondi se il registro è cresciuto; oltre
+      # CATENA_CONTROFIRMA_MAX_SECONDI senza controfirma del testimone: allarme.
+      CATENA_CHECKPOINT_SECONDI: "60"
+      CATENA_CONTROFIRMA_MAX_SECONDI: "600"
+      # Testimone nel SUO account (values.testimone.yaml): host proprio. La verifier
+      # key del testimone è pubblica (nessun segreto): finché resta il segnaposto
+      # il registro non parte con il testimone configurato (mai una chiave finta).
+      TESTIMONE_URL: "https://testimone.verumdoc.it"
+      TESTIMONE_VERIFICATORE: "DA_IMPOSTARE:verifier_key_testimone"
+    # SIGNATURE_SERVICE_TOKEN: token di SERVIZIO (aud verumdoc-signature, scope
+    # firma:servizio, max 90 giorni) emesso con
+    # `python -m libs.shared.security.emetti_token_servizio --servizio hashchain`;
+    # mai un token utente. Ruotarlo prima della scadenza (infra/k8s/secrets/README.md).
+    # R04: CATENA_CHIAVE_PRIVATA (Ed25519 del registro, chiave di SERVIZIO, non un
+    # sigillo qualificato) e TESTIMONE_SERVICE_TOKEN (token con cui il registro si
+    # presenta al testimone; il testimone ne conosce solo l'impronta SHA-256).
+    secretKeys: [DATABASE_URL, S3_ACCESS_KEY, S3_SECRET_KEY, SIGNATURE_SERVICE_TOKEN, JWT_PUBLIC_KEY, CATENA_CHIAVE_PRIVATA, TESTIMONE_SERVICE_TOKEN]
+    formatoSegreti:
+      CATENA_CHIAVE_PRIVATA: "chiave Ed25519 signed note C2SP «PRIVATE+KEY+verumdoc-registro+<keyhash>+<base64>» (NON PEM; libs.catena.nota.genera_chiave)"
+      TESTIMONE_SERVICE_TOKEN: "token opaco del registro verso il testimone; nel testimone solo la sua impronta SHA-256"
+    # Scrive nel WORM il RdV definitivo e i checkpoint del registro (R04) e
+    # rilegge i PdA per la verifica (retention compresa). Connessione DIRETTA a
+    # PostgreSQL (non PgBouncer): sequenziatore e lock di sessione.
+    # R04 quarto giro (F1): il controllo di coerenza del registro elenca i
+    # segmenti e i checkpoint nel WORM (ListObjectsV2): s3:ListBucket SOLO sotto
+    # registro/ (condizione s3:prefix, modulo Terraform iam_servizi).
+    # Revisione 2 di R05 (S4): la hashchain (esposta all'ingress) scrive SOLO
+    # sotto registro/ (checkpoint, segmenti, sigilli, audit) e sui RdV dei PdA
+    # (<ente>/<pda>/RdV_Definitiv*: «?» = un carattere), con retention e senza
+    # legal hold; il legal hold (s3:PutObjectLegalHold, permesso «worm») SOLO sui
+    # RdV, che lo richiedono per i PdA a conservazione permanente. Non può più
+    # togliere il legal hold ai documenti di un PdA né scrivere versioni sotto le
+    # sue chiavi. Lettura su tutto il bucket (verifica dei PdA).
+    iam:
+      s3:
+        aip: [lettura, scrittura, retention, worm, elenco]
+      prefissi_oggetti:
+        aip:
+          # R13a: buste dei documenti sigillati del PdA (Sigillo_IndiceAIP_SInCRO.xml.<sha>.p7m,
+          # Sigillo_RdV_Definitivo_v2.xml.<sha>.p7m e rimarcature .r<n>.<sha>.p7m)
+          scrittura: ["registro/", "????????-????-????-????-????????????/????????-????-????-????-????????????/RdV_Definitiv", "????????-????-????-????-????????????/????????-????-????-????-????????????/Sigillo_"]
+          retention: ["registro/", "????????-????-????-????-????????????/????????-????-????-????-????????????/RdV_Definitiv", "????????-????-????-????-????????????/????????-????-????-????-????????????/Sigillo_"]
+          worm: ["????????-????-????-????-????????????/????????-????-????-????-????????????/RdV_Definitiv", "????????-????-????-????-????????????/????????-????-????-????-????????????/Sigillo_"]
+      elenco_prefissi:
+        aip: ["registro/"]
+      kafka: [produzione]        # R04: solo il relay dell'outbox (non consuma più Kafka)
+    # R03 (VD-C-098): /api/v1/hashchain raggiungibile dall'ingress. Le API
+    # richiedono il token verificato; il servizio resta a UNA replica (la
+    # catena è sequenziale): le verifiche pesanti sono asincrone (g4).
+    exposed: true
+    # dashboard-api (HASHCHAIN_URL); in più le API richiedono il token
+    # verificato (verifica completa: SUPER_ADMIN, RSC_CONSERVATORE).
+    callers: [dashboard-api, ciclo-vita-lavoratore]   # ciclo-vita: foglie del ciclo di vita (Q3)
+    egress:
+      services: [signature]
+      data: [postgres, kafka]
+      internetPorts: [443]   # S3, testimone (host pubblico del suo account)
+    workers:
+      # Verifica continua dell'integrità (R04, piano §5.4): rilegge a rotazione
+      # ogni PdA dal WORM (impronte, retention) con lease e budget di letture per
+      # replica (VERIFICA_*). Più repliche insieme sono sicure (lease, lock di
+      # transazione): passa da PgBouncer con un URL proprio (Secret
+      # hashchain-pgbouncer, chiave DATABASE_URL), la API resta diretta.
+      # ServiceAccount e ruolo PROPRI (hashchain-verifica): sola lettura del WORM
+      # e della retention (senza GetObjectRetention registrerebbe ERRORE_LETTURA).
+      verifica:
+        enabled: true
+        iam:
+          s3:
+            aip: [lettura, lettura_retention]
+        command: ["python", "-m", "app.verifica_continua"]
+        http: false
+        metricsPort: 9108          # VERIFICA_METRICHE_PORTA (predefinito del servizio)
+        envSegreti:
+          DATABASE_URL: {secret: hashchain-pgbouncer, key: DATABASE_URL}
+        replicas: 2
+        strategy: RollingUpdate
+        resources:
+          requests: {cpu: 250m, memory: 256Mi}
+          limits: {cpu: 1000m, memory: 1Gi}
+        # Ritmo fissato dal budget (letture e byte al secondo per replica), non
+        # dalla CPU: numero di repliche costante, scelto sul ciclo (VERIFICA_CICLO_GIORNI)
+        autoscaling: {enabled: false}
+        egress:
+          services: []
+          data: [pgbouncer]
+          internetPorts: [443]   # S3 (PdA in lettura)
+    cronJobs:
+      # R06 (VD-C-130): verifica giornaliera dei segmenti dell'audit nel WORM
+      # (python -m app.registro.operatore verifica-audit): righe di audit_global
+      # cancellate, modificate o aggiunte anche da un superutente del database.
+      # Codice d'uscita 1 = DIFFERENZE (o errore): il Job fallisce e scattano gli
+      # allarmi VerificaAuditFallita / VerificaAuditNonEseguita
+      # (infra/observability/regole/verumdoc-r06.yml, kube-state-metrics).
+      # Stesso ServiceAccount della hashchain (lettura di registro/ nel WORM).
+      # Revisione R06 (V3): nessun tentativo ripetuto (l'uscita 1 = DIFFERENZE è
+      # un esito, non un errore transitorio); NON riceve il Secret della hashchain
+      # (chiave privata della catena, token verso firma e testimone): solo il
+      # DATABASE_URL via PgBouncer e il Secret proprio con le credenziali S3 in
+      # sola lettura (vuote con IRSA); nessun token del ServiceAccount montato
+      # (IRSA usa il proprio token proiettato).
+      # R09 (D27, VD-C-142): login e ruolo IAM PROPRI in sola lettura. Ogni giorno
+      # verifica INCREMENTALE (segmenti degli ultimi AUDIT_VERIFICA_FINESTRA_GIORNI,
+      # agganciati al segmento precedente), COMPLETA il giorno del mese
+      # AUDIT_VERIFICA_COMPLETA_GIORNO (parametri del motore; --automatica).
+      # DATABASE_URL: login membro SOLO di verumdoc_auditor (migrazione 048:
+      # SELECT su audit_global, tabelle del registro lette, impostazioni_valori),
+      # via PgBouncer (aggiungerlo a userlist.txt); ServiceAccount e ruolo IRSA
+      # propri (hashchain-verifica-audit): lettura ed elenco del solo registro/.
+      verifica-audit:
+        schedule: "41 3 * * *"
+        command: ["python", "-m", "app.registro.operatore", "verifica-audit", "--automatica"]
+        activeDeadlineSeconds: 10800
+        backoffLimit: 0
+        segretiServizio: false
+        automountServiceAccountToken: false
+        secretKeys: [S3_ACCESS_KEY, S3_SECRET_KEY, DATABASE_URL]
+        iam:
+          s3:
+            aip: [lettura, elenco]
+          prefissi_oggetti:
+            aip:
+              lettura: ["registro/"]
+          elenco_prefissi:
+            aip: ["registro/"]
+        # Da PgBouncer (come il lavoratore della verifica continua): le connessioni
+        # dirette a PostgreSQL sono contate (postgres.maxConnessioni)
+        envSegreti:
+          DATABASE_URL: {secret: hashchain-verifica-audit-secrets, key: DATABASE_URL}
+        resources:
+          requests: {cpu: 100m, memory: 256Mi}
+          limits: {cpu: 1000m, memory: 1Gi}
+        egress:
+          services: []
+          data: [pgbouncer]
+          internetPorts: [443]   # S3 (segmenti dell'audit nel WORM)
+
+  distribution:
+    enabled: true
+    image: verumdoc-distribution
+    port: 8000
+    replicas: 2
+    resources:
+      requests: {cpu: 200m, memory: 512Mi}
+      limits: {cpu: 1000m, memory: 2Gi}
+    autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 10, targetCPUUtilization: 70}
+    health: {live: /api/v2/health/live, ready: /api/v2/health/ready}
+    config:
+      ENV: production
+      LOG_LEVEL: INFO
+      KAFKA_BOOTSTRAP: "DA_TERRAFORM:kafka_bootstrap"
+      # R04: MSK accetta solo TLS + IAM (libs/shared/kafka/connessione.py); in locale PLAINTEXT
+      KAFKA_AUTENTICAZIONE: iam
+      KAFKA_REGIONE: eu-south-1
+      S3_ENDPOINT_URL: "https://s3.eu-south-1.amazonaws.com"
+      S3_REGION: eu-south-1
+      S3_BUCKET_AIP: "verumdoc-prod-aip-prod"
+      SIGNED_URL_EXPIRY: "3600"
+      OPENSEARCH_URL: "https://DA_TERRAFORM:opensearch_endpoint"
+      OPENSEARCH_INDEX: verumdoc-aip
+      OPENSEARCH_UTENTE: ""          # vuoto: accesso senza autenticazione di base
+      OPENSEARCH_TIMEOUT_SECONDI: "10"
+      JWT_ISSUER: verumdoc.it
+      JWT_AUDIENCE: verumdoc-api
+      # ── Pacchetti di distribuzione (R03 b4, VD-C-077) ──
+      PDD_DURATA_LINK_SECONDI: "3600"
+      PDD_DURATA_LINK_MAX_SECONDI: "86400"
+      PDD_SINCRONO_MAX_MB: "50"      # oltre: ZIP preparato fuori richiesta
+      # Bucket temporaneo dei PdD ZIP: non WORM, scadenza oggetti (modulo s3)
+      S3_BUCKET_PDD: "DA_TERRAFORM:s3_pdd_bucket"
+      PDD_ZIP_PARTE_MB: "8"
+      # R07 (D18): tetto tecnico della validità dei PdD ZIP (30 giorni); la validità vera
+      # è PDD_VALIDITA_ORE della console (72 h, per ente). Terraform: bucket a 31 giorni,
+      PDD_ZIP_VALIDITA_ORE: "720"    # una rete di sicurezza oltre
+      PDD_LEASE_SECONDI: "1800"
+      PDD_RITARDI_SECONDI: "[60, 300, 1500, 7200]"
+      KAFKA_TOPIC_PDD_PRONTO: pdd.pronto
+      # Manifesto di migrazione: vuoti = null (mai inventati); STESSO valore del
+      # manuale in dashboard-api (àncore YAML, verifica_manifest.py)
+      CONSERVATORE_DENOMINAZIONE: &conservatore_denominazione ""
+      CONSERVATORE_CODICE_FISCALE: &conservatore_codice_fiscale ""
+      # ── Indicizzazione (R03 b4, VD-C-093) e ZIP: nel Deployment dedicato
+      # distribution-lavoratori, spenti nelle repliche API ──
+      LAVORATORI_ATTIVI: "false"
+      INDICIZZAZIONE_LOTTO: "200"
+      INDICIZZAZIONE_INTERVALLO_SECONDI: "2"
+      INDICIZZAZIONE_RITARDI_SECONDI: "[60, 300, 1500, 7200]"
+      # ── Ricerca e limiti di richieste (R03 f2, REV-03/REV-06) ──
+      RICERCA_CONTEGGIO_MASSIMO: "1000"   # total contato fino a qui (total_esatto)
+      QUOTE_RICHIESTE_MINUTO: *quote_richieste_minuto
+      QUOTE_PIANO_PREDEFINITO: *quote_piano_predefinito
+      QUOTE_FINESTRA_SECONDI: *quote_finestra_secondi
+      QUOTE_PIANO_CACHE_SECONDI: *quote_piano_cache_secondi
+    # API_KEY_PEPPER: chiave API anche su distribution (R03 b4, VD-C-099), stesso
+    # valore di gateway e onboarding; senza, fuori da development/test non parte.
+    # REDIS_URL (R03 f2, REV-03): limite di richieste al minuto per piano; in
+    # produzione senza Redis il servizio non parte.
+    secretKeys: [DATABASE_URL, REDIS_URL, S3_ACCESS_KEY, S3_SECRET_KEY, JWT_PUBLIC_KEY, API_KEY_PEPPER, OPENSEARCH_PASSWORD]
+    iam:
+      s3:
+        aip: [lettura]                         # file dei PdA, link prefirmati
+        pdd: [lettura, scrittura, multipart]   # PdD ZIP in streaming e loro link
+      kafka: [produzione]                      # pdd.pronto (outbox)
+    exposed: true
+    callers: [dashboard-api, ciclo-vita-lavoratore]   # ciclo-vita: PdD MIGRAZIONE
+    egress:
+      services: []
+      data: [pgbouncer, redis, kafka, opensearch]
+      internetPorts: [443]   # S3
+    workers:
+      lavoratori:
+        enabled: true
+        # Indicizzazione OpenSearch (coda indicizzazione_aip, SKIP LOCKED) e PdD
+        # ZIP (lease, multipart in streaming, evento pdd.pronto via outbox)
+        command: ["python", "-m", "app.services.lavoratori"]
+        http: false
+        disattivaNelPadre: LAVORATORI_ATTIVI
+        replicas: 2
+        resources:
+          requests: {cpu: 200m, memory: 512Mi}
+          limits: {cpu: 1000m, memory: 2Gi}
+        # R04: KEDA sulla coda d'indicizzazione (righe IN_CODA già dovute, conteggio
+        # limitato a 20.000 sull'indice parziale idx_indicizzazione_aip_coda): una
+        # replica ogni 1.000 PdA in attesa (5 lotti da INDICIZZAZIONE_LOTTO), più la CPU.
+        autoscaling:
+          enabled: true
+          minReplicas: 2
+          maxReplicas: 8
+          targetCPUUtilization: 70
+          keda:
+            postgresql:
+              - query: >-
+                  SELECT count(*) FROM (SELECT 1 FROM public.indicizzazione_aip
+                  WHERE stato = 'IN_CODA' AND prossimo_tentativo <= now() LIMIT 20000) AS coda
+                targetQueryValue: 1000
+        egress:
+          services: []
+          data: [pgbouncer, opensearch]
+          internetPorts: [443]   # S3 (PdA in lettura, bucket PdD in scrittura)
+
+  notification:
+    enabled: true
+    image: verumdoc-notification
+    port: 8000
+    replicas: 2
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {cpu: 500m, memory: 1Gi}
+    # R04: KEDA sul ritardo dei due gruppi delle repliche API: elenco eventi per
+    # i clienti (EVENTI_KAFKA_GROUP_ID, tutti i topic della mappa: il ritardo si
+    # misura sul topic più trafficato, pdv.received) e notifiche e-mail.
+    # maxReplicas 6 = partizioni di notification.send (le repliche oltre non
+    # riceverebbero messaggi della posta).
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilization: 70
+      keda:
+        kafka:
+          - {gruppoSetting: EVENTI_KAFKA_GROUP_ID, gruppo: notification-eventi-cliente, topic: pdv.received, lagThreshold: 500}
+          - {gruppoSetting: KAFKA_GROUP_ID, gruppo: notification-service, topicSetting: KAFKA_TOPIC_IN, topic: notification.send, lagThreshold: 200}
+    health: {live: /api/v1/health/live, ready: /api/v1/health/ready}
+    config:
+      ENV: production
+      LOG_LEVEL: INFO
+      KAFKA_BOOTSTRAP: "DA_TERRAFORM:kafka_bootstrap"
+      # R04: MSK accetta solo TLS + IAM (libs/shared/kafka/connessione.py); in locale PLAINTEXT
+      KAFKA_AUTENTICAZIONE: iam
+      KAFKA_REGIONE: eu-south-1
+      SMTP_HOST: "DA_IMPOSTARE"
+      SMTP_PORT: "587"
+      SMTP_SICUREZZA: auto
+      SMTP_MITTENTE: "noreply@verumdoc.it"
+      SMTP_NOME_MITTENTE: "VerumDoc Conservazione Digitale"
+      # R12b (VD-C-161): l'invio della posta è SOLO nel lavoratore notification-posta
+      # (workers.posta); le repliche API e il lavoratore dei webhook accodano soltanto
+      POSTA_INVIO_ATTIVO: "false"
+      # API eventi/webhook (R03 b3): token RS256 del gateway o chiave API
+      JWT_ISSUER: verumdoc.it
+      JWT_AUDIENCE: verumdoc-api
+      # ── Elenco eventi per i clienti (consumer con gruppo proprio) ──
+      # EVENTI_TOPIC non impostata: vale la mappa topic → tipo del servizio
+      # (nome del topic = tipo dell'evento per i topic R03).
+      EVENTI_CONSUMER_ATTIVO: "true"
+      EVENTI_KAFKA_GROUP_ID: notification-eventi-cliente
+      EVENTI_LIMITE_PREDEFINITO: "100"
+      EVENTI_LIMITE_MASSIMO: "500"
+      # Posizione degli eventi assegnata dopo il commit (R03 f2, REV-13): un
+      # passo seriale (SKIP LOCKED fra le repliche) ogni INTERVALLO, fino a LOTTO
+      # eventi. Tolta EVENTI_RITARDO_VISIBILITA_SECONDI.
+      EVENTI_PUBBLICAZIONE_ATTIVA: "true"
+      EVENTI_PUBBLICAZIONE_INTERVALLO_SECONDI: "0.2"
+      EVENTI_PUBBLICAZIONE_LOTTO: "5000"
+      EVENTI_CONSUMER_LOTTO: "500"
+      QUOTE_RICHIESTE_MINUTO: *quote_richieste_minuto
+      QUOTE_PIANO_PREDEFINITO: *quote_piano_predefinito
+      QUOTE_FINESTRA_SECONDI: *quote_finestra_secondi
+      QUOTE_PIANO_CACHE_SECONDI: *quote_piano_cache_secondi
+      # ── Webhook firmati (consegne nel Deployment notification-webhook) ──
+      WEBHOOK_LAVORATORE_ATTIVO: "false"
+      WEBHOOK_CHIAVE_CIFRATURA_ID: k1
+      WEBHOOK_CONSENTI_INDIRIZZI_PRIVATI: "false"   # true vietato in produzione (non parte)
+      WEBHOOK_RITARDI_SECONDI: "[60, 300, 1500, 7200]"
+      WEBHOOK_TIMEOUT_SECONDI: "10"
+      WEBHOOK_TIMEOUT_CONNESSIONE_SECONDI: "3"
+      WEBHOOK_INTERVALLO_SECONDI: "2"
+      WEBHOOK_LOTTO: "50"
+      WEBHOOK_CONCORRENZA: "20"
+      WEBHOOK_LEASE_SECONDI: "120"
+      WEBHOOK_MAX_SOTTOSCRIZIONI_PER_ENTE: "10"
+      WEBHOOK_LUNGHEZZA_MASSIMA_URL: "2048"
+      # Porte ammesse per gli URL dei webhook (R03 f2, REV-14), creazione e
+      # consegna. [443]: la NetworkPolicy del lavoratore apre solo 443. R07 (D16):
+      # porte in più per singolo ente dalla console (WEBHOOK_PORTE_AGGIUNTIVE), da
+      # aggiungere prima a internetPorts del lavoratore (docs/integrazione/webhook.md).
+      WEBHOOK_PORTE_AMMESSE: "[443]"
+    # R03 b3: fuori da development/test notification non parte senza
+    # JWT_PUBLIC_KEY e API_KEY_PEPPER; in produzione nemmeno senza
+    # WEBHOOK_CHIAVE_CIFRATURA (32 byte casuali in base64, openssl rand -base64 32).
+    # WEBHOOK_CHIAVI_CIFRATURA_PRECEDENTI: chiavi ritirate, solo per decifrare.
+    # REDIS_URL (R03 f2): limite di richieste al minuto su eventi e webhook.
+    # DATABASE_URL_LETTURA (R04, r04-dati): replica di sola lettura per l'elenco
+    # eventi (pgbouncer:6432/verumdoc_lettura); vuota = letture sul primario.
+    # R12b (VD-C-161): POSTA_CHIAVE_PRIVATA e le credenziali SMTP NON stanno più qui
+    # (le riceverebbe il pod esposto): sono nel Secret notification-posta-secrets del
+    # solo lavoratore della posta (workers.posta.secretKeys). Con POSTA_INVIO_ATTIVO
+    # = false il servizio in produzione non parte se le riceve.
+    secretKeys: [DATABASE_URL, DATABASE_URL_LETTURA, REDIS_URL, JWT_PUBLIC_KEY, API_KEY_PEPPER, WEBHOOK_CHIAVE_CIFRATURA, WEBHOOK_CHIAVI_CIFRATURA_PRECEDENTI]
+    iam:
+      # R04 correzioni: anche produzione (notification.dlq: coda di scarto del consumer,
+      # producers in topics.yaml); prima la policy topic/* lo copriva per sbaglio
+      kafka: [produzione, consumo]
+      gruppi_kafka: [notification-service, notification-eventi-cliente]
+    # R03 b3: /api/v1/eventi e /api/v1/webhook dall'ingress
+    exposed: true
+    callers: []
+    egress:
+      services: []
+      data: [pgbouncer, redis, kafka]
+      # R12b (VD-C-161): nessuna uscita su Internet; la posta esce dal lavoratore
+      # notification-posta, le consegne webhook dal lavoratore notification-webhook
+      internetPorts: []
+    workers:
+      posta:
+        enabled: true
+        # R12b (VD-C-161): invio della posta in un processo dedicato SENZA HTTP (nessuna
+        # rotta, nessun chiamante, non esposto): è l'unico con POSTA_INVIO_ATTIVO=true e
+        # l'unico che riceve la chiave privata della posta e le credenziali SMTP.
+        # Stesso ServiceAccount del servizio (nessun permesso AWS in più: Kafka solo per
+        # la coda di scarto notification.dlq, già concessa al servizio).
+        command: ["python", "-m", "app.lavoratore_posta"]
+        http: false
+        disattivaNelPadre: POSTA_INVIO_ATTIVO
+        env:
+          POSTA_INVIO_ATTIVO: "true"
+          # R13b (VD-C-078): canale PEC (invio al gestore, ricevute via IMAP)
+          PEC_ATTIVO: "true"
+          PEC_INTERVALLO_SECONDI: "15"
+          PEC_RITARDI_SECONDI: "[60, 300, 900, 3600, 14400]"
+        # Revisione R12b: NON riceve notification-secrets (chiave dei webhook, pepper delle
+        # chiavi API, Redis: non li usa); solo il proprio Secret.
+        segretiServizio: false
+        # POSTA_CHIAVE_PRIVATA (X25519, base64url, R12a VD-C-152): apre all'invio il
+        # collegamento d'invito sigillato da onboarding; obbligatoria in produzione.
+        # POSTA_CHIAVI_PRIVATE_PRECEDENTI: chiavi ritirate (rotazione), solo per aprire.
+        # DATABASE_URL: coda di uscita (lo stesso login del servizio, copiato qui).
+        # R13b (VD-C-078): PEC_SEGRETI_JSON, password delle caselle PEC per codice del canale,
+        # ognuna LEGATA agli host del gestore ({"pec-1": {"host": [...], "utente": …,
+        # "password": …}}); il canale si registra in console (Configurazione → Canali PEC).
+        secretKeys: [DATABASE_URL, SMTP_UTENTE, SMTP_PASSWORD, POSTA_CHIAVE_PRIVATA, POSTA_CHIAVI_PRIVATE_PRECEDENTI, PEC_SEGRETI_JSON]
+        envSegreti:
+          DATABASE_URL: {secret: notification-posta-secrets, key: DATABASE_URL}
+        replicas: 2               # prelievo con SKIP LOCKED: le repliche non si sovrappongono
+        resources:
+          requests: {cpu: 50m, memory: 128Mi}
+          limits: {cpu: 250m, memory: 256Mi}
+        autoscaling: {enabled: false}
+        egress:
+          services: []
+          data: [pgbouncer, kafka]   # coda di uscita; coda di scarto notification.dlq
+          internetPorts: [587, 465, 993]  # SMTP; R13b: 993 IMAPS (ricevute PEC)
+      webhook:
+        enabled: true
+        # Stesso processo del servizio (uvicorn) con le sole consegne webhook
+        # in più: è l'UNICO carico con uscita su Internet in 443 verso gli
+        # indirizzi dei clienti (IP pubblici: network.internetExcept esclude VPC,
+        # reti private e metadati; il servizio rifiuta comunque IP non globali).
+        http: true
+        disattivaNelPadre: WEBHOOK_LAVORATORE_ATTIVO
+        env:
+          WEBHOOK_LAVORATORE_ATTIVO: "true"
+          EVENTI_CONSUMER_ATTIVO: "false"   # l'elenco eventi lo alimentano le repliche API
+        replicas: 2
+        resources:
+          requests: {cpu: 100m, memory: 256Mi}
+          limits: {cpu: 500m, memory: 512Mi}
+        # R04: KEDA sulle consegne webhook già dovute (indice parziale
+        # idx_webhook_consegne_da_fare), una replica ogni 500, più la CPU
+        autoscaling:
+          enabled: true
+          minReplicas: 2
+          maxReplicas: 8
+          targetCPUUtilization: 70
+          keda:
+            postgresql:
+              - query: >-
+                  SELECT count(*) FROM (SELECT 1 FROM public.webhook_consegne
+                  WHERE stato IN ('IN_CODA', 'IN_CONSEGNA') AND prossimo_tentativo <= now()
+                  LIMIT 20000) AS coda
+                targetQueryValue: 500
+        egress:
+          services: []
+          data: [pgbouncer, redis, kafka]   # redis: limite di richieste (serve anche le API)
+          # 443: webhook dei clienti (decisione 5 di b3: porte diverse solo con
+          # una decisione esplicita); R12b (VD-C-161): la posta non gira più qui
+          internetPorts: [443]
+
+  onboarding:
+    enabled: true
+    image: verumdoc-onboarding
+    port: 8000
+    replicas: 2
+    resources:
+      requests: {cpu: 200m, memory: 512Mi}
+      limits: {cpu: 1000m, memory: 2Gi}
+    autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 6, targetCPUUtilization: 70}
+    health: {live: /api/v1/health/live, ready: /api/v1/health/ready}
+    config:
+      ENV: production
+      LOG_LEVEL: INFO
+      KAFKA_BOOTSTRAP: "DA_TERRAFORM:kafka_bootstrap"
+      # R04: MSK accetta solo TLS + IAM (libs/shared/kafka/connessione.py); in locale PLAINTEXT
+      KAFKA_AUTENTICAZIONE: iam
+      KAFKA_REGIONE: eu-south-1
+      JWT_ISSUER: verumdoc.it
+      JWT_AUDIENCE: verumdoc-api
+      ADMIN_EMAIL: "admin@verumdoc.it"
+      # R10 (D08): collegamenti d'invito
+      BASE_URL_CONSOLE: "https://app.verumdoc.it"
+      # Account SFTP (R03 b2): indirizzo mostrato ai clienti (record DNS verso il
+      # NLB di sftp-ingest) e porta = services.sftp-ingest.publicTcp.port
+      SFTP_HOST_PUBBLICO: "sftp.verumdoc.it"
+      SFTP_PORTA_PUBBLICA: "22"
+      # Politica delle chiavi: STESSO valore in sftp-ingest (àncora YAML).
+      # SFTP_TIPI_CHIAVE_AMMESSI non impostata: onboarding la legge separata da
+      # virgole e sftp-ingest in JSON (richiesta al coordinatore); i predefiniti
+      # dei due servizi coincidono.
+      SFTP_RSA_BIT_MINIMI: &sftp_rsa_bit_minimi "3072"
+      # R13a: stato e prova dei fornitori di firma (inoltro con il token della persona)
+      SIGNATURE_URL: "http://signature:8000"
+    # R12a (VD-C-152): POSTA_CHIAVE_PUBBLICA (non segreta, ma generata con la privata
+    # della posta e consegnata con lo stesso Secret): senza, onboarding non parte.
+    secretKeys: [DATABASE_URL, JWT_PUBLIC_KEY, API_KEY_PEPPER, POSTA_CHIAVE_PUBBLICA]
+    iam:
+      kafka: [produzione]        # eventi dell'outbox (relay per servizio, R04)
+    exposed: true
+    callers: [dashboard-api]
+    egress:
+      services: [signature]   # R13a: stato e prova dei fornitori di firma
+      data: [pgbouncer, kafka]
+      internetPorts: []
+
+  dashboard-api:
+    enabled: true
+    image: verumdoc-dashboard-api
+    port: 8000
+    replicas: 2
+    resources:
+      requests: {cpu: 200m, memory: 256Mi}
+      limits: {cpu: 1000m, memory: 1Gi}
+    autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 10, targetCPUUtilization: 70}
+    health: {live: /api/health/live, ready: /api/health/ready}
+    config:
+      ENV: production
+      GATEWAY_URL: "http://gateway:8000"
+      ONBOARDING_URL: "http://onboarding:8000"
+      HASHCHAIN_URL: "http://hashchain:8000"
+      # R16 (VD-C-166): firma personale con OTP inoltrata con il token della persona
+      SIGNATURE_URL: "http://signature:8000"
+      DISTRIBUTION_URL: "http://distribution:8000"
+      CORS_ORIGINS: '["https://app.verumdoc.it"]'
+      S3_ENDPOINT_URL: "https://s3.eu-south-1.amazonaws.com"
+      S3_BUCKET_AIP: "verumdoc-prod-aip-prod"
+      JWT_ISSUER: verumdoc.it
+      JWT_AUDIENCE: verumdoc-api
+      # Dati del conservatore per manuale e piano di cessazione (app/services/manuale.py,
+      # DatiConservatore). Vuoti = «da compilare» nel documento (mai inventati);
+      # li compila chi rilascia. Un segnaposto DA_IMPOSTARE comparirebbe come dato.
+      CONSERVATORE_DENOMINAZIONE: *conservatore_denominazione
+      CONSERVATORE_CODICE_FISCALE: *conservatore_codice_fiscale
+      CONSERVATORE_PARTITA_IVA: ""
+      CONSERVATORE_SEDE_LEGALE: ""
+      CONSERVATORE_PEC: ""
+      CONSERVATORE_EMAIL_CONTATTO: ""
+      CONSERVATORE_RESPONSABILE_SERVIZIO_NOME: ""
+      CONSERVATORE_RESPONSABILE_SERVIZIO_CF: ""
+      CONSERVATORE_RESPONSABILE_FUNZIONE_ARCHIVISTICA_NOME: ""
+      CONSERVATORE_RESPONSABILE_SICUREZZA_NOME: ""
+      CONSERVATORE_RESPONSABILE_PROTEZIONE_DATI_NOME: ""
+      CONSERVATORE_UBICAZIONE_DATA_CENTER: ""
+      CONSERVATORE_MANUALE_VERSIONE: ""
+      CONSERVATORE_MANUALE_DATA_ADOZIONE: ""
+      CONSERVATORE_PIANO_CESSAZIONE_VERSIONE: ""
+      # Code di scarto (R04, r04-servizi, VD-C-075): letto dal lavoratore
+      # dashboard-api-scarti (consumer delle DLQ e relay dell'outbox «dashboard-api»)
+      KAFKA_BOOTSTRAP: "DA_TERRAFORM:kafka_bootstrap"
+      # R04: MSK accetta solo TLS + IAM (libs/shared/kafka/connessione.py); in locale PLAINTEXT
+      KAFKA_AUTENTICAZIONE: iam
+      KAFKA_REGIONE: eu-south-1
+      # Limite di richieste al minuto (R03 f2, REV-03): stesse quote del gateway
+      QUOTE_RICHIESTE_MINUTO: *quote_richieste_minuto
+      QUOTE_PIANO_PREDEFINITO: *quote_piano_predefinito
+      QUOTE_FINESTRA_SECONDI: *quote_finestra_secondi
+      QUOTE_PIANO_CACHE_SECONDI: *quote_piano_cache_secondi
+    # API_KEY_PEPPER: chiave API su versamenti, pacchetti e ricerca (R03 b4);
+    # stesso valore di gateway e onboarding, obbligatoria fuori da development/test.
+    # REDIS_URL (R03 f2): limite di richieste al minuto; senza, in produzione non parte.
+    # DATABASE_URL_LETTURA (R04, r04-dati): replica per SLA e statistiche
+    secretKeys: [DATABASE_URL, DATABASE_URL_LETTURA, REDIS_URL, S3_ACCESS_KEY, S3_SECRET_KEY, JWT_PUBLIC_KEY, API_KEY_PEPPER]
+    iam:
+      s3:
+        aip: [lettura]           # download dei file conservati
+      kafka: [produzione, consumo]   # lavoratore scarti: DLQ e ripubblicazione («Rielabora»)
+      gruppi_kafka: [dashboard-scarti]
+    exposed: true
+    callers: []
+    egress:
+      services: [gateway, onboarding, hashchain, distribution, signature]   # R16: firma personale
+      data: [pgbouncer, redis]
+      internetPorts: [443]   # S3
+    workers:
+      # Code di scarto (R04, r04-servizi): materializza le DLQ in public.scarti
+      # (gruppo dashboard-scarti) e pubblica gli eventi che «Rielabora» scrive
+      # nell'outbox. Una replica: le DLQ hanno poco volume.
+      scarti:
+        enabled: true
+        command: ["python", "-m", "app.services.consumer_scarti"]
+        http: false
+        replicas: 1
+        resources:
+          requests: {cpu: 100m, memory: 256Mi}
+          limits: {cpu: 500m, memory: 512Mi}
+        autoscaling: {enabled: false}
+        egress:
+          services: []
+          data: [pgbouncer, kafka]
+          internetPorts: []
+
+  # ── Canale SFTP (R03 b2) ──
+  # Due carichi sullo STESSO volume ReadWriteMany (rinomine atomiche):
+  #   sftp-ingest              server SFTP (SFTP_COMPONENTI=server), porta 2222
+  #                            esposta ai clienti da un NLB TCP separato
+  #                            dall'ingress HTTP (publicTcp), porta pubblica 22;
+  #   sftp-ingest-lavoratore   lavoratore con lease (cartelle → sessioni C1 →
+  #                            versamento per riferimento sul gateway).
+  # La porta 8000 (salute e metriche) resta interna.
+  sftp-ingest:
+    enabled: true
+    image: verumdoc-sftp-ingest
+    irsa: false                # nessun accesso AWS: lo storage è del gateway
+    port: 8000
+    replicas: 2
+    resources:
+      requests: {cpu: 200m, memory: 256Mi}
+      limits: {cpu: 1000m, memory: 1Gi}
+    # Le sessioni SSH sono connessioni lunghe: la riduzione delle repliche le
+    # chiude (il client riprende; i file a metà restano .tmp-, §2.1 di b2).
+    autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 6, targetCPUUtilization: 70}
+    health: {live: /api/v1/health/live, ready: /api/v1/health/ready}
+    config:
+      ENV: production
+      LOG_LEVEL: INFO
+      SFTP_COMPONENTI: server
+      SFTP_PORTA: "2222"                # = publicTcp.targetPort
+      SFTP_RADICE: /var/lib/verumdoc/sftp   # = persistentVolumes[].mountPath
+      SFTP_QUOTA_ACCOUNT_BYTE: "53687091200"   # 50 GiB per account
+      SFTP_RSA_BIT_MINIMI: *sftp_rsa_bit_minimi
+      SFTP_LOGIN_TIMEOUT_SECONDI: "60"
+      # R10 (D12, VD-C-107; revisione V4): sottoreti dell'NLB che antepone il PROXY
+      # protocol (solo da qui l'intestazione si legge ed è obbligatoria) = ESATTAMENTE
+      # network.nlbSourceCidrs, le stesse che la NetworkPolicy ammette sulla porta SFTP
+      # (verifica_manifest lo controlla; mai la VPC intera: un pod qualunque falsificherebbe
+      # l'IP); reti più ampie di /20 fermano l'avvio. Vuoto = nessun PROXY protocol.
+      SFTP_PROXY_SORGENTI_FIDATE: "10.0.0.0/20,10.0.16.0/20,10.0.32.0/20"
+      SFTP_PROXY_ATTESA_SECONDI: "5"
+      # Segnalazioni del server al lavoratore, scritte a lotti (R03 f2, REV-15)
+      SFTP_SEGNALAZIONI_INTERVALLO_SECONDI: "0.5"
+      JWT_ISSUER: verumdoc.it
+      URL_PUBBLICO_API: "https://api.verumdoc.it"   # base dei link in esito.json
+    # SFTP_CHIAVE_HOST: chiave privata host SSH (OpenSSH/PEM), STABILE fra i
+    # rilasci (i clienti ne fissano l'impronta); senza, il server non parte.
+    # R06 (VD-C-126): SFTP_TOKEN_CHIAVE_PRIVATA NON è qui: il server (esposto con
+    # l'NLB) non firma token; sta nel Secret proprio del lavoratore
+    # (workers.lavoratore.secretKeys → sftp-ingest-lavoratore-secrets).
+    secretKeys: [DATABASE_URL, SFTP_CHIAVE_HOST]
+    exposed: false
+    callers: []
+    egress:
+      services: []
+      data: [pgbouncer]          # il server legge account e chiavi a ogni accesso
+      internetPorts: []
+    # Service LoadBalancer TCP separato dall'ingress HTTP (AWS Load Balancer
+    # Controller → NLB). preserve_client_ip disattivato: la NetworkPolicy ammette
+    # sulla porta SFTP SOLO le subnet del bilanciatore (network.nlbSourceCidrs);
+    # l'IP del cliente arriva con il PROXY protocol v2 (R10, D12; revisione V4).
+    # sourceRanges: elenco degli IP dei clienti ammessi al NLB.
+    publicTcp:
+      name: sftp
+      port: 22
+      targetPort: 2222
+      portSetting: SFTP_PORTA
+      sourceRanges: ["0.0.0.0/0"]
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-type: external
+        service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+        service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+        service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=false
+        # R10 (D12, VD-C-107): l'NLB antepone il PROXY protocol v2 con l'IP del cliente;
+        # sftp-ingest lo legge solo dalle reti in SFTP_PROXY_SORGENTI_FIDATE
+        service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: TCP
+    # Volume condiviso fra server e lavoratore (PVC <servizio>-<nome>)
+    persistentVolumes:
+      - name: aree
+        mountPath: /var/lib/verumdoc/sftp
+        accessModes: [ReadWriteMany]
+        storageClassName: verumdoc-efs
+        size: 1Ti                # EFS non applica la dimensione: vale la quota per account
+    workers:
+      lavoratore:
+        enabled: true
+        http: true
+        env:
+          SFTP_COMPONENTI: lavoratore
+          GATEWAY_URL: "http://gateway:8000"
+          GATEWAY_TIMEOUT_SECONDI: "60"
+          LAVORATORE_PARALLELISMO: "4"
+          LAVORATORE_PARTI_PARALLELE: "4"
+          LAVORATORE_LEASE_SECONDI: "300"
+          # R03 f2 (REV-15, difetto 1 di c2)
+          LAVORATORE_ACCOUNT_PER_GIRO: "100"
+          LAVORATORE_CONTROLLO_COMPLETO_SECONDI: "3600"
+          LAVORATORE_QUOTA_ATTESA_MASSIMA_ORE: "72"
+          GATEWAY_RETRY_AFTER_MAX_SECONDI: "60"
+        # R06 (VD-C-126): SFTP_TOKEN_CHIAVE_PRIVATA, RSA ≥ 2048 propria del canale
+        # (MAI la chiave del gateway), SOLO nel Secret del lavoratore
+        # (sftp-ingest-lavoratore-secrets); la pubblica va nel Secret del gateway
+        # (SFTP_TOKEN_CHIAVE_PUBBLICA). Il server in produzione con la chiave non parte.
+        secretKeys: [SFTP_TOKEN_CHIAVE_PRIVATA]
+        replicas: 2
+        resources:
+          requests: {cpu: 500m, memory: 512Mi}
+          limits: {cpu: 2000m, memory: 2Gi}
+        autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 10, targetCPUUtilization: 70}
+        egress:
+          services: [gateway]    # sessioni C1 e versamento per riferimento
+          data: [pgbouncer]
+          internetPorts: []
+
+  # ── Ciclo di vita (R05, contratto Q2, VD-C-072, VD-P-06) ──
+  # API /api/v1/ciclo-vita (pratiche: rettifica, annullamento, scarto con iter,
+  # riversamento in uscita e in ingresso, restituzione) e relay dell'outbox
+  # «ciclo-vita»; il lavoro fuori richiesta (cancellazioni WORM dello scarto,
+  # versamenti di rettifica e riversamento, PdD di migrazione) nel Deployment
+  # ciclo-vita-lavoratore (lease in tabella, più repliche insieme).
+  ciclo-vita:
+    enabled: true
+    image: verumdoc-ciclo-vita
+    port: 8000
+    replicas: 2
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {cpu: 500m, memory: 1Gi}
+    autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 4, targetCPUUtilization: 70}
+    health: {live: /api/v1/health/live, ready: /api/v1/health/ready}
+    config:
+      ENV: production
+      LOG_LEVEL: INFO
+      KAFKA_BOOTSTRAP: "DA_TERRAFORM:kafka_bootstrap"
+      # R04: MSK accetta solo TLS + IAM (libs/shared/kafka/connessione.py); in locale PLAINTEXT
+      KAFKA_AUTENTICAZIONE: iam
+      KAFKA_REGIONE: eu-south-1
+      S3_ENDPOINT_URL: "https://s3.eu-south-1.amazonaws.com"
+      S3_REGION: eu-south-1
+      S3_BUCKET_AIP: "verumdoc-prod-aip-prod"
+      # R08 (D01, D22): firme di autorizzazioni, nulla osta e richieste di annullamento
+      FIRME_VERIFICATORE: dss
+      FIRME_DSS_URL: "http://verifica-firme:8080"
+      FIRME_RIPIEGO_PDF: "false"     # revisione X7 (vedi validation)
+      FIRME_REVOCHE_RETE: "false"
+      FIRME_DIMENSIONE_MAX_MB: "60"
+      # R06 (VD-C-126): S3_BUCKET_PDV (PdD ricevuti con le sessioni di caricamento)
+      # solo nell'env del lavoratore: l'API non legge lo staging.
+      JWT_ISSUER: verumdoc.it
+      JWT_AUDIENCE: verumdoc-api
+      # Lavoro fuori richiesta: nel Deployment ciclo-vita-lavoratore (che chiama
+      # registro, gateway e distribution: URL e egress solo lì)
+      LAVORATORE_ATTIVO: "false"
+      LAVORATORE_LEASE_SECONDI: "300"
+      LAVORATORE_RITARDI_SECONDI: "[60, 300, 1500, 7200]"
+      LAVORATORE_LOTTO: "200"
+      # Regole del ciclo di vita (predefiniti da confermare, rapporto R05 ciclo).
+      # R09: annullamento (D23) e retention degli allegati (D04) sono parametri
+      # del motore, in console
+      SCARTO_MAX_PDA_PER_PRATICA: "100000"
+      ALLEGATI_MAX_MB: "50"
+      CONSERVATORE_DENOMINAZIONE: *conservatore_denominazione
+      OUTBOX_RELAY_ATTIVO: "true"
+      # Limite di richieste al minuto (R03 f2, REV-03): stesse quote del gateway
+      QUOTE_RICHIESTE_MINUTO: *quote_richieste_minuto
+      QUOTE_PIANO_PREDEFINITO: *quote_piano_predefinito
+      QUOTE_FINESTRA_SECONDI: *quote_finestra_secondi
+      QUOTE_PIANO_CACHE_SECONDI: *quote_piano_cache_secondi
+      # R17 (VD-P-164): conferma firmata dal gateway delle decisioni sensibili, verificata
+      # dall'API e dal lavoratore con le chiavi PUBBLICHE del gateway (non segrete, mai dal
+      # database): JSON {kid: chiave Ed25519 in base64}; in produzione non si spegne
+      CONFERMA_DECISIONI: ATTIVO
+      CONFERME_CHIAVI_PUBBLICHE: "DA_IMPOSTARE:conferme_chiavi_pubbliche"
+      CONFERME_KID_REVOCATI: ""
+    # Revisione 2 di R05 (S2): il Secret del SERVIZIO (montato anche dal pod API,
+    # esposto all'ingress) ha solo database, Redis, S3, chiave pubblica JWT e
+    # pepper. Le credenziali verso gli altri servizi stanno nel Secret PROPRIO
+    # del lavoratore (workers.lavoratore.secretKeys → ciclo-vita-lavoratore-secrets).
+    secretKeys: [DATABASE_URL, REDIS_URL, S3_ACCESS_KEY, S3_SECRET_KEY, JWT_PUBLIC_KEY, API_KEY_PEPPER, FIRME_DSS_TOKEN]
+    # Revisione R05 (R3): l'API (esposta all'ingress) scrive e legge SOLO gli
+    # allegati delle pratiche (pratiche/), con retention ma senza legal hold, e
+    # non cancella nulla; registro/ negato esplicitamente. Le cancellazioni dello
+    # scarto le fa SOLO il lavoratore, con ServiceAccount e ruolo propri.
+    iam:
+      s3:
+        aip: [lettura, scrittura, retention]   # allegati caricati dagli utenti
+        # R06 (VD-C-126): nessun permesso sullo staging (lo legge solo il lavoratore)
+      prefissi_oggetti:
+        aip:
+          lettura: ["pratiche/"]
+          scrittura: ["pratiche/"]
+          retention: ["pratiche/"]
+      nega_prefissi:
+        aip: ["registro/"]
+      kafka: [produzione]                      # eventi del ciclo di vita (outbox)
+    exposed: true
+    callers: []
+    egress:
+      # le chiamate ad altri servizi le fa solo il lavoratore; R08: verifica delle firme
+      # al caricamento degli allegati e delle richieste di annullamento
+      services: [verifica-firme]
+      data: [pgbouncer, redis, kafka]
+      internetPorts: [443]   # S3
+    workers:
+      lavoratore:
+        enabled: true
+        command: ["python", "-m", "app.lavoratore"]
+        http: false
+        disattivaNelPadre: LAVORATORE_ATTIVO
+        # Revisione R05 (R3): ServiceAccount e ruolo PROPRI (ciclo-vita-lavoratore).
+        # WORM: verbali, atti, manifesti e PdD ricevuti sotto pratiche/ (retention,
+        # mai legal hold); scarto SOLO sulle chiavi dei PdA (<uuid-ente>/…: «?» =
+        # un carattere), mai registro/, audit, pratiche/ (negato o fuori prefisso)
+        iam:
+          s3:
+            aip: [lettura, scrittura, retention, multipart, scarto]
+            staging: [lettura]                 # PdD ricevuti con le sessioni di caricamento
+          prefissi_oggetti:
+            aip:
+              lettura: ["pratiche/"]
+              scrittura: ["pratiche/"]
+              # R09 (D04): rinnovo del blocco WORM anche dei PdA permanenti
+              retention: ["pratiche/", "????????-????-????-????-????????????/"]
+              multipart: ["pratiche/"]
+              scarto: ["????????-????-????-????-????????????/"]
+          nega_prefissi:
+            aip: ["registro/"]
+        env:
+          HASHCHAIN_URL: "http://hashchain:8000"
+          GATEWAY_URL: "http://gateway:8000"
+          DISTRIBUTION_URL: "http://distribution:8000"
+          # PdD ricevuti per il riversamento in ingresso (sessioni di caricamento del gateway)
+          S3_BUCKET_PDV: "DA_TERRAFORM:s3_staging_bucket"
+        # Revisione 2 di R05 (S2): credenziali SOLO del lavoratore (Secret
+        # ciclo-vita-lavoratore-secrets, mai nel pod API):
+        # HASHCHAIN_TOKEN_REGISTRO: token di SERVIZIO verso l'API interna del registro
+        #   (aud verumdoc-registro, scope registro:aggiungi; contratto Q3), emesso con
+        #   `python -m libs.shared.security.emetti_token_servizio --servizio ciclo-vita
+        #    --pubblico verumdoc-registro --scope registro:aggiungi`;
+        # CICLO_VITA_TOKEN_CHIAVE_PRIVATA: RSA ≥ 2048 PROPRIA del servizio (mai la chiave
+        #   del gateway) per i token di canale CICLO_VITA; la pubblica va nel Secret del
+        #   gateway (CICLO_VITA_TOKEN_CHIAVE_PUBBLICA);
+        # DISTRIBUTION_TOKEN_SERVIZIO: token di servizio verso l'API di migrazione di
+        #   distribution (aud verumdoc-distribution, scope migrazione:servizio).
+        # Revisione 3 di R05 (T5): DATABASE_URL PROPRIO del lavoratore, con un login
+        #   DIVERSO da quello dell'API: membro di verumdoc_applicazione E di
+        #   verumdoc_ciclo_vita_lavoratore (migrazione 043: unico ruolo che scrive gli
+        #   esiti di esecuzione su cui la hashchain riscontra lo scarto). Il login
+        #   dell'API (ciclo-vita-secrets) NON ne è membro: l'avvio lo controlla.
+        #   envSegreti lo fa prevalere sul DATABASE_URL del Secret del servizio.
+        secretKeys: [DATABASE_URL, HASHCHAIN_TOKEN_REGISTRO, CICLO_VITA_TOKEN_CHIAVE_PRIVATA, DISTRIBUTION_TOKEN_SERVIZIO]
+        envSegreti:
+          DATABASE_URL: {secret: ciclo-vita-lavoratore-secrets, key: DATABASE_URL}
+        replicas: 2
+        resources:
+          requests: {cpu: 200m, memory: 512Mi}
+          limits: {cpu: 1000m, memory: 2Gi}
+        autoscaling: {enabled: false}
+        egress:
+          services: [hashchain, gateway, distribution, verifica-firme]
+          data: [pgbouncer]
+          internetPorts: [443]   # S3 (WORM e staging)
+
+  frontend:
+    enabled: true
+    image: verumdoc-frontend   # frontend/Dockerfile: nginx che serve frontend/dist
+    runAsUser: 101             # utente dell'immagine nginx-unprivileged
+    irsa: false                # nessun accesso AWS
+    metrics: false             # nessun /metrics (le API Python lo espongono, VD-C-033)
+    port: 8080
+    replicas: 2
+    resources:
+      requests: {cpu: 50m, memory: 64Mi}
+      limits: {cpu: 250m, memory: 128Mi}
+    autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 6, targetCPUUtilization: 70}
+    health: {live: /healthz, ready: /healthz}
+    config: {}
+    secretKeys: []
+    exposed: true
+    callers: []
+    egress:
+      services: []
+      data: []
+      internetPorts: []
+
+  # ── Testimone della catena (R04, contratto K3) ──
+  # Gira in un ACCOUNT AWS SEPARATO, con amministratori diversi da quelli del
+  # registro (piano §5.3): «account: testimone» lo esclude dal rilascio
+  # principale; si distribuisce con -f values.testimone.yaml nel cluster del suo
+  # account (kustomize: infra/k8s/testimone). Database PROPRIO (RDS del suo
+  # account, schema «testimone», migrazioni del servizio), chiave Ed25519 propria,
+  # nessun ruolo AWS. Raggiungibile dal registro solo su un host proprio
+  # (https://testimone.verumdoc.it/api/v1/testimone, ALB e WAF del suo account).
+  testimone:
+    enabled: true
+    account: testimone
+    image: verumdoc-testimone
+    irsa: false
+    port: 8000
+    replicas: 2
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+    autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 4, targetCPUUtilization: 70}
+    health: {live: /api/v1/health/live, ready: /api/v1/health/ready}
+    config:
+      ENV: production
+      LOG_LEVEL: INFO
+      TESTIMONE_NOME_CHIAVE: verumdoc-testimone
+      TESTIMONE_ORIGINI_AMMESSE: "verumdoc.it/registro/v1"
+      # Chiave PUBBLICA del registro (verifier key signed note, K2): non segreta.
+      # Segnaposto = il testimone non parte (controlli d'avvio, mai una chiave finta).
+      TESTIMONE_CHIAVI_REGISTRO: "DA_IMPOSTARE:verifier_key_registro"
+      # Impronte SHA-256 dei token di servizio del registro (il token sta solo
+      # nel Secret del registro: qui l'impronta, che non permette di ricavarlo)
+      TESTIMONE_IMPRONTE_TOKEN_REGISTRO: "DA_IMPOSTARE:sha256_token_registro"
+    # TESTIMONE_CHIAVE_PRIVATA: chiave Ed25519 del testimone nel formato delle note
+    # firmate C2SP «PRIVATE+KEY+verumdoc-testimone+<keyhash>+<base64>» (NON PEM;
+    # libs.catena.nota.genera_chiave), DIVERSA da quella del registro: il testimone
+    # non parte se coincidono. DATABASE_URL: il database del testimone, mai quello
+    # del registro (in produzione rifiutati localhost e credenziali *_dev_only).
+    secretKeys: [DATABASE_URL, TESTIMONE_CHIAVE_PRIVATA]
+    formatoSegreti:
+      TESTIMONE_CHIAVE_PRIVATA: "chiave Ed25519 signed note C2SP «PRIVATE+KEY+verumdoc-testimone+<keyhash>+<base64>» (NON PEM; libs.catena.nota.genera_chiave), diversa da quella del registro"
+      DATABASE_URL: "database PROPRIO del testimone, mai quello del registro"
+    entrypointEnv:
+      VD_SALTA_MIGRAZIONI: "1"   # migrazioni nel Job testimone-migrazioni
+    exposed: true
+    callers: []
+    egress:
+      services: []
+      data: [postgres]
+      internetPorts: []
+    jobs:
+      migrazioni:
+        command: ["python", "-m", "alembic", "upgrade", "head"]
+        activeDeadlineSeconds: 1800
+        envSegreti:
+          DATABASE_URL: {secret: testimone-secrets, key: DATABASE_URL}
+        resources:
+          requests: {cpu: 100m, memory: 128Mi}
+          limits: {cpu: 500m, memory: 256Mi}
+        egress:
+          services: []
+          data: [postgres]
+          internetPorts: []
+
+# Creare il namespace dal chart (di norma: helm install --create-namespace)
+createNamespace: false

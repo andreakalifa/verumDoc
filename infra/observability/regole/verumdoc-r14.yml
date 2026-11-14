@@ -1,0 +1,77 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Allarmi R14 (debito interno): lavoratore della posta e canale PEC (VD-C-170, metriche
+# calcolate dal database dalle repliche API di notification), pratiche del ciclo di vita
+# sospese dopo i tentativi esauriti (VD-C-133), arretrato dei sigilli degli IPdA storici
+# (VD-C-165). Gravità come in verumdoc-r04.yml (pagina = subito; avviso = in orario).
+# Ogni allarme citato in un runbook deve esistere qui o negli altri file
+# (tests/integrity/test_runbook_allarmi.py).
+groups:
+  - name: verumdoc-r14-posta
+    rules:
+      - alert: PostaCodaFerma
+        expr: max(verumdoc_posta_coda_eta_secondi) > 1800
+        for: 10m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Posta in coda da oltre 30 minuti"
+          description: "Il messaggio di posta più vecchio è IN_CODA da oltre mezz'ora: lavoratore notification-posta fermo, SMTP irraggiungibile o chiave della posta assente. Controllare il Deployment notification-posta e i log «notifiche_giro_invio_errore» (docs/integrazione/pec.md §6)."
+      - alert: PostaNonPartita
+        expr: max(verumdoc_posta_messaggi_non_partiti_24h) > 0
+        for: 15m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Messaggi di posta NON_PARTITA nelle ultime 24 ore"
+          description: "Dopo i ritentativi alcuni messaggi sono finiti in DLQ (notification.dlq): destinatario rifiutato, sigillo non apribile o SMTP che rifiuta. Vedere i log del lavoratore della posta e il topic DLQ."
+      - alert: PecSenzaRicevuta
+        expr: max(verumdoc_pec_messaggi_senza_accettazione) > 0 or max(verumdoc_pec_messaggi_senza_consegna) > 0
+        for: 30m
+        labels: {severity: avviso}
+        annotations:
+          summary: "PEC senza ricevuta di accettazione o di consegna"
+          description: "Messaggi PEC inviati da oltre un'ora senza accettazione, o accettati da oltre PEC_CONSEGNA_ATTESA_ORE senza consegna: lettura IMAP ferma o gestore che non risponde. Console → «Canali PEC» (messaggi con avviso)."
+      - alert: PecCanaleNonUtilizzabile
+        expr: max(verumdoc_pec_canali_non_utilizzabili) > 0
+        for: 15m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Canale PEC attivo non utilizzabile"
+          description: "Il lavoratore della posta dichiara problemi su un canale PEC attivo (segreti assenti o non legati agli host, errore di connessione SMTP/IMAP): le PEC restano in coda e poi NON_PARTITO. Console → «Canali PEC» (stato del canale) e docs/integrazione/pec.md §4."
+      - alert: PecLavoratoreFermo
+        expr: max(verumdoc_pec_stato_eta_secondi) > 900
+        for: 5m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Stato dei canali PEC non aggiornato da oltre 15 minuti"
+          description: "Il lavoratore della posta aggiorna lo stato dei canali a ogni giro (PEC_INTERVALLO_SECONDI): se è vecchio il processo è fermo o PEC_ATTIVO=false. Il valore -1 (nessun canale attivo) non fa scattare l'allarme."
+      - alert: PecRicevuteNonAutentiche
+        expr: max(verumdoc_pec_ricevute_non_autentiche_24h) > 0
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Ricevute PEC non autentiche nelle ultime 24 ore"
+          description: "Messaggi nella casella PEC con firma non valida o di un gestore fuori dalle radici configurate: possibile tentativo di falsificare una ricevuta (nessuno stato è stato cambiato). Console → «Canali PEC» → ricevute non associate."
+  - name: verumdoc-r14-ciclo-vita
+    rules:
+      - alert: PraticaSospesa
+        expr: max(verumdoc_ciclo_vita_pratiche_sospese) > 0
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Pratica del ciclo di vita sospesa dopo i tentativi esauriti"
+          description: "Il lavoratore ha fallito LAVORATORE_TENTATIVI_MASSIMI volte lo stesso lavoro e l'ha sospeso (LC-409-TENTATIVI-ESAURITI): nessun nuovo tentativo automatico. Correggere la causa e riprendere con la procedura di docs/runbooks/pratica_sospesa.md."
+      - alert: ScartoNonDeterminabile
+        expr: max(verumdoc_ciclo_vita_oggetti_non_determinabili) > 0
+        for: 1h
+        labels: {severity: avviso}
+        annotations:
+          summary: "Scarto con versioni rimaste non determinabili"
+          description: "Uno scarto concluso con eccezioni ha PdA chiusi con verifica_storage = non_determinabile (storage illeggibile alla chiusura o oggetto senza inventario, VD-C-122): prima di riprendere o chiudere con eccezioni verificare a mano con list-object-versions (docs/runbooks/scarto_incompleto.md)."
+  - name: verumdoc-r14-firma
+    rules:
+      - alert: ArretratoIpdaScartati
+        expr: increase(verumdoc_firme_arretrato_ipda_scartati_total[1h]) > 0
+        labels: {severity: pagina}
+        annotations:
+          summary: "IPdA storici non accodati al sigillo: manifest diverso o illeggibile"
+          description: "Il censimento degli IPdA dei PdA conservati prima di R13a ha trovato un manifest con impronta diversa da quella registrata nel PdA (possibile manomissione) o non leggibile: quel PdA non è stato accodato. Log «firma_arretrato_ipda_scartato» della hashchain; verifica continua del PdA."

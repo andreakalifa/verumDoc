@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sftp-ingest-aree
+  namespace: verumdoc
+  labels:
+    app: sftp-ingest
+    app.kubernetes.io/name: sftp-ingest
+    app.kubernetes.io/part-of: verumdoc
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: verumdoc-efs
+  resources:
+    requests:
+      storage: 1Ti

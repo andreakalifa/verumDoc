@@ -1,0 +1,355 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# VerumDoc — integrazione continua (g3-backend, VD-C-030/VD-C-038)
+#
+# Job indipendenti: un fallimento non nasconde gli altri.
+#   python     make test: ogni servizio nel PROPRIO ambiente su PostgreSQL 16
+#              reale migrato con Alembic, poi libs/shared, infra e tools; Redis
+#              e storage S3 versitygw (Object Lock) reali; infine i controlli statici (make verifiche)
+#   ruff       errori bloccanti su tutto il repository + file Python NUOVI puliti;
+#              il lint completo (make lint) è solo un rapporto, finché il debito
+#              esistente non è smaltito
+#   frontend   npm ci, typecheck, lint, build
+#   terraform  OpenTofu: fmt -check, validate di moduli e ambienti, tofu test
+#   manifest   (R04) helm lint, helm template dei rilasci (produzione, staging,
+#              testimone), kustomize build, kubeconform con gli schemi delle CRD
+#   immagini   (R04) docker build di ogni servizio e di PgBouncer (nessun push)
+# La prova di carico (k6 su un ambiente reale, o locale) è manuale: carico.yml.
+#
+# Come i test trovano il database (services/*/tests/infra_reale.py):
+# VD_TEST_DATABASE_URL punta a un database GIÀ migrato (alembic upgrade head dal
+# gateway) usato come TEMPLATE: ogni test crea una copia (CREATE DATABASE ...
+# TEMPLATE) e la elimina. Senza la variabile i test d'integrazione si saltano.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: verumdoc_template
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d verumdoc_template"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      # Solo il template: i test non lo scrivono mai (ne fanno copie). DATABASE_URL
+      # NON è globale, così nessuna Settings dei servizi punta al template.
+      VD_TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/verumdoc_template
+      VD_ONBOARDING_PYTHON: ${{ github.workspace }}/services/onboarding/.venv/bin/python
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      # R04: storage S3 REALE con Object Lock (infra/tests/test_storage_reale.py,
+      # VD-C-081: lo scrittore WORM provato su uno storage vero, non solo su moto;
+      # da R05 versitygw)
+      VD_TEST_S3_URL: http://127.0.0.1:9000
+      VD_TEST_S3_ACCESS_KEY: ciadmin
+      VD_TEST_S3_SECRET_KEY: ci-solo-prova-${{ github.run_id }}
+      VD_TEST_REDIS_URL: redis://127.0.0.1:6379/0
+    steps:
+      - uses: actions/checkout@v4
+
+      # R05 (VD-C-115): storage S3 con Object Lock = versitygw (Apache-2.0),
+      # backend POSIX con versioning, come docker-compose.yml (servizio «minio»).
+      # Binario statico della release v1.9.0 verificato con lo SHA-256 della
+      # release; avviato in background sul runner (nessuna immagine per tag).
+      - name: Storage S3 (versitygw, Object Lock) per le prove dello storage
+        env:
+          VERSITYGW_VERSIONE: "1.9.0"
+          VERSITYGW_SHA256: 0c28ccda3452451d7c71a0427f6aa7d0db5cac5e2b98a8e4dd2970967e1aadc1
+        run: |
+          set -e
+          archivio="versitygw_v${VERSITYGW_VERSIONE}_Linux_x86_64"
+          curl -sSfL -o /tmp/vgw.tgz \
+            "https://github.com/versity/versitygw/releases/download/v${VERSITYGW_VERSIONE}/${archivio}.tar.gz"
+          echo "${VERSITYGW_SHA256}  /tmp/vgw.tgz" | sha256sum -c -
+          tar -xzf /tmp/vgw.tgz -C /tmp
+          dati="$RUNNER_TEMP/storage"; mkdir -p "$dati/dati" "$dati/versioni"
+          ROOT_ACCESS_KEY="$VD_TEST_S3_ACCESS_KEY" ROOT_SECRET_KEY="$VD_TEST_S3_SECRET_KEY" \
+            nohup "/tmp/${archivio}/versitygw" --port :9000 --health /health \
+            posix --versioning-dir "$dati/versioni" "$dati/dati" > "$RUNNER_TEMP/versitygw.log" 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:9000/health && exit 0; sleep 1
+          done
+          cat "$RUNNER_TEMP/versitygw.log"; exit 1
+
+      # OpenTofu: infra/k8s esegue `tofu test` del modulo iam_servizi (VD-C-101)
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.8.5
+          tofu_wrapper: false
+
+      # R12a (VD-C-131): oracolo Go del formato dei checkpoint e delle prove
+      # (libs/catena/tests/test_oracolo_go.py) contro golang.org/x/mod/sumdb,
+      # clonato al commit della v0.20.0 (nessun accesso alla rete durante il test)
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: false
+
+      - name: Modulo golang.org/x/mod per l'oracolo dei checkpoint
+        env:
+          GO_MOD_COMMIT: bc151c4e8ccc31931553c47d43e41c0efc246096   # tag v0.20.0
+        run: |
+          set -e
+          git clone -q --depth 1 --branch v0.20.0 https://github.com/golang/mod "$RUNNER_TEMP/gomod"
+          test "$(git -C "$RUNNER_TEMP/gomod" rev-parse HEAD)" = "$GO_MOD_COMMIT"
+          echo "VD_ORACOLO_GO_MOD=$RUNNER_TEMP/gomod" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/*/pyproject.toml
+
+      - name: Ambienti per servizio (services/<svc>/.venv con le dipendenze [dev])
+        run: make venv-all PYTHON=python
+
+      - name: Ambiente comune per libs/shared, infra e tools (tutti i servizi insieme)
+        run: |
+          python -m venv .venv-ci
+          .venv-ci/bin/pip install -q --upgrade pip
+          for svc in services/*/; do .venv-ci/bin/pip install -q -e "${svc}[dev]"; done
+          .venv-ci/bin/pip install -q pyyaml
+
+      - name: Schema del database di prova (alembic upgrade head, migrazioni del gateway)
+        working-directory: services/gateway
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/verumdoc_template
+        run: |
+          .venv/bin/python -m alembic upgrade head
+          test "$(.venv/bin/python -m alembic heads | wc -l)" -eq 1
+
+      # make test = test-servizi (ogni servizio con services/<svc>/.venv) +
+      # test-libs (libs/shared, infra/kafka, infra/k8s, tools/dev con $PYTHON)
+      # g4-chiusura: nessun test può essere saltato in CI. I soli salti previsti
+      # nei servizi sono quelli «VD_TEST_DATABASE_URL non impostata»: se
+      # comparissero, i test d'integrazione (isolamento fra enti, catena, outbox)
+      # non sarebbero stati eseguiti e la suite verde non proverebbe nulla.
+      - name: Test (make test, PostgreSQL reale, nessun test saltato)
+        run: |
+          set -o pipefail
+          make test PYTHON="$GITHUB_WORKSPACE/.venv-ci/bin/python" 2>&1 | tee test.log
+          if grep -En "[0-9]+ skipped" test.log; then
+            echo "::error::Test saltati: VD_TEST_DATABASE_URL non raggiunta o salti nuovi"
+            exit 1
+          fi
+
+      - name: Controlli statici (topic, manifest, Dockerfile, docker compose)
+        run: make verifiche PYTHON=$GITHUB_WORKSPACE/.venv-ci/bin/python
+
+      - name: Registro dello storage (versitygw) in caso di errore
+        if: failure()
+        run: tail -100 "$RUNNER_TEMP/versitygw.log" || true
+
+  ruff:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installa ruff
+        run: python -m pip install -q "ruff==0.17.1"
+
+      - name: Errori bloccanti su tutto il repository (sintassi, nomi non definiti)
+        run: make lint-critico PYTHON=python
+
+      - name: File Python nuovi senza avvisi (E, F, W, B, I)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "Nessun commit di confronto: controllo saltato"; exit 0
+          fi
+          git diff --name-only --diff-filter=A "$BASE_SHA" HEAD -- '*.py' > nuovi.txt
+          if [ ! -s nuovi.txt ]; then echo "Nessun file Python nuovo"; exit 0; fi
+          xargs -a nuovi.txt python -m ruff check --select E,F,W,B,I --output-format github
+
+      - name: Rapporto completo (non bloccante, debito esistente)
+        continue-on-error: true
+        run: |
+          for svc in services/*/; do
+            echo "── $svc"; (cd "$svc" && python -m ruff check app/ tests/ --statistics) || true
+          done
+
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.18"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+
+  terraform:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # OpenTofu (registry.opentofu.org): stessa versione usata per la verifica
+      # di VD-C-038 (be-qualita). Nessun backend: validate non tocca lo stato.
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.8.5
+
+      - name: Formato
+        run: tofu fmt -check -recursive infra/terraform
+
+      - name: Validate di moduli e ambienti
+        run: |
+          esito=0
+          for dir in infra/terraform/modules/*/ infra/terraform/environments/*/; do
+            echo "── $dir"
+            if ! (cd "$dir" && tofu init -backend=false -input=false -no-color >/dev/null \
+                  && tofu validate -no-color); then
+              esito=1
+            fi
+          done
+          exit $esito
+
+      # R04: test dei moduli con provider finto (iam_servizi: ruoli dai values reali)
+      - name: Test dei moduli (tofu test)
+        run: |
+          esito=0
+          for dir in infra/terraform/modules/*/; do
+            [ -d "$dir/tests" ] || continue
+            echo "── $dir"
+            (cd "$dir" && tofu init -backend=false -input=false -no-color >/dev/null && tofu test -no-color) || esito=1
+          done
+          exit $esito
+
+  # R04 (VD-C-081): il chart e i manifest si rendono e si validano davvero
+  manifest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: false
+
+      - name: kubeconform e kustomize
+        run: |
+          go install github.com/yannh/kubeconform/cmd/kubeconform@v0.6.7
+          go install sigs.k8s.io/kustomize/kustomize/v5@v5.4.3
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: helm lint
+        run: |
+          helm lint infra/helm -f infra/helm/values.yaml
+          helm lint infra/helm -f infra/helm/values.yaml -f infra/helm/values.staging.yaml
+          helm lint infra/helm -f infra/helm/values.yaml -f infra/helm/values.testimone.yaml
+
+      - name: helm template + kubeconform (produzione, staging, testimone)
+        env:
+          SCHEMI_CRD: https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
+        run: |
+          esito=0
+          for rilascio in "prod" "staging" "testimone"; do
+            echo "── $rilascio"
+            helm template verumdoc infra/helm --namespace verumdoc -f infra/helm/values.yaml \
+              -f "infra/helm/values.$rilascio.yaml" > "helm-$rilascio.yaml" || esito=1
+            kubeconform -strict -summary -schema-location default -schema-location "$SCHEMI_CRD" \
+              "helm-$rilascio.yaml" || esito=1
+          done
+          exit $esito
+
+      - name: kustomize build + kubeconform (base, overlay, testimone)
+        env:
+          SCHEMI_CRD: https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
+        run: |
+          esito=0
+          for d in infra/k8s/base infra/k8s/overlays/staging infra/k8s/overlays/prod infra/k8s/testimone; do
+            echo "── $d"
+            kustomize build "$d" | kubeconform -strict -summary -schema-location default \
+              -schema-location "$SCHEMI_CRD" - || esito=1
+          done
+          exit $esito
+
+  # R04 (VD-C-081): le immagini si costruiscono davvero (nessun push dalla CI dei PR)
+  immagini:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        immagine:
+          - {nome: gateway, dockerfile: services/gateway/Dockerfile}
+          - {nome: validation, dockerfile: services/validation/Dockerfile}
+          - {nome: signature, dockerfile: services/signature/Dockerfile}
+          - {nome: aip-builder, dockerfile: services/aip-builder/Dockerfile}
+          - {nome: hashchain, dockerfile: services/hashchain/Dockerfile}
+          - {nome: distribution, dockerfile: services/distribution/Dockerfile}
+          - {nome: notification, dockerfile: services/notification/Dockerfile}
+          - {nome: onboarding, dockerfile: services/onboarding/Dockerfile}
+          - {nome: dashboard-api, dockerfile: services/dashboard-api/Dockerfile}
+          - {nome: sftp-ingest, dockerfile: services/sftp-ingest/Dockerfile}
+          - {nome: testimone, dockerfile: services/testimone/Dockerfile}
+          - {nome: pgbouncer, dockerfile: infra/pgbouncer/Dockerfile}
+          - {nome: frontend, dockerfile: frontend/Dockerfile, contesto: frontend}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ${{ matrix.immagine.nome }}
+        run: |
+          docker build -f "${{ matrix.immagine.dockerfile }}" -t "verumdoc-${{ matrix.immagine.nome }}:ci-${{ github.sha }}" \
+            "${{ matrix.immagine.contesto || '.' }}"
+
+      - name: Avvio dell'immagine (import dell'applicazione o versione di PgBouncer)
+        run: |
+          img="verumdoc-${{ matrix.immagine.nome }}:ci-${{ github.sha }}"
+          if [ "${{ matrix.immagine.nome }}" = "pgbouncer" ]; then
+            docker run --rm --entrypoint pgbouncer "$img" --version
+          elif [ "${{ matrix.immagine.nome }}" = "frontend" ]; then
+            docker run --rm --entrypoint nginx "$img" -t
+          else
+            docker run --rm --entrypoint python -e ENV=test "$img" -c "import app.config"
+          fi

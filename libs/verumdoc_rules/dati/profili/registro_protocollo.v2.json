@@ -1,0 +1,76 @@
+{
+ "formato": "verumdoc-profilo-tipologia-2",
+ "codice": "registro_protocollo",
+ "nome": "Registro giornaliero di protocollo",
+ "versione": 2,
+ "valido_dal": "2026-11-03",
+ "valido_al": null,
+ "norm_ref": "DPCM 3 dicembre 2013 (protocollo informatico), art. 7 c. 5; Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici (2021), Allegato 5 — profilo proprio del conservatore",
+ "estende": "documento_amministrativo_informatico",
+ "estende_versione": 2,
+ "adozione": "esplicita",
+ "origine": "conservatore",
+ "nota": "Profilo PROPRIO del conservatore: l'Allegato 5 disciplina solo documento informatico, documento amministrativo informatico e aggregazioni. Eredita i campi riscontrati di documento_amministrativo_informatico v2; i campi propri sono scelte del servizio (fonti in norm_ref, non riscontrate in R11). Adozione esplicita per classe (PROFILO_TIPOLOGIA_VERSIONE).",
+ "campi": [
+  {
+   "nome": "data_registro",
+   "tipo": "data",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Giorno a cui si riferisce il registro giornaliero",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "numero_iniziale",
+   "tipo": "intero",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Primo numero di protocollo del giorno",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "numero_finale",
+   "tipo": "intero",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Ultimo numero di protocollo del giorno",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "numero_registrazioni",
+   "tipo": "intero",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Numero di registrazioni del giorno",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "data_prima_registrazione",
+   "tipo": "data",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Data della prima registrazione",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "data_ultima_registrazione",
+   "tipo": "data",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Data dell'ultima registrazione",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  }
+ ]
+}

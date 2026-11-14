@@ -1,0 +1,26 @@
+VerumDoc — Conservazione Digitale a Norma AgID
+==============================================
+
+Release:   {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+Ambiente:  {{ .Values.global.environment }}
+
+Servizi:
+{{- $root := . }}
+{{- range $name, $svc := .Values.services }}
+{{- if include "verumdoc.attivo" (dict "root" $root "svc" $svc) }}
+  - {{ $name }} (porta {{ $svc.port }}, salute {{ $svc.health.live }})
+{{- end }}
+{{- end }}
+
+{{- range $k, $h := .Values.ingress.hosts }}
+{{- if $h }}
+Host {{ $k }}: https://{{ $h }}/
+{{- end }}
+{{- end }}
+{{- if not .Values.secrets.create }}
+
+ATTENZIONE: secrets.create=false → i Secret <servizio>-secrets devono esistere
+prima del deploy (infra/k8s/secrets/README.md), altrimenti i pod restano in
+CreateContainerConfigError.
+{{- end }}

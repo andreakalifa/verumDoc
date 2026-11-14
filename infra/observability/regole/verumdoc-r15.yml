@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Allarmi R15 (documentazione di conformità generata, VD-C-177): generazione dalla console
+# finita in errore (dashboard-api) e versioni non ancora archiviate nel WORM (hashchain).
+# Gravità come in verumdoc-r04.yml (pagina = subito; avviso = in orario).
+# Ogni allarme citato in un runbook deve esistere qui o negli altri file
+# (tests/integrity/test_osservabilita.py).
+groups:
+  - name: verumdoc-r15-documentazione
+    rules:
+      - alert: DocumentazioneNonGenerata
+        expr: sum(increase(verumdoc_documentazione_generazioni_totali_total{esito=~"errore|interrotta"}[1h])) > 0
+        for: 0m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Generazione della documentazione del servizio non riuscita"
+          description: "Una richiesta di generazione è finita in ERRORE o è rimasta interrotta oltre la scadenza: console → «Documentazione del servizio» (motivo nello storico delle richieste), log «documentazione_non_generata» di dashboard-api; poi «Genera» di nuovo (docs/architettura/documentazione.md §5)."
+      - alert: DocumentazioneNonArchiviata
+        expr: max(verumdoc_documentazione_da_archiviare) > 0
+        for: 2h
+        labels: {severity: avviso}
+        annotations:
+          summary: "Versioni della documentazione non archiviate nel WORM da oltre 2 ore"
+          description: "La hashchain non riesce a scrivere le versioni sotto registro/documentazione/ (lease del registro, IAM sul prefisso registro/, impronta diversa dal contenuto): log «documentazione_non_archiviata» della hashchain (docs/architettura/documentazione.md §6)."

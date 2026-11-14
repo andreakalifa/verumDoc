@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Prometheus — stack locale (VD-C-033)
+# Le metriche esistono solo nei servizi che chiamano
+#   installa_metriche(app, "<servizio>")   (libs/shared/observability/metriche.py)
+# Finché la riga non è nel main.py del servizio, il suo target risulta DOWN
+# (404 su /metrics): è lo stato reale, non un errore di questa configurazione.
+# Kafka e PostgreSQL non si interrogano direttamente: servono exporter dedicati
+# (kafka-exporter, postgres-exporter), non ancora presenti.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: verumdoc-dev
+    env: development
+
+# R04: allarmi della catena, del testimone, della verifica continua, dell'outbox
+rule_files:
+  - /etc/prometheus/regole/*.yml
+
+scrape_configs:
+  - job_name: verumdoc-servizi
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - gateway:8000
+          - validation:8000
+          - signature:8000
+          - aip-builder:8000
+          - hashchain:8000
+          - distribution:8000
+          - notification:8000
+          - onboarding:8000
+          - dashboard-api:8000
+          - sftp-ingest:8000
+          - testimone:8000            # R04 (in esercizio: account separato)
+          - ciclo-vita:8000           # R14 (VD-C-033): mancava dal 2026-10-24
+  # R04: verifica continua (processo senza HTTP, sole metriche su 9108)
+  - job_name: verumdoc-verifica-continua
+    metrics_path: /metrics
+    static_configs:
+      - targets: [hashchain-verifica:9108]

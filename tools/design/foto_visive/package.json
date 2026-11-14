@@ -1,0 +1,12 @@
+{
+  "name": "verumdoc-foto-visive",
+  "private": true,
+  "license": "EUPL-1.2",
+  "description": "Foto Playwright del frontend con API simulate (REGOLE_SVILUPPO.md §25.13)",
+  "dependencies": {
+    "@fontsource/dm-mono": "5.3.0",
+    "@fontsource/dm-sans": "5.3.0",
+    "@fontsource/instrument-serif": "5.3.0",
+    "playwright": "1.64.1"
+  }
+}

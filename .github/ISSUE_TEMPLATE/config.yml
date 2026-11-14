@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+blank_issues_enabled: false
+contact_links:
+  - name: Vulnerabilità di sicurezza
+    url: https://github.com/DA-COMPILARE/verumdoc/security/policy
+    about: Non aprire una issue pubblica per una vulnerabilità; segui SECURITY.md.

@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Allarmi R09 (revisione indipendente, Z4 e Z5): lavoro periodico del lavoratore
+# di ciclo-vita. Gravità come in verumdoc-r04.yml (pagina = subito; avviso = in
+# orario). Runbook: docs/runbooks/scarto_incompleto.md (§ lavoro automatico).
+groups:
+  - name: verumdoc-ciclo-vita-periodico
+    rules:
+      - alert: PassoPeriodicoInErrore
+        expr: max(verumdoc_ciclo_vita_passi_periodici_in_errore) > 0
+        for: 30m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Un passo automatico del ciclo di vita non riesce (es. rinnovo dei blocchi WORM)"
+          description: "L'ultimo giro di un passo periodico (rinnovo WORM, minimizzazione, proposte, riprese) è fallito o ha lasciato elementi in errore. Per il rinnovo: allegati, verbali e atti non hanno legal hold e scadono senza rinnovo. Console del conservatore → «Lavoro automatico» (ultimo esito e errori); configurazione RETENTION_PERMANENTE_ANNI > RETENTION_RINNOVO_SOGLIA_ANNI."
+      - alert: PdaPermanenteSenzaOggetti
+        expr: max(verumdoc_ciclo_vita_pda_permanenti_senza_oggetti) > 0
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "PdA permanenti senza oggetti nello storage WORM"
+          description: "Il rinnovo ha trovato PdA a conservazione permanente senza oggetti nel WORM (retention_fino_a = 9999-12-31): indagare subito con la verifica continua e il registro delle impronte."

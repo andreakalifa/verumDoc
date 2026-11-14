@@ -1,0 +1,88 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gateway-db-manutenzione
+  namespace: verumdoc
+  labels:
+    app: gateway-db-manutenzione
+    app.kubernetes.io/name: gateway-db-manutenzione
+    app.kubernetes.io/part-of: verumdoc
+    app.kubernetes.io/component: db-manutenzione
+spec:
+  schedule: 17 * * * *
+  timeZone: Europe/Rome
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3000
+      template:
+        metadata:
+          labels:
+            app: gateway-db-manutenzione
+            app.kubernetes.io/name: gateway-db-manutenzione
+            app.kubernetes.io/component: db-manutenzione
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+          serviceAccountName: gateway
+          automountServiceAccountToken: true
+          terminationGracePeriodSeconds: 60
+          containers:
+          - name: gateway
+            image: verumdoc-gateway
+            imagePullPolicy: IfNotPresent
+            command:
+            - python
+            - -m
+            - libs.shared.db.manutenzione
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 256Mi
+            envFrom:
+            - configMapRef:
+                name: gateway-config
+            - secretRef:
+                name: gateway-secrets
+            env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: DATABASE_URL_MANUTENZIONE
+              valueFrom:
+                secretKeyRef:
+                  name: db-manutenzione
+                  key: DATABASE_URL
+            volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          volumes:
+          - name: tmp
+            emptyDir:
+              sizeLimit: 2Gi
+          restartPolicy: Never

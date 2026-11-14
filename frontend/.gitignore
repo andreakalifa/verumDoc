@@ -1,0 +1,3 @@
+# Esiti locali delle prove end-to-end (Playwright)
+test-results/
+playwright-report/

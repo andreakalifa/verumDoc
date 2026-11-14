@@ -1,0 +1,22 @@
+# Manutentori di VerumDoc
+#
+# Formato: Nome Cognome <indirizzo> — area di riferimento
+# Usare indirizzi dedicati al progetto o pubblici per scelta di chi li indica; nessun dato
+# personale senza consenso. Ruoli e regole in GOVERNANCE.md.
+
+## Responsabile del progetto
+DA COMPILARE — nome e contatto pubblico del responsabile del progetto
+
+## Manutentori
+DA COMPILARE — sicurezza, autenticazione e sessioni (gateway)
+DA COMPILARE — catena delle impronte, testimone e verificatore (hashchain, libs/catena)
+DA COMPILARE — firme, marche e ciclo di vita (signature, verifica-firme, ciclo-vita)
+DA COMPILARE — database e migrazioni (libs/shared, services/gateway/alembic)
+DA COMPILARE — console (frontend)
+
+## Contatti del progetto
+Segnalazioni di sicurezza: DA COMPILARE (vedi SECURITY.md)
+Codice di comportamento: DA COMPILARE (vedi CODE_OF_CONDUCT.md)
+
+## Emeriti
+(nessuno)

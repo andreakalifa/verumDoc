@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+apiVersion: v2
+name: verumdoc
+description: VerumDoc — Conservazione Digitale a Norma AGID 2022
+type: application
+version: 0.5.0
+appVersion: "0.1.0"
+keywords: [conservazione, agid, archivio, digitale]
+maintainers:
+  - name: VerumDoc Team
+    email: tech@verumdoc.it

@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-sftp-ingest
+  namespace: verumdoc
+  labels:
+    app: sftp-ingest
+    app.kubernetes.io/name: sftp-ingest
+    app.kubernetes.io/part-of: verumdoc
+spec:
+  podSelector:
+    matchLabels:
+      app: sftp-ingest
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 10.0.0.0/20
+    - ipBlock:
+        cidr: 10.0.16.0/20
+    - ipBlock:
+        cidr: 10.0.32.0/20
+    ports:
+    - port: 2222
+      protocol: TCP
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring
+    ports:
+    - port: 8000
+      protocol: TCP
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: pgbouncer
+    ports:
+    - port: 6432
+      protocol: TCP

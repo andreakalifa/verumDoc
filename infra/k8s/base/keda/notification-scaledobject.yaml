@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: notification-keda
+  namespace: verumdoc
+  labels:
+    app: notification
+    app.kubernetes.io/name: notification
+    app.kubernetes.io/part-of: verumdoc
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: notification
+  minReplicaCount: 2
+  maxReplicaCount: 6
+  pollingInterval: 15
+  cooldownPeriod: 300
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: notification-hpa
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 60
+          policies:
+          - type: Pods
+            value: 2
+            periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+          - type: Pods
+            value: 1
+            periodSeconds: 60
+  triggers:
+  - type: kafka
+    metadata:
+      bootstrapServers: DA_TERRAFORM:kafka_bootstrap
+      consumerGroup: notification-eventi-cliente
+      topic: pdv.received
+      lagThreshold: '500'
+      offsetResetPolicy: earliest
+      sasl: aws_msk_iam
+      tls: enable
+      awsRegion: eu-south-1
+    authenticationRef:
+      name: keda-msk-iam
+  - type: kafka
+    metadata:
+      bootstrapServers: DA_TERRAFORM:kafka_bootstrap
+      consumerGroup: notification-service
+      topic: notification.send
+      lagThreshold: '200'
+      offsetResetPolicy: earliest
+      sasl: aws_msk_iam
+      tls: enable
+      awsRegion: eu-south-1
+    authenticationRef:
+      name: keda-msk-iam
+  - type: cpu
+    metricType: Utilization
+    metadata:
+      value: '70'

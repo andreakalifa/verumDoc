@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Namespace VerumDoc
+# Riferimento piano: F0.3 — Kubernetes base
+# Tutti i workload VerumDoc risiedono in questo namespace.
+# Resource quotas impostate per proteggere il cluster da runaway pods.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: verumdoc
+  labels:
+    app.kubernetes.io/managed-by: helm
+    environment: production
+    project: verumdoc
+---
+# Resource Quota: limita le risorse totali del namespace.
+# R03 (i2): con i lavoratori dedicati e sftp-ingest la somma dei LIMITI al massimo
+# delle repliche HPA è ~153 CPU e ~193 GiB (richieste ~34 CPU, ~50 GiB): i tetti
+# dei limiti sono alzati per non fermare l'HPA in silenzio sotto carico.
+# R04 (infra): KEDA su validation/aip-builder/notification/distribution, PgBouncer,
+# verifica continua, relay dell'outbox e job: verifica_manifest.py calcola la
+# somma di limiti e richieste al massimo delle repliche e la confronta con
+# questi tetti (errore se li supera). Margine ~10-15% per i rilasci successivi.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: verumdoc-quota
+  namespace: verumdoc
+spec:
+  hard:
+    requests.cpu: "48"
+    requests.memory: 80Gi
+    limits.cpu: "200"
+    limits.memory: 256Gi
+    pods: "250"
+    services: "50"
+    persistentvolumeclaims: "20"
+---
+# LimitRange: limiti default per ogni container senza explicit limits
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: verumdoc-limits
+  namespace: verumdoc
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: 500m
+        memory: 512Mi
+      defaultRequest:
+        cpu: 100m
+        memory: 128Mi
+      max:
+        cpu: "4"
+        memory: 8Gi
+      min:
+        cpu: 50m
+        memory: 64Mi

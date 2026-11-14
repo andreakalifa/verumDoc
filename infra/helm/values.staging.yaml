@@ -1,0 +1,117 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Helm values — staging (sovrascrive values.yaml; le mappe si fondono)
+#
+# ENV resta «production» anche in staging: lo staging deve comportarsi come la
+# produzione (chiavi JWT obbligatorie, niente /docs, niente accesso di sviluppo).
+global:
+  environment: staging
+  ambienteIam: staging
+
+# R04: PgBouncer dello staging: una replica basta al traffico di collaudo (il
+# PodDisruptionBudget maxUnavailable 1 lascia svuotare i nodi: riavvio breve accettato)
+pgbouncer:
+  replicas: 1
+  imageTag: "DA_IMPOSTARE_IN_PIPELINE"
+
+# Rete dell'ambiente staging (modulo vpc: 10.1.0.0/16, environments/staging/main.tf):
+# senza, le NetworkPolicy ammetterebbero le subnet di produzione e bloccherebbero
+# l'ALB e i dati dello staging (R03 i2).
+network:
+  albSourceCidrs: ["10.1.0.0/20", "10.1.16.0/20", "10.1.32.0/20"]
+  nlbSourceCidrs: ["10.1.0.0/20", "10.1.16.0/20", "10.1.32.0/20"]
+  dataCidrs: ["10.1.96.0/20", "10.1.112.0/20", "10.1.128.0/20"]
+  vpcCidr: "10.1.0.0/16"
+
+ingress:
+  hosts:
+    app: "app.staging.verumdoc.it"
+    api: "api.staging.verumdoc.it"
+
+services:
+  gateway:
+    replicas: 1
+    autoscaling: {minReplicas: 1, maxReplicas: 3}
+    config:
+      CORS_ORIGINS: '["https://app.staging.verumdoc.it"]'
+      BASE_URL: "https://app.staging.verumdoc.it"   # ritorno SPID sull'host del frontend
+      SPID_ALLOWED_REDIRECTS: '["https://app.staging.verumdoc.it/login"]'
+      PDND_ISSUER: "uat.interop.pagopa.it"   # ambiente di collaudo PDND
+      # R10 (revisione V1): = network.albSourceCidrs di staging
+      PROXY_FIDATI: '["10.1.0.0/20", "10.1.16.0/20", "10.1.32.0/20"]'
+      BASE_URL_CONSOLE: "https://app.staging.verumdoc.it"
+    workers:
+      verifica-caricamenti:
+        replicas: 1
+        autoscaling: {enabled: true, minReplicas: 1, maxReplicas: 3, targetCPUUtilization: 70}
+  validation:
+    replicas: 1
+    autoscaling: {minReplicas: 1, maxReplicas: 3}
+  signature:
+    replicas: 1
+    autoscaling: {minReplicas: 1, maxReplicas: 2}
+  aip-builder:
+    replicas: 1
+    autoscaling: {minReplicas: 1, maxReplicas: 3}
+    config:
+      S3_BUCKET_AIP: "verumdoc-staging-aip-prod"
+  hashchain:
+    config:
+      S3_BUCKET_AIP: "verumdoc-staging-aip-prod"
+      # R04: testimone dello staging (stesso chart, -f values.staging.yaml -f values.testimone.yaml
+      # nell'account del testimone di collaudo)
+      TESTIMONE_URL: "https://testimone.staging.verumdoc.it"
+    workers:
+      verifica:
+        replicas: 1
+  distribution:
+    replicas: 1
+    autoscaling: {minReplicas: 1, maxReplicas: 3}
+    workers:
+      lavoratori:
+        replicas: 1
+        autoscaling: {enabled: true, minReplicas: 1, maxReplicas: 2, targetCPUUtilization: 70}
+    config:
+      S3_BUCKET_AIP: "verumdoc-staging-aip-prod"
+  notification:
+    replicas: 1
+    autoscaling: {minReplicas: 1, maxReplicas: 2}
+    workers:
+      posta:
+        replicas: 1
+      webhook:
+        replicas: 1
+        autoscaling: {enabled: true, minReplicas: 1, maxReplicas: 2, targetCPUUtilization: 70}
+  onboarding:
+    replicas: 1
+    autoscaling: {minReplicas: 1, maxReplicas: 2}
+    config:
+      SFTP_HOST_PUBBLICO: "sftp.staging.verumdoc.it"
+  dashboard-api:
+    replicas: 1
+    autoscaling: {minReplicas: 1, maxReplicas: 3}
+    config:
+      CORS_ORIGINS: '["https://app.staging.verumdoc.it"]'
+      S3_BUCKET_AIP: "verumdoc-staging-aip-prod"
+  sftp-ingest:
+    replicas: 1
+    autoscaling: {minReplicas: 1, maxReplicas: 2}
+    config:
+      URL_PUBBLICO_API: "https://api.staging.verumdoc.it"
+      # R10 (revisione V4): = network.nlbSourceCidrs di staging
+      SFTP_PROXY_SORGENTI_FIDATE: "10.1.0.0/20,10.1.16.0/20,10.1.32.0/20"
+    workers:
+      lavoratore:
+        replicas: 1
+        autoscaling: {enabled: true, minReplicas: 1, maxReplicas: 2, targetCPUUtilization: 70}
+  ciclo-vita:
+    replicas: 1
+    autoscaling: {minReplicas: 1, maxReplicas: 2}
+    config:
+      S3_BUCKET_AIP: "verumdoc-staging-aip-prod"
+    workers:
+      lavoratore:
+        replicas: 1
+  frontend:
+    replicas: 1
+    autoscaling: {minReplicas: 1, maxReplicas: 2}

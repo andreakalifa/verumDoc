@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notification-config
+  namespace: verumdoc
+  labels:
+    app: notification
+    app.kubernetes.io/name: notification
+    app.kubernetes.io/part-of: verumdoc
+data:
+  ENV: production
+  LOG_LEVEL: INFO
+  KAFKA_BOOTSTRAP: DA_TERRAFORM:kafka_bootstrap
+  KAFKA_AUTENTICAZIONE: iam
+  KAFKA_REGIONE: eu-south-1
+  SMTP_HOST: DA_IMPOSTARE
+  SMTP_PORT: '587'
+  SMTP_SICUREZZA: auto
+  SMTP_MITTENTE: noreply@verumdoc.it
+  SMTP_NOME_MITTENTE: VerumDoc Conservazione Digitale
+  POSTA_INVIO_ATTIVO: 'false'
+  JWT_ISSUER: verumdoc.it
+  JWT_AUDIENCE: verumdoc-api
+  EVENTI_CONSUMER_ATTIVO: 'true'
+  EVENTI_KAFKA_GROUP_ID: notification-eventi-cliente
+  EVENTI_LIMITE_PREDEFINITO: '100'
+  EVENTI_LIMITE_MASSIMO: '500'
+  EVENTI_PUBBLICAZIONE_ATTIVA: 'true'
+  EVENTI_PUBBLICAZIONE_INTERVALLO_SECONDI: '0.2'
+  EVENTI_PUBBLICAZIONE_LOTTO: '5000'
+  EVENTI_CONSUMER_LOTTO: '500'
+  QUOTE_RICHIESTE_MINUTO: '{"starter": 120, "business": 600, "enterprise": 6000}'
+  QUOTE_PIANO_PREDEFINITO: starter
+  QUOTE_FINESTRA_SECONDI: '60'
+  QUOTE_PIANO_CACHE_SECONDI: '60'
+  WEBHOOK_LAVORATORE_ATTIVO: 'false'
+  WEBHOOK_CHIAVE_CIFRATURA_ID: k1
+  WEBHOOK_CONSENTI_INDIRIZZI_PRIVATI: 'false'
+  WEBHOOK_RITARDI_SECONDI: '[60, 300, 1500, 7200]'
+  WEBHOOK_TIMEOUT_SECONDI: '10'
+  WEBHOOK_TIMEOUT_CONNESSIONE_SECONDI: '3'
+  WEBHOOK_INTERVALLO_SECONDI: '2'
+  WEBHOOK_LOTTO: '50'
+  WEBHOOK_CONCORRENZA: '20'
+  WEBHOOK_LEASE_SECONDI: '120'
+  WEBHOOK_MAX_SOTTOSCRIZIONI_PER_ENTE: '10'
+  WEBHOOK_LUNGHEZZA_MASSIMA_URL: '2048'
+  WEBHOOK_PORTE_AMMESSE: '[443]'

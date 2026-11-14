@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+# Overlay prod: differenze di infra/helm/values.prod.yaml rispetto a values.yaml.
+# La pipeline sostituisce i segnaposto DA_IMPOSTARE/DA_TERRAFORM (kustomize edit set image ...).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: verumdoc
+resources:
+- ../../base
+labels:
+- pairs:
+    environment: production
+images:
+- name: verumdoc-gateway
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-gateway
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-validation
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-validation
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-signature
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-signature
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-verifica-firme
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-verifica-firme
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-aip-builder
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-aip-builder
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-hashchain
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-hashchain
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-distribution
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-distribution
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-notification
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-notification
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-onboarding
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-onboarding
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-dashboard-api
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-dashboard-api
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-sftp-ingest
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-sftp-ingest
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-ciclo-vita
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-ciclo-vita
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-frontend
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-frontend
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-pgbouncer
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-pgbouncer
+  newTag: DA_IMPOSTARE_IN_PIPELINE

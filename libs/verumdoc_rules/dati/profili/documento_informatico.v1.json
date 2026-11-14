@@ -1,0 +1,326 @@
+{
+ "formato": "verumdoc-profilo-tipologia-1",
+ "codice": "documento_informatico",
+ "nome": "Documento informatico",
+ "versione": 1,
+ "valido_dal": "2022-01-01",
+ "valido_al": null,
+ "norm_ref": "Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici (2021), Allegato 5 — metadati del documento informatico",
+ "estende": null,
+ "nota": "Profilo predefinito di VerumDoc (R05). I campi con da_riscontrare=true vanno verificati sul testo ufficiale prima di attivare la tipologia per un ente (VD-C-088).",
+ "campi": [
+  {
+   "nome": "identificativo_documento",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "IdDoc.Identificativo",
+   "descrizione": "Identificativo univoco e persistente del documento",
+   "calcolato": false,
+   "da_riscontrare": false
+  },
+  {
+   "nome": "impronta_documento",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "IdDoc.ImprontaCrittograficaDelDocumento",
+   "descrizione": "Impronta e algoritmo: calcolati dal servizio sui byte ricevuti",
+   "calcolato": true,
+   "da_riscontrare": false
+  },
+  {
+   "nome": "modalita_formazione",
+   "tipo": "enum",
+   "obbligatorio": true,
+   "allegato5": "ModalitaDiFormazione",
+   "descrizione": "Lettera della modalità di formazione (LG §2.1.1)",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "valori_ammessi": [
+    "a",
+    "b",
+    "c",
+    "d"
+   ]
+  },
+  {
+   "nome": "tipologia_documentale",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "TipologiaDocumentale",
+   "descrizione": "Tipologia del documento",
+   "calcolato": false,
+   "da_riscontrare": false
+  },
+  {
+   "nome": "data_documento",
+   "tipo": "data",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Data di formazione del documento (metadato minimo del servizio, RGL-101)",
+   "calcolato": false,
+   "da_riscontrare": false
+  },
+  {
+   "nome": "tipologia_flusso",
+   "tipo": "enum",
+   "obbligatorio": false,
+   "allegato5": "DatiDiRegistrazione.TipologiaDiFlusso",
+   "descrizione": "E = entrata, U = uscita, I = interno",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "valori_ammessi": [
+    "E",
+    "U",
+    "I"
+   ]
+  },
+  {
+   "nome": "tipo_registro",
+   "tipo": "enum",
+   "obbligatorio": false,
+   "allegato5": "DatiDiRegistrazione.TipoRegistro",
+   "descrizione": "Registro della registrazione",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "valori_ammessi": [
+    "Nessuno",
+    "Protocollo Ordinario/Protocollo Emergenza",
+    "Repertorio/Registro"
+   ]
+  },
+  {
+   "nome": "data_registrazione",
+   "tipo": "data",
+   "obbligatorio": false,
+   "allegato5": "DatiDiRegistrazione.DataRegistrazione",
+   "descrizione": "Data della registrazione",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "numero_registrazione",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "DatiDiRegistrazione.NumeroDocumento",
+   "descrizione": "Numero della registrazione",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "codice_registro",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "DatiDiRegistrazione.CodiceRegistro",
+   "descrizione": "Codice del registro o repertorio",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "soggetto_produttore_id",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "Soggetti (ruolo Produttore/Autore): codice fiscale o partita IVA",
+   "descrizione": "Codice fiscale o partita IVA del produttore",
+   "calcolato": false,
+   "da_riscontrare": false
+  },
+  {
+   "nome": "soggetto_produttore_nome",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "Soggetti (ruolo Produttore/Autore): denominazione",
+   "descrizione": "Denominazione del produttore",
+   "calcolato": false,
+   "da_riscontrare": false
+  },
+  {
+   "nome": "soggetto_destinatario",
+   "tipo": "elenco",
+   "obbligatorio": false,
+   "allegato5": "Soggetti (ruolo Destinatario)",
+   "descrizione": "Destinatari del documento",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "oggetto",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "ChiaveDescrittiva.Oggetto",
+   "descrizione": "Descrizione sintetica del contenuto",
+   "calcolato": false,
+   "da_riscontrare": false
+  },
+  {
+   "nome": "parole_chiave",
+   "tipo": "elenco",
+   "obbligatorio": false,
+   "allegato5": "ChiaveDescrittiva.ParoleChiave",
+   "descrizione": "Parole chiave",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "numero_allegati",
+   "tipo": "intero",
+   "obbligatorio": true,
+   "allegato5": "Allegati.NumeroAllegati",
+   "descrizione": "Calcolato dal servizio dai documenti dell'indice",
+   "calcolato": true,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "classificazione",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "Classificazione.IndiceDiClassificazione",
+   "descrizione": "Indice di classificazione del titolario",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "riservato",
+   "tipo": "booleano",
+   "obbligatorio": true,
+   "allegato5": "Riservato",
+   "descrizione": "Documento riservato (true/false)",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "formato",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "IdentificativoDelFormato.Formato",
+   "descrizione": "Riconosciuto dal servizio dal contenuto (§8.15)",
+   "calcolato": true,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "prodotto_software_nome",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "IdentificativoDelFormato.ProdottoSoftware.NomeProdotto",
+   "descrizione": "Software che ha prodotto il documento",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "prodotto_software_versione",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "IdentificativoDelFormato.ProdottoSoftware.VersioneProdotto",
+   "descrizione": "Versione del software",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "prodotto_software_produttore",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "IdentificativoDelFormato.ProdottoSoftware.Produttore",
+   "descrizione": "Produttore del software",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "firmato_digitalmente",
+   "tipo": "booleano",
+   "obbligatorio": true,
+   "allegato5": "Verifica.FirmatoDigitalmente",
+   "descrizione": "Il documento è firmato digitalmente",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "sigillato_elettronicamente",
+   "tipo": "booleano",
+   "obbligatorio": true,
+   "allegato5": "Verifica.SigillatoElettronicamente",
+   "descrizione": "Il documento porta un sigillo elettronico",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "marcatura_temporale",
+   "tipo": "booleano",
+   "obbligatorio": true,
+   "allegato5": "Verifica.MarcaturaTemporale",
+   "descrizione": "Il documento porta una marca temporale",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "conformita_copie_immagine",
+   "tipo": "booleano",
+   "obbligatorio": false,
+   "allegato5": "Verifica.ConformitaCopieImmagineSuSupportoInformatico",
+   "descrizione": "Copia per immagine con attestazione di conformità (modalità b)",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "fascicolo_id",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "IdAgg",
+   "descrizione": "Identificativo dell'aggregazione (fascicolo o serie)",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "id_documento_primario",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "IdIdentificativoDocumentoPrimario",
+   "descrizione": "Documento principale di cui questo è allegato",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "nome_documento",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "NomeDelDocumento",
+   "descrizione": "Nome del documento",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "versione_documento",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "VersioneDelDocumento",
+   "descrizione": "Versione del documento",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "tempo_conservazione",
+   "tipo": "intero",
+   "obbligatorio": false,
+   "allegato5": "TempoDiConservazione",
+   "descrizione": "Anni di conservazione indicati dal produttore",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "note",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "Note",
+   "descrizione": "Note",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "lingua",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Lingua (ISO 639-1); metadato del servizio, non dell'Allegato 5",
+   "calcolato": false,
+   "da_riscontrare": false
+  }
+ ]
+}

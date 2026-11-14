@@ -1,0 +1,99 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Testing
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+
+# Secrets (mai nel repo)
+*.pem
+*.key
+*.p12
+sealed-secrets/*.yaml
+!sealed-secrets/.gitkeep
+
+# Build artifacts
+/dist/
+/node_modules/
+frontend/node_modules/
+
+# Chiavi di sviluppo generate in locale (tools/dev/genera_chiavi_dev.*) — mai nel repo
+infra/dev_jwt.env
+infra/*.env
+!infra/*.env.example
+
+# Frontend
+frontend/dist/
+frontend/.vite/
+# Note di lavoro di impeccable alla radice: locali. Il sistema grafico del frontend
+# (frontend/.impeccable/design.json e surfaces/) invece si versiona.
+/.impeccable/
+frontend/.impeccable/review/
+frontend/.impeccable/mocks/
+tools/design/foto_visive/node_modules/
+tools/design/foto_visive/*.png
+
+# Foto di verifica grafica: si rigenerano a richiesta, non si conservano (R06)
+docs/design/foto/
+docs/design/**/*.png
+frontend/test-results/
+frontend/playwright-report/
+
+# R18 (VD-P-190): pubblicazione open source
+# termini riservati del controllo della pubblicazione: solo sul computer di chi pubblica
+tools/opensource/pubblicazione.locale.toml
+# altri formati di chiavi e certificati privati
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_ecdsa*
+id_ed25519*
+# ambienti e risultati locali
+.venv-ci/
+node_modules/
+carico-risultati/
+.coverage.*
+*.orig
+*.rej

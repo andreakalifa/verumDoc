@@ -1,0 +1,48 @@
+{{- /*
+SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+SPDX-License-Identifier: EUPL-1.2
+*/ -}}
+{{/*
+Job periodici (services.<nome>.cronJobs, R03 i2): stessa immagine, ConfigMap,
+Secret e ServiceAccount del servizio, comando proprio, nessuna esecuzione
+sovrapposta (concurrencyPolicy: Forbid), orario in ora italiana.
+*/}}
+{{- $root := . }}
+{{- range $name, $svc := .Values.services }}
+{{- if include "verumdoc.attivo" (dict "root" $root "svc" $svc) }}
+{{- range $jn, $j := $svc.cronJobs }}
+{{- if ne (toString $j.enabled) "false" }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $name }}-{{ $jn }}
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+    app: {{ $name }}-{{ $jn }}
+    app.kubernetes.io/component: {{ $jn }}
+    {{- include "verumdoc.labels" $root | nindent 4 }}
+spec:
+  schedule: {{ $j.schedule | quote }}
+  timeZone: Europe/Rome
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: {{ $j.backoffLimit | default 2 }}
+      activeDeadlineSeconds: {{ $j.activeDeadlineSeconds | default 3600 }}
+      template:
+        metadata:
+          labels:
+            app: {{ $name }}-{{ $jn }}
+            app.kubernetes.io/component: {{ $jn }}
+            {{- include "verumdoc.labels" $root | nindent 12 }}
+        spec:
+          restartPolicy: Never
+          {{- include "verumdoc.pod" (dict "root" $root "nome" (printf "%s-%s" $name $jn) "servizio" $name "svc" $svc "w" $j "http" false "lavoratore" true "antiAffinita" false) | nindent 10 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

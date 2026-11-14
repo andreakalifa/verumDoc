@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-api-config
+  namespace: verumdoc
+  labels:
+    app: dashboard-api
+    app.kubernetes.io/name: dashboard-api
+    app.kubernetes.io/part-of: verumdoc
+data:
+  ENV: production
+  GATEWAY_URL: http://gateway:8000
+  ONBOARDING_URL: http://onboarding:8000
+  HASHCHAIN_URL: http://hashchain:8000
+  SIGNATURE_URL: http://signature:8000
+  DISTRIBUTION_URL: http://distribution:8000
+  CORS_ORIGINS: '["https://app.verumdoc.it"]'
+  S3_ENDPOINT_URL: https://s3.eu-south-1.amazonaws.com
+  S3_BUCKET_AIP: verumdoc-prod-aip-prod
+  JWT_ISSUER: verumdoc.it
+  JWT_AUDIENCE: verumdoc-api
+  CONSERVATORE_DENOMINAZIONE: ''
+  CONSERVATORE_CODICE_FISCALE: ''
+  CONSERVATORE_PARTITA_IVA: ''
+  CONSERVATORE_SEDE_LEGALE: ''
+  CONSERVATORE_PEC: ''
+  CONSERVATORE_EMAIL_CONTATTO: ''
+  CONSERVATORE_RESPONSABILE_SERVIZIO_NOME: ''
+  CONSERVATORE_RESPONSABILE_SERVIZIO_CF: ''
+  CONSERVATORE_RESPONSABILE_FUNZIONE_ARCHIVISTICA_NOME: ''
+  CONSERVATORE_RESPONSABILE_SICUREZZA_NOME: ''
+  CONSERVATORE_RESPONSABILE_PROTEZIONE_DATI_NOME: ''
+  CONSERVATORE_UBICAZIONE_DATA_CENTER: ''
+  CONSERVATORE_MANUALE_VERSIONE: ''
+  CONSERVATORE_MANUALE_DATA_ADOZIONE: ''
+  CONSERVATORE_PIANO_CESSAZIONE_VERSIONE: ''
+  KAFKA_BOOTSTRAP: DA_TERRAFORM:kafka_bootstrap
+  KAFKA_AUTENTICAZIONE: iam
+  KAFKA_REGIONE: eu-south-1
+  QUOTE_RICHIESTE_MINUTO: '{"starter": 120, "business": 600, "enterprise": 6000}'
+  QUOTE_PIANO_PREDEFINITO: starter
+  QUOTE_FINESTRA_SECONDI: '60'
+  QUOTE_PIANO_CACHE_SECONDI: '60'

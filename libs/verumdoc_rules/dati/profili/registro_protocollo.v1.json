@@ -1,0 +1,104 @@
+{
+ "formato": "verumdoc-profilo-tipologia-1",
+ "codice": "registro_protocollo",
+ "nome": "Registro giornaliero di protocollo",
+ "versione": 1,
+ "valido_dal": "2022-01-01",
+ "valido_al": null,
+ "norm_ref": "DPCM 3 dicembre 2013 (protocollo informatico), art. 7 c. 5; Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici (2021), Allegato 5 — da riscontrare",
+ "estende": "documento_amministrativo_informatico",
+ "nota": "Profilo predefinito di VerumDoc (R05). I campi con da_riscontrare=true vanno verificati sul testo ufficiale prima di attivare la tipologia per un ente (VD-C-088).",
+ "campi": [
+  {
+   "nome": "codice_ipa",
+   "tipo": "codice_ipa",
+   "obbligatorio": true,
+   "allegato5": "Soggetti (Amministrazione)",
+   "descrizione": "Codice IPA dell'amministrazione",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "aoo",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "Soggetti (Amministrazione): AOO",
+   "descrizione": "Codice dell'AOO",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "codice_registro",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "DatiDiRegistrazione.CodiceRegistro",
+   "descrizione": "Codice del registro di protocollo",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "data_registro",
+   "tipo": "data",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Giorno a cui si riferisce il registro giornaliero",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "numero_iniziale",
+   "tipo": "intero",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Primo numero di protocollo del giorno",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "numero_finale",
+   "tipo": "intero",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Ultimo numero di protocollo del giorno",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "numero_registrazioni",
+   "tipo": "intero",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Numero di registrazioni del giorno",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "data_prima_registrazione",
+   "tipo": "data",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Data della prima registrazione",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "data_ultima_registrazione",
+   "tipo": "data",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Data dell'ultima registrazione",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "responsabile_gestione_documentale",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "Soggetti (Responsabile della gestione documentale)",
+   "descrizione": "Responsabile della gestione documentale",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "sensibile": true
+  }
+ ]
+}

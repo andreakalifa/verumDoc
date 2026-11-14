@@ -1,0 +1,74 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-onboarding
+  namespace: verumdoc
+  labels:
+    app: onboarding
+    app.kubernetes.io/name: onboarding
+    app.kubernetes.io/part-of: verumdoc
+spec:
+  podSelector:
+    matchLabels:
+      app: onboarding
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 10.0.0.0/20
+    - ipBlock:
+        cidr: 10.0.16.0/20
+    - ipBlock:
+        cidr: 10.0.32.0/20
+    ports:
+    - port: 8000
+      protocol: TCP
+  - from:
+    - podSelector:
+        matchLabels:
+          app: dashboard-api
+    ports:
+    - port: 8000
+      protocol: TCP
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring
+    ports:
+    - port: 8000
+      protocol: TCP
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: signature
+    ports:
+    - port: 8000
+      protocol: TCP
+  - to:
+    - podSelector:
+        matchLabels:
+          app: pgbouncer
+    ports:
+    - port: 6432
+      protocol: TCP
+  - to:
+    - ipBlock:
+        cidr: 10.0.96.0/20
+    - ipBlock:
+        cidr: 10.0.112.0/20
+    - ipBlock:
+        cidr: 10.0.128.0/20
+    ports:
+    - port: 9092
+      protocol: TCP
+    - port: 9094
+      protocol: TCP
+    - port: 9098
+      protocol: TCP

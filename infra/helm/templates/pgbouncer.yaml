@@ -1,0 +1,180 @@
+{{- /*
+SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+SPDX-License-Identifier: EUPL-1.2
+*/ -}}
+{{/*
+PgBouncer in modalità transaction davanti a PostgreSQL (R04, piano §4.2): solo
+nel rilascio dell'account principale. pgbouncer.ini dai values (due database
+logici: primario e replica di sola lettura); userlist.txt dal Secret
+pgbouncer-secrets; CA di RDS dalla ConfigMap pgbouncer-ca (verify-full).
+Stessa logica di infra/k8s/genera_manifest.py (risorse_pgbouncer).
+*/}}
+{{- $root := . }}
+{{- $pb := .Values.pgbouncer }}
+{{- if and $pb.enabled (eq (toString (default "principale" .Values.global.account)) "principale") }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pgbouncer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: pgbouncer
+    {{- include "verumdoc.labels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbouncer-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: pgbouncer
+    {{- include "verumdoc.labels" . | nindent 4 }}
+data:
+  pgbouncer.ini: |
+    ; FILE GENERATO da infra/helm/values.yaml (pgbouncer): non modificare a mano.
+    [databases]
+    {{- range $nome, $d := $pb.databases }}
+    {{ $nome }} = host={{ $d.host }} port={{ $d.port | default 5432 }} dbname={{ $d.dbname }}
+    {{- end }}
+
+    [pgbouncer]
+    listen_addr = 0.0.0.0
+    listen_port = {{ $pb.port }}
+    {{- range $k, $v := $pb.impostazioni }}
+    {{ $k }} = {{ $v }}
+    {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbouncer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: pgbouncer
+    app.kubernetes.io/component: pool
+    {{- include "verumdoc.labels" . | nindent 4 }}
+spec:
+  replicas: {{ $pb.replicas }}
+  selector:
+    matchLabels:
+      app: pgbouncer
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: pgbouncer
+        app.kubernetes.io/component: pool
+        {{- include "verumdoc.labels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "false"
+        checksum/config: {{ toJson $pb | sha256sum }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: {{ $pb.runAsUser | default 1000 }}
+        runAsGroup: {{ $pb.runAsUser | default 1000 }}
+        fsGroup: {{ $pb.runAsUser | default 1000 }}
+      serviceAccountName: pgbouncer
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: pgbouncer
+          image: "{{ .Values.global.imageRegistry }}/{{ $pb.image }}:{{ .Values.global.imageTag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          args: ["/etc/pgbouncer/pgbouncer.ini"]
+          ports:
+            - containerPort: {{ $pb.port }}
+              name: postgres
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            {{- toYaml $pb.resources | nindent 12 }}
+          livenessProbe:
+            tcpSocket:
+              port: postgres
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: postgres
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - name: configurazione
+              mountPath: /etc/pgbouncer/pgbouncer.ini
+              subPath: pgbouncer.ini
+              readOnly: true
+            - name: segreti
+              mountPath: /etc/pgbouncer/segreti
+              readOnly: true
+            - name: ca
+              mountPath: /etc/pgbouncer/ca
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: configurazione
+          configMap:
+            name: pgbouncer-config
+        - name: segreti
+          secret:
+            secretName: {{ $pb.secret }}
+            defaultMode: 0400
+        - name: ca
+          configMap:
+            name: {{ $pb.caConfigMap }}
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: pgbouncer
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgbouncer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: pgbouncer
+    {{- include "verumdoc.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    app: pgbouncer
+  ports:
+    - name: postgres
+      port: {{ $pb.port }}
+      targetPort: postgres
+      protocol: TCP
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pgbouncer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: pgbouncer
+    {{- include "verumdoc.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: pgbouncer
+{{- end }}

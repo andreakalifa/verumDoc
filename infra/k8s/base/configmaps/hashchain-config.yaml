@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hashchain-config
+  namespace: verumdoc
+  labels:
+    app: hashchain
+    app.kubernetes.io/name: hashchain
+    app.kubernetes.io/part-of: verumdoc
+data:
+  ENV: production
+  LOG_LEVEL: INFO
+  KAFKA_BOOTSTRAP: DA_TERRAFORM:kafka_bootstrap
+  KAFKA_AUTENTICAZIONE: iam
+  KAFKA_REGIONE: eu-south-1
+  SIGNATURE_URL: http://signature:8000
+  CONSERVATORE_NOME: VerumDoc S.r.l.
+  S3_ENDPOINT_URL: https://s3.eu-south-1.amazonaws.com
+  S3_REGION: eu-south-1
+  S3_BUCKET_AIP: verumdoc-prod-aip-prod
+  JWT_ISSUER: verumdoc.it
+  JWT_AUDIENCE: verumdoc-api
+  HASHCHAIN_VERIFICA_TIMEOUT_SECONDS: '300'
+  CATENA_CHECKPOINT_SECONDI: '60'
+  CATENA_CONTROFIRMA_MAX_SECONDI: '600'
+  TESTIMONE_URL: https://testimone.verumdoc.it
+  TESTIMONE_VERIFICATORE: DA_IMPOSTARE:verifier_key_testimone

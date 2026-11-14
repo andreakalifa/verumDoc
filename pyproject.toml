@@ -1,0 +1,73 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E","W","F","I","B","C4","UP","S","T20"]
+# VD-C-032: B008 riattivata (con B008 spenta il lint non vedeva l'endpoint
+# lifecycle senza Depends, VD-C-003).
+ignore = ["S101","S105"]
+
+[tool.ruff.lint.flake8-bugbear]
+# Marcatori FastAPI leciti come default degli argomenti. Resta segnalata ogni
+# altra chiamata, per esempio `require_role(...)` senza Depends.
+extend-immutable-calls = [
+    "fastapi.Depends", "fastapi.Security", "fastapi.Query", "fastapi.Header",
+    "fastapi.Path", "fastapi.Body", "fastapi.Form", "fastapi.File", "fastapi.Cookie",
+    "fastapi.params.Depends", "fastapi.params.Security",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101","S106"]
+# R14 (VD-C-032): nei test le fixture di pytest si importano da un modulo comune
+# (`from tests.infra_reale import db_url`) e si ricevono come parametro con lo stesso nome:
+# F811 lì è un falso positivo strutturale di pytest, non una ridefinizione.
+"**/tests/**" = ["S101","S106","F811","S314","S603","S607","S608","S108"]
+# R16 (VD-C-032): nei test si leggono gli XML prodotti dal servizio stesso (S314), si lanciano
+# gli strumenti del repository (S603/S607), si compongono SQL di preparazione dei dati (S608)
+# e si usano cartelle temporanee dei contenitori di prova (S108): nessun dato esterno
+"**/test_*.py" = ["S101","S106","S314","S603","S607","S608","S108"]
+# R14 (VD-C-032): gli strumenti da riga di comando parlano con print (è la loro interfaccia)
+"tools/**" = ["T201"]
+"infra/**" = ["T201"]
+# R14 (VD-C-032): B008 riattivata anche su versamento.py (nessuna violazione rimasta)
+# R16 (VD-C-032): le migrazioni GIÀ RILASCIATE non si toccano nemmeno nella forma (§16.2:
+# l'impronta di ciò che è stato eseguito in esercizio resta quella del rilascio); S608: SQL
+# composto solo con le costanti del modulo (come dichiarato nei loro «noqa» di file)
+"services/gateway/alembic/versions/*" = ["E501", "I001", "F401", "S608"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+warn_return_any = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["libs", "infra", "tools", "tests/integrity"]  # i test dei servizi si eseguono per servizio: make test
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# ── QUESTO è il fix ──────────────────────────────────────────────
+# Aggiunge la root del monorepo a sys.path quando pytest gira.
+# Qualsiasi servizio può importare libs.shared senza installazione aggiuntiva.
+pythonpath = ["."]
+# ─────────────────────────────────────────────────────────────────
+
+addopts = ["-v","--tb=short","--strict-markers"]
+markers = [
+    "unit: test unitari isolati",
+    "integration: test con DB/Redis/Kafka reali",
+    "e2e: test end-to-end su staging",
+    "slow: test lenti (>5s)",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["tests/*","*/migrations/*"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true

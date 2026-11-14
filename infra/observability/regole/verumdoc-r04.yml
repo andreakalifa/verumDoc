@@ -1,0 +1,167 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Allarmi R04 (infra): catena delle impronte, testimone, verifica continua,
+# outbox per servizio. Metriche e soglie dai rapporti degli agenti R04
+# (testimone, verifiche, dati, catena); le soglie stanno qui, non nel codice.
+# Gravità: pagina = intervento subito (integrità o garanzie del servizio);
+# avviso = da guardare in orario di lavoro.
+groups:
+  - name: verumdoc-catena-testimone
+    rules:
+      - alert: TestimoneRegistroCompromesso
+        expr: max(verumdoc_testimone_compromesso) == 1
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Il testimone ha rilevato una biforcazione del registro (fork)"
+          description: "Stato COMPROMESSO persistente: nessuna controfirma finché un operatore non interviene (K3)."
+      - alert: TestimoneAllarmi
+        expr: increase(verumdoc_testimone_allarmi_totali[15m]) > 0
+        labels: {severity: pagina}
+        annotations:
+          summary: "Allarmi del testimone negli ultimi 15 minuti"
+          description: "Il testimone (account separato) ha segnalato divergenze o firme non valide sui checkpoint ricevuti: possibile riscrittura del registro. Seguire docs/architettura/catena.md (testimone) e confrontare l'ultimo checkpoint controfirmato."
+      - alert: TestimoneSenzaControfirmeRecenti
+        expr: time() - max(verumdoc_testimone_ultima_controfirma_secondi) > 600
+        for: 5m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Nessuna controfirma del testimone da oltre 10 minuti (CATENA_CONTROFIRMA_MAX_SECONDI)"
+
+  - name: verumdoc-catena-registro
+    rules:
+      - alert: CheckpointSenzaControfirma
+        expr: max(verumdoc_catena_checkpoint_senza_controfirma_secondi) > 600
+        for: 2m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Checkpoint del registro senza controfirma del testimone da oltre 10 minuti (K3)"
+          description: "L'ultimo checkpoint non ha la controfirma del testimone: testimone irraggiungibile o in rifiuto. Controllare il servizio testimone, la rete verso l'account separato e i log «checkpoint_senza_controfirma» della hashchain."
+      # R04 correzioni (rev4 rilievo 1): un rifiuto del testimone è un allarme
+      # persistente; finché resta aperto nessun PdA passa a CONSERVATO.
+      - alert: CheckpointRifiutatoDalTestimone
+        expr: max(verumdoc_catena_checkpoint_rifiutati_aperti) > 0
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Il testimone ha rifiutato un checkpoint del registro: conservazione sospesa"
+          description: "Indagare (biforcazione, prova, testimone), poi python -m app.registro.operatore gestisci-rifiuti --tutti (runbook ripristino_registro_da_backup.md se c'entra un ripristino)."
+      # R04 terzo giro (T4): registro fermo con un blocco persistente (indietro
+      # rispetto al WORM o al testimone, storia divergente, WORM con contenuto diverso)
+      - alert: RegistroBloccato
+        expr: max(verumdoc_catena_registro_bloccato) > 0
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Registro delle impronte bloccato: niente sequenziatore né checkpoint"
+          description: "python -m app.registro.operatore blocchi e controlla-worm; runbook ripristino_registro_da_backup.md."
+      # R04 terzo giro (T5): sospensione manuale dimenticata dopo un ripristino
+      - alert: RegistroSospeso
+        expr: max(verumdoc_catena_registro_sospeso) == 1
+        for: 30m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Registro delle impronte sospeso da oltre 30 minuti (CATENA_REGISTRO_SOSPESO)"
+          description: "La conservazione è ferma. Finire il runbook ripristino_registro_da_backup.md e togliere la variabile (kubectl set env deploy/hashchain CATENA_REGISTRO_SOSPESO-)."
+      # R04 secondo giro (N3): rifiuti con la stessa causa = UN allarme con contatore
+      - alert: AllarmiTestimoneAperti
+        expr: max(verumdoc_catena_allarmi_testimone_aperti) > 0
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "{{ $value }} allarmi del testimone aperti (rifiuti raggruppati per causa)"
+          description: "python -m app.registro.operatore rifiuti elenca gli allarmi con il numero di rifiuti; gestisci-rifiuti li chiude in blocco con un motivo."
+      # R04 correzioni (rev4 rilievo 8): testimone obbligatorio in produzione e raggiungibile
+      - alert: TestimoneNonConfigurato
+        expr: max(verumdoc_catena_testimone_configurato) == 0
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Registro delle impronte senza testimone configurato"
+          description: "La hashchain gira senza testimone: i checkpoint non hanno un ancoraggio indipendente. Configurare TESTIMONE_URL e la chiave (docs/architettura/catena.md); in esercizio è un difetto di configurazione."
+      - alert: TestimoneNonRisponde
+        expr: min(verumdoc_catena_testimone_raggiungibile) == 0
+        for: 5m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Il testimone non risponde al registro da oltre 5 minuti"
+          description: "Il registro non riesce a contattare il testimone da oltre 5 minuti: rete, certificati o servizio testimone fermo. Vedere docs/runbooks/health-check.md e i log della hashchain."
+      - alert: CatenaErroriRegistro
+        expr: sum(increase(verumdoc_catena_errori_totali_total[15m])) > 0
+        labels: {severity: avviso}
+        annotations:
+          summary: "Errori nei passi del registro delle impronte negli ultimi 15 minuti"
+      - alert: CatenaFerma
+        expr: delta(verumdoc_catena_checkpoint_dimensione[30m]) == 0 and delta(verumdoc_catena_dimensione[30m]) > 0
+        for: 10m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Il registro cresce ma nessun checkpoint nuovo da 30 minuti"
+          description: "Il registro riceve foglie ma non emette checkpoint: lavoratore del registro fermo, lease bloccato o firma non disponibile. Log «registro_ciclo» della hashchain e stato del lease in catena_stato."
+
+  - name: verumdoc-verifica-continua
+    rules:
+      - alert: VerificaAnomalieAperte
+        expr: max(verumdoc_verifica_anomalie_aperte) > 0
+        labels: {severity: pagina}
+        annotations:
+          summary: "Anomalie d'integrità aperte nella verifica continua"
+          description: "La verifica continua ha anomalie d'integrità aperte (impronta diversa, oggetto mancante): trattarle come incidente di sicurezza. Elenco in console «Integrità» e docs/runbooks/disaster_recovery.md."
+      - alert: VerificaNuoveAnomalie
+        expr: increase(verumdoc_verifica_anomalie_total[1h]) > 0
+        labels: {severity: pagina}
+        annotations:
+          summary: "Nuove anomalie d'integrità nell'ultima ora"
+          description: "Nuove anomalie d'integrità nell'ultima ora: un oggetto conservato non corrisponde al registro. Aprire l'incidente, non cancellare nulla, vedere console «Integrità» e docs/runbooks/disaster_recovery.md."
+      - alert: VerificaInRitardo
+        expr: max(verumdoc_verifica_ritardo_secondi) > 86400
+        for: 1h
+        labels: {severity: avviso}
+        annotations:
+          summary: "Verifica continua in ritardo di oltre un giorno sul ciclo (capacità insufficiente)"
+      - alert: VerificaFerma
+        expr: time() - max(verumdoc_verifica_ultimo_giro_timestamp) > 600
+        for: 5m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Nessun giro della verifica continua da oltre 10 minuti"
+
+  - name: verumdoc-outbox
+    rules:
+      - alert: OutboxEventiInAttesa
+        expr: max by (origine) (verumdoc_outbox_eta_piu_vecchio_secondi) > 300
+        for: 5m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Eventi in outbox non pubblicati da oltre 5 minuti ({{ $labels.origine }})"
+          description: "Kafka irraggiungibile o relay del servizio fermo: gli eventi sono al sicuro nell'outbox ma i consumatori sono in ritardo. L'età esclude le chiavi ferme o bloccate (allarmi sotto)."
+      # R04 correzioni (rev4 rilievo 2): «Kafka giù» e «evento bloccato» sono allarmi distinti
+      - alert: OutboxKafkaNonDisponibile
+        expr: max by (origine) (verumdoc_outbox_kafka_cortocircuito) == 1
+        for: 5m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Kafka non raggiungibile dal relay dell'outbox ({{ $labels.origine }})"
+          description: "Il relay dell'outbox non raggiunge Kafka: gli eventi restano nell'outbox (nessuna perdita) ma la pipeline è ferma. Controllare i broker, le credenziali IAM/SASL e i log «outbox_kafka_non_disponibile»."
+      # R04 secondo giro (N1): errore del TOPIC (permessi, topic inesistente): il
+      # topic è sospeso con attesa crescente, nessuna chiave si ferma
+      - alert: OutboxTopicSospeso
+        expr: max by (origine) (verumdoc_outbox_topic_sospesi) > 0
+        for: 2m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Topic dell'outbox sospeso per un errore del topic o dei permessi ({{ $labels.origine }})"
+          description: "Log outbox_topic_sospeso: controllare la policy IAM per topic (iam_servizi) e l'esistenza del topic. Al ripristino l'arretrato riparte da solo a lotto pieno."
+      - alert: OutboxEventoBloccato
+        expr: max by (origine) (verumdoc_outbox_bloccati) > 0
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Eventi dell'outbox bloccati dopo i ritentativi ({{ $labels.origine }})"
+          description: "Un evento fallisce per colpa sua (topic, dimensione, permessi): la sua chiave è ferma, le altre proseguono. Gestirlo dalla console delle code di scarto (ritenta o scarta)."
+      - alert: OutboxChiaviFerme
+        expr: max by (origine) (verumdoc_outbox_chiavi_ferme) > 0
+        for: 15m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Chiavi dell'outbox in riprova da oltre 15 minuti ({{ $labels.origine }})"

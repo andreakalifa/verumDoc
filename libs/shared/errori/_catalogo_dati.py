@@ -1,0 +1,4136 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+"""File GENERATO da tools/docs/genera_catalogo_errori.py a partire da
+catalogo.yaml: non modificarlo a mano (un test verifica che sia aggiornato)."""
+# ruff: noqa: E501
+from typing import Any
+
+DATI: dict[str, Any] = {'versione': '2026.10.21',
+ 'famiglie': {'VRS': {'descrizione': 'Versamento sincrono di un pacchetto di versamento (PdV) al '
+                                     'gateway e consultazione del suo stato e del rapporto di '
+                                     'versamento.'},
+              'VLD': {'descrizione': 'Verifica asincrona del PdV (passi della pipeline di '
+                                     'validazione). I codici compaiono in `errori[]` dello stato '
+                                     'del PdV, non come risposta HTTP.'},
+              'AIP': {'descrizione': 'Costruzione asincrona del pacchetto di archiviazione (PdA). '
+                                     'I codici compaiono in `errori[]` dello stato del PdV.'},
+              'SEC': {'descrizione': 'Controlli di sicurezza sui dati in ingresso (nomi, testi, '
+                                     'estensioni, indirizzi).'},
+              'AUTH': {'descrizione': 'Autenticazione e autorizzazione (token JWT, chiavi API, '
+                                      'revoca, ruoli e scope).'},
+              'SPID': {'descrizione': 'Accesso al portale con SPID o CIE tramite aggregatore.'},
+              'PDND': {'descrizione': 'E-service esposti su PDND Interoperabilità (voucher, '
+                                      'fruitori, versamento ed esibizione).'},
+              'RATE': {'descrizione': 'Limiti di frequenza delle richieste.'},
+              'LC': {'descrizione': 'Ciclo di vita dei pacchetti conservati (scarto, rettifica, '
+                                    'migrazione).'},
+              'HC': {'descrizione': 'Catena delle impronte (hashchain) e sua verifica.'},
+              'DST': {'descrizione': 'Distribuzione ed esibizione (pacchetti di distribuzione, '
+                                     'ricerca).'},
+              'FSC': {'descrizione': 'Fascicoli e aggregazioni documentali.'},
+              'MIG': {'descrizione': 'Migrazione e riversamento dei pacchetti.'},
+              'DL': {'descrizione': 'Scaricamento dei pacchetti, dei file e dei rapporti dal '
+                                    'portale.'},
+              'DSH': {'descrizione': 'API del portale (dashboard) e inoltro verso i servizi '
+                                     'interni.'},
+              'GOV': {'descrizione': 'Governo del servizio dal portale (clienti, contratti, '
+                                     'nomine).'},
+              'SLA': {'descrizione': 'Rapporti sui livelli di servizio.'},
+              'SIG': {'descrizione': 'API del servizio di firma e marca (autenticazione e forma '
+                                     'della richiesta).'},
+              'FIRMA': {'descrizione': 'Firma qualificata e marca temporale (adattatori verso i '
+                                       'fornitori).'},
+              'ONB': {'descrizione': 'Attivazione e gestione dei clienti, degli utenti, delle '
+                                     'chiavi API e delle classi documentali.'},
+              'S3': {'descrizione': 'Storage conservativo (Object Lock / WORM).'},
+              'VAL': {'descrizione': "Forma della richiesta non conforme allo schema dell'API "
+                                     '(campi mancanti, tipi errati).'},
+              'HTTP': {'descrizione': 'Errori HTTP generici senza codice di dominio (rotta '
+                                      'inesistente, metodo non ammesso, errori dei servizi che non '
+                                      'indicano un codice).'},
+              'INTERNAL': {'descrizione': 'Errori interni non previsti. Il dettaglio resta nei '
+                                          "log, il client riceve solo l'identificativo della "
+                                          'richiesta.'},
+              'UPL': {'descrizione': 'Sessioni di caricamento dei file (caricamento in streaming e '
+                                     'a parti, ripresa).'},
+              'SFTP': {'descrizione': 'Canale di versamento via SFTP (cartelle di deposito, esiti, '
+                                      'ricevute).'},
+              'WH': {'descrizione': 'Webhook firmati verso i sistemi dei clienti (sottoscrizioni, '
+                                    'consegne, firme).'},
+              'EVT': {'descrizione': 'Elenco degli eventi consultabile dai clienti (cursore, '
+                                     'filtri).'},
+              'CMP': {'descrizione': 'Adattatori di compatibilità, tolti in R18.2 (VD-P-191). '
+                                     'Nessun codice della famiglia è più emesso; restano elencati '
+                                     'perché un codice pubblicato non si riusa.'},
+              'RGL': {'descrizione': 'Motore delle regole (metadati per classe, severità, versioni '
+                                     'delle regole).'},
+              'CFG': {'descrizione': 'Configurazione del servizio per conservatore ed enti '
+                                     '(impostazioni, regole, profili di metadati, accordi di '
+                                     'versamento, quote) con bozze, anteprima, applicazione e '
+                                     'proposte; validatore preventivo (R05).'},
+              'QTA': {'descrizione': 'Quote e limiti di consumo per piano contrattuale.'},
+              'CAT': {'descrizione': 'Registro delle impronte a due livelli (checkpoint firmati, '
+                                     "prove d'inclusione e di consistenza, contratto K1 di R04)."},
+              'TST': {'descrizione': 'Testimone indipendente della catena delle impronte '
+                                     '(controfirma dei checkpoint del registro, protocollo '
+                                     'ispirato a C2SP tlog-witness).'},
+              'IDEM': {'descrizione': 'Idempotency-Key delle richieste che creano una risorsa '
+                                      'fuori dal versamento (richiesta di un PdD, creazione di un '
+                                      'webhook).'},
+              'INT': {'descrizione': "Verifica continua dell'integrità dell'archivio (rilettura "
+                                     'periodica e su richiesta degli oggetti conservati, registro '
+                                     'delle verifiche).'},
+              'ACC': {'descrizione': 'R10 (D08): accesso delle persone con password e codice a '
+                                     'tempo o con passkey, inviti per e-mail con attivazione '
+                                     "guidata, fornitori d'identità e metodi d'accesso degli "
+                                     'enti.'},
+              'RUO': {'descrizione': "R10 (D30): ruoli personalizzati dell'ente composti dai "
+                                     'permessi concedibili.'},
+              'NTF': {'descrizione': 'R10 (D32): campanella «da fare per te» e preferenze delle '
+                                     'notifiche.'}},
+ 'codici': {'VRS-001': {'famiglia': 'VRS',
+                        'status': 400,
+                        'titolo': 'Indice del versamento non valido',
+                        'descrizione': "L'indice dell'unità documentaria non è un JSON valido o "
+                                       'non rispetta lo schema.',
+                        'azione': "Correggere l'indice secondo lo schema pubblicato e reinviare.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-010': {'famiglia': 'VRS',
+                        'status': 413,
+                        'titolo': 'File troppo grande',
+                        'descrizione': 'Un file supera la dimensione massima ammessa per un '
+                                       'singolo file.',
+                        'azione': 'Ridurre il file o usare il canale previsto per i file grandi.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-101': {'famiglia': 'VRS',
+                        'status': 400,
+                        'titolo': 'File dichiarato ma non allegato',
+                        'descrizione': "L'indice dichiara un file che non è presente fra gli "
+                                       'allegati.',
+                        'azione': "Allegare il file dichiarato o toglierlo dall'indice.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-102': {'famiglia': 'VRS',
+                        'status': 400,
+                        'titolo': 'Impronta del file errata',
+                        'descrizione': "L'impronta calcolata sul file ricevuto non corrisponde a "
+                                       "quella dichiarata nell'indice.",
+                        'azione': "Ricalcolare l'impronta sul file effettivamente inviato e "
+                                  'reinviare.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-103': {'famiglia': 'VRS',
+                        'status': 400,
+                        'titolo': 'Dismesso: vedi VRS-130 (rilievo RGL-101)',
+                        'descrizione': 'Il documento principale non contiene i metadati '
+                                       "obbligatori dell'Allegato 5. Da R03 i metadati minimi li "
+                                       'verifica la regola RGL-101 e il rifiuto è VRS-130 (422) '
+                                       "con l'elenco dei rilievi.",
+                        'azione': 'Gestire VRS-130 e leggere `dettagli.rilievi[]`.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True,
+                        'sostituito_da': ['VRS-130', 'RGL-101']},
+            'VRS-104': {'famiglia': 'VRS',
+                        'status': 400,
+                        'titolo': 'File allegati non dichiarati',
+                        'descrizione': "Sono stati allegati file che l'indice non dichiara.",
+                        'azione': "Dichiarare ogni file nell'indice o toglierlo dagli allegati.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-105': {'famiglia': 'VRS',
+                        'status': 422,
+                        'titolo': 'Classe documentale non censita',
+                        'descrizione': 'La classe documentale indicata non esiste per il cliente.',
+                        'azione': 'Usare una classe censita o chiederne la configurazione al '
+                                  'conservatore.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'VRS-106': {'famiglia': 'VRS',
+                        'status': 422,
+                        'titolo': 'Classe documentale non attiva',
+                        'descrizione': 'La classe documentale esiste ma non è attiva per il '
+                                       'versamento.',
+                        'azione': "Chiedere l'attivazione della classe o usarne un'altra.",
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'VRS-107': {'famiglia': 'VRS',
+                        'status': 400,
+                        'titolo': "Algoritmo d'impronta non ammesso",
+                        'descrizione': "L'algoritmo d'impronta dichiarato non è fra quelli "
+                                       'ammessi.',
+                        'azione': 'Usare uno degli algoritmi elencati in `dettagli.ammessi`.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-108': {'famiglia': 'VRS',
+                        'status': 422,
+                        'titolo': 'File eseguibile non ammesso',
+                        'descrizione': 'Il contenuto del file è un eseguibile; gli eseguibili non '
+                                       'si conservano, qualunque sia il nome.',
+                        'azione': 'Togliere il file dal versamento.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'VRS-109': {'famiglia': 'VRS',
+                        'status': 422,
+                        'titolo': 'Formato del file non coerente',
+                        'descrizione': 'Il formato rilevato dal contenuto non è riconosciuto o non '
+                                       'corrisponde a quello dichiarato.',
+                        'azione': 'Dichiarare il formato reale del file o convertirlo in un '
+                                  'formato ammesso.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-110': {'famiglia': 'VRS',
+                        'status': 400,
+                        'titolo': "Dato d'ingresso non valido",
+                        'descrizione': 'Un dato della richiesta non ha superato i controlli '
+                                       "d'ingresso.",
+                        'azione': 'Correggere il dato indicato nel dettaglio e reinviare.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-111': {'famiglia': 'VRS',
+                        'status': 400,
+                        'titolo': 'Nome file ripetuto',
+                        'descrizione': "Lo stesso nome file compare più volte nell'indice o fra "
+                                       'gli allegati.',
+                        'azione': 'Dare a ogni file un nome univoco nel versamento.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-112': {'famiglia': 'VRS',
+                        'status': 422,
+                        'titolo': 'Dismesso: vedi VRS-130 (rilievo RGL-105)',
+                        'descrizione': 'Il formato del file non è fra quelli ammessi dalla classe '
+                                       'documentale. Da R03 lo verifica la regola RGL-105 e il '
+                                       'rifiuto è VRS-130 (422) con il rilievo.',
+                        'azione': 'Gestire VRS-130 e leggere `dettagli.rilievi[]`.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False,
+                        'dismesso': True,
+                        'sostituito_da': ['VRS-130', 'RGL-105']},
+            'VRS-113': {'famiglia': 'VRS',
+                        'status': 413,
+                        'titolo': 'Troppi file nel versamento',
+                        'descrizione': 'Il versamento supera il numero massimo di file ammesso.',
+                        'azione': "Dividere l'unità documentaria o usare una sessione di "
+                                  'caricamento.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-114': {'famiglia': 'VRS',
+                        'status': 400,
+                        'titolo': 'Documenti annidati non ammessi',
+                        'descrizione': "L'indice contiene documenti dentro il campo `allegati` di "
+                                       "un documento. Il modello dell'indice è piatto (R03 f1); "
+                                       'prima questi documenti erano accettati e ignorati senza '
+                                       'avviso.',
+                        'azione': 'Elencare allegati e annessi direttamente in `documenti`, con '
+                                  '`tipo` ALLEGATO, ANNESSO o ANNOTAZIONE.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-120': {'famiglia': 'VRS',
+                        'status': 409,
+                        'titolo': 'Versamento duplicato',
+                        'descrizione': 'Lo stesso indice è già stato versato e il PdV esistente '
+                                       'non è stato rifiutato.',
+                        'azione': 'Consultare il PdV indicato in `dettagli.pdv_id_esistente`; non '
+                                  'reinviare.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'VRS-121': {'famiglia': 'VRS',
+                        'status': 409,
+                        'titolo': 'Chiave di idempotenza già usata',
+                        'descrizione': 'La Idempotency-Key è già stata usata con un contenuto '
+                                       'diverso.',
+                        'azione': 'Usare una nuova chiave per un versamento diverso.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-122': {'famiglia': 'VRS',
+                        'status': 400,
+                        'titolo': 'Chiave di idempotenza non valida',
+                        'descrizione': 'La Idempotency-Key non rispetta il formato ammesso.',
+                        'azione': 'Usare da 8 a 200 caratteri fra lettere, cifre e i segni . _ : -',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-123': {'famiglia': 'VRS',
+                        'status': 409,
+                        'titolo': 'Versamento in conflitto',
+                        'descrizione': 'Un altro versamento con la stessa chiave è stato '
+                                       'registrato nello stesso istante.',
+                        'azione': 'Ripetere la richiesta con la stessa chiave per leggerne '
+                                  "l'esito.",
+                        'esito': 'ERRORE',
+                        'ritentabile': True},
+            'VRS-124': {'famiglia': 'VRS',
+                        'status': 409,
+                        'titolo': "Chiave dell'unità documentaria già usata",
+                        'descrizione': "Registro, anno e numero dell'indice identificano già un "
+                                       'altro versamento attivo dello stesso cliente con un '
+                                       'contenuto diverso (VD-C-095). Un PdV rifiutato libera la '
+                                       'chiave.',
+                        'azione': 'Verificare il PdV indicato in `dettagli.pdv_id_esistente`; per '
+                                  "un'unità documentaria diversa usare un'altra chiave.",
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'VRS-125': {'famiglia': 'VRS',
+                        'status': 428,
+                        'titolo': 'Idempotency-Key obbligatoria',
+                        'descrizione': "Il versamento è arrivato senza l'intestazione "
+                                       'Idempotency-Key dopo la fine del periodo di transizione '
+                                       '(VD-P-27).',
+                        'azione': 'Inviare un identificativo univoco per ogni versamento '
+                                  "nell'intestazione Idempotency-Key, riusandolo sui ritentativi "
+                                  'dello stesso versamento.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-126': {'famiglia': 'VRS',
+                        'status': 428,
+                        'titolo': 'Versamento senza Idempotency-Key (avviso)',
+                        'descrizione': 'Avviso, non errore (compare fra gli `avvisi` della '
+                                       'risposta 202; lo stato 428 è quello che riceverà la stessa '
+                                       'richiesta dopo la transizione, VRS-125). Durante il '
+                                       'periodo di transizione un versamento senza Idempotency-Key '
+                                       'è accettato con una chiave derivata dal contenuto; la '
+                                       'risposta porta le intestazioni Deprecation e Sunset e '
+                                       'questo codice fra gli `avvisi`.',
+                        'azione': "Inviare l'intestazione Idempotency-Key prima della data "
+                                  "indicata nell'intestazione Sunset.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-127': {'famiglia': 'VRS',
+                        'status': 409,
+                        'titolo': 'Versamento già concluso con esito negativo',
+                        'descrizione': 'La richiesta ripete (stessa Idempotency-Key, o stesso '
+                                       'contenuto con la chiave derivata dei canali di '
+                                       'compatibilità) un versamento il cui PdV è stato rifiutato '
+                                       'dalla verifica, è in errore o è annullato. Il PdV non è '
+                                       'conservato; la risposta indica il PdV e il suo stato (R03 '
+                                       'f1).',
+                        'azione': 'Leggere lo stato del PdV in `dettagli.link`; correggere e '
+                                  'versare di nuovo con un contenuto corretto e, se la si usa, una '
+                                  'nuova Idempotency-Key. Per un errore tecnico chiedere al '
+                                  'conservatore la rielaborazione del PdV.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'VRS-130': {'famiglia': 'VRS',
+                        'status': 422,
+                        'titolo': 'Versamento non conforme alle regole di conservazione',
+                        'descrizione': 'Il motore delle regole ha trovato uno o più rilievi '
+                                       'bloccanti (metadati minimi o obbligatori mancanti, tipi '
+                                       'dei metadati del profilo, dimensione o formato non ammessi '
+                                       "dalla classe). L'elenco completo è in `dettagli.rilievi` "
+                                       '(codice della regola RGL-nnn, campo, documento, '
+                                       'messaggio).',
+                        'azione': 'Correggere tutti i rilievi elencati e reinviare.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'VRS-403': {'famiglia': 'VRS',
+                        'status': 403,
+                        'titolo': 'Cliente o utente non identificabili',
+                        'descrizione': 'Il token non indica un cliente o un utente validi per il '
+                                       'versamento.',
+                        'azione': 'Ottenere un token emesso per un utente o una chiave del '
+                                  'cliente.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'VRS-404': {'famiglia': 'VRS',
+                        'status': 404,
+                        'titolo': 'PdV non trovato',
+                        'descrizione': 'Il PdV non esiste o non appartiene al cliente del token.',
+                        'azione': "Verificare l'identificativo del PdV.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'VRS-409': {'famiglia': 'VRS',
+                        'status': 409,
+                        'titolo': 'Rapporto di versamento non ancora disponibile',
+                        'descrizione': 'Il rapporto di versamento definitivo si emette quando il '
+                                       'PdV è conservato.',
+                        'azione': 'Riprovare quando lo stato del PdV è CONSERVATO.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True},
+            'VRS-500': {'famiglia': 'VRS',
+                        'status': 503,
+                        'titolo': 'Storage temporaneamente non disponibile',
+                        'descrizione': 'Lo storage dei file non ha accettato la scrittura; nessun '
+                                       'dato è stato registrato.',
+                        'azione': 'Ripetere il versamento con la stessa Idempotency-Key.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'VRS-501': {'famiglia': 'VRS',
+                        'status': 503,
+                        'titolo': 'Database temporaneamente non disponibile',
+                        'descrizione': 'Il database non ha risposto; nessun dato è stato '
+                                       'registrato.',
+                        'azione': 'Ripetere il versamento con la stessa Idempotency-Key.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'VRS-502': {'famiglia': 'VRS',
+                        'status': 502,
+                        'titolo': 'Rapporto di versamento non integro',
+                        'descrizione': 'Il rapporto letto dallo storage non corrisponde '
+                                       "all'impronta registrata.",
+                        'azione': "Segnalare al conservatore indicando l'identificativo della "
+                                  'richiesta.',
+                        'esito': 'ERRORE',
+                        'ritentabile': False},
+            'VRS-503': {'famiglia': 'VRS',
+                        'status': 503,
+                        'titolo': 'Storage temporaneamente non disponibile',
+                        'descrizione': 'Lo storage non ha restituito il rapporto di versamento.',
+                        'azione': 'Riprovare tra qualche minuto.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'VLD-100': {'famiglia': 'VLD',
+                        'status': 500,
+                        'titolo': 'Errore interno nel passo 1 della verifica',
+                        'descrizione': "Il passo di verifica è terminato con un'eccezione non "
+                                       'prevista (codice VLD-<passo>00).',
+                        'azione': 'Segnalare al conservatore; il PdV sarà riverificato.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'contesto': 'asincrono'},
+            'VLD-200': {'famiglia': 'VLD',
+                        'status': 500,
+                        'titolo': 'Errore interno nel passo 2 della verifica',
+                        'descrizione': "Il passo di verifica è terminato con un'eccezione non "
+                                       'prevista.',
+                        'azione': 'Segnalare al conservatore; il PdV sarà riverificato.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'contesto': 'asincrono'},
+            'VLD-300': {'famiglia': 'VLD',
+                        'status': 500,
+                        'titolo': 'Errore interno nel passo 3 della verifica',
+                        'descrizione': "Il passo di verifica è terminato con un'eccezione non "
+                                       'prevista.',
+                        'azione': 'Segnalare al conservatore; il PdV sarà riverificato.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'contesto': 'asincrono'},
+            'VLD-400': {'famiglia': 'VLD',
+                        'status': 500,
+                        'titolo': 'Errore interno nel passo 4 della verifica',
+                        'descrizione': "Il passo di verifica è terminato con un'eccezione non "
+                                       'prevista.',
+                        'azione': 'Segnalare al conservatore; il PdV sarà riverificato.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'contesto': 'asincrono'},
+            'VLD-500': {'famiglia': 'VLD',
+                        'status': 500,
+                        'titolo': 'Errore interno nel passo 5 della verifica',
+                        'descrizione': "Il passo di verifica è terminato con un'eccezione non "
+                                       'prevista.',
+                        'azione': 'Segnalare al conservatore; il PdV sarà riverificato.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'contesto': 'asincrono'},
+            'VLD-1000': {'famiglia': 'VLD',
+                         'status': 500,
+                         'titolo': 'Errore interno nel passo 10 della verifica',
+                         'descrizione': 'Il riconoscimento del formato è terminato con '
+                                        "un'eccezione non prevista.",
+                         'azione': 'Segnalare al conservatore; il PdV sarà riverificato.',
+                         'esito': 'ERRORE',
+                         'ritentabile': True,
+                         'contesto': 'asincrono'},
+            'VLD-1001': {'famiglia': 'VLD',
+                         'status': 422,
+                         'titolo': 'Eseguibile riconosciuto dal contenuto',
+                         'descrizione': 'Un file del PdV è un eseguibile o uno script (firma '
+                                        'binaria), qualunque sia il nome (R08, D02).',
+                         'azione': 'Togliere il file dal versamento.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False,
+                         'contesto': 'asincrono'},
+            'VLD-1002': {'famiglia': 'VLD',
+                         'status': 422,
+                         'titolo': 'Formato rifiutato dal catalogo dei formati',
+                         'descrizione': 'Il passo 10 della verifica ha identificato (PRONOM, '
+                                        'veraPDF) un formato con esito RIFIUTATO nel catalogo '
+                                        'fotografato al versamento; i rilievi RGL-107 sono in '
+                                        '`dettagli.rilievi`.',
+                         'azione': 'Convertire il file in un formato ammesso e versare di nuovo.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False,
+                         'contesto': 'asincrono'},
+            'VLD-1100': {'famiglia': 'VLD',
+                         'status': 500,
+                         'titolo': 'Errore interno nel passo 11 della verifica',
+                         'descrizione': "La verifica delle firme è terminata con un'eccezione non "
+                                        'prevista.',
+                         'azione': 'Segnalare al conservatore; il PdV sarà riverificato.',
+                         'esito': 'ERRORE',
+                         'ritentabile': True,
+                         'contesto': 'asincrono'},
+            'VLD-1101': {'famiglia': 'VLD',
+                         'status': 422,
+                         'titolo': 'Firme insufficienti per il livello richiesto',
+                         'descrizione': 'Il passo 11 della verifica ha trovato firme che non '
+                                        'soddisfano il livello della classe (RGL-109 bloccante); '
+                                        "il rapporto di verifica con l'esito di ogni firma è in "
+                                        '`dettagli.rapporto`.',
+                         'azione': 'Versare i documenti con firme valide al livello richiesto.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False,
+                         'contesto': 'asincrono'},
+            'VLD-600': {'famiglia': 'VLD',
+                        'status': 500,
+                        'titolo': 'Errore interno nel passo 6 della verifica',
+                        'descrizione': "Il passo di verifica è terminato con un'eccezione non "
+                                       'prevista.',
+                        'azione': 'Segnalare al conservatore; il PdV sarà riverificato.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'contesto': 'asincrono'},
+            'VLD-700': {'famiglia': 'VLD',
+                        'status': 500,
+                        'titolo': 'Errore interno nel passo 7 della verifica',
+                        'descrizione': "Il passo di verifica è terminato con un'eccezione non "
+                                       'prevista.',
+                        'azione': 'Segnalare al conservatore; il PdV sarà riverificato.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'contesto': 'asincrono'},
+            'VLD-800': {'famiglia': 'VLD',
+                        'status': 500,
+                        'titolo': 'Errore interno nel passo 8 della verifica',
+                        'descrizione': "Il passo di verifica è terminato con un'eccezione non "
+                                       'prevista.',
+                        'azione': 'Segnalare al conservatore; il PdV sarà riverificato.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'contesto': 'asincrono'},
+            'VLD-900': {'famiglia': 'VLD',
+                        'status': 500,
+                        'titolo': 'Errore interno nel passo 9 della verifica',
+                        'descrizione': "Il passo di verifica è terminato con un'eccezione non "
+                                       'prevista.',
+                        'azione': 'Segnalare al conservatore; il PdV sarà riverificato.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'contesto': 'asincrono'},
+            'VLD-101': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': "Classe documentale mancante nell'indice",
+                        'descrizione': "L'indice non indica la classe documentale.",
+                        'azione': 'Indicare la classe documentale e versare di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-102': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': "Nessun documento nell'indice",
+                        'descrizione': "L'indice non elenca alcun documento.",
+                        'azione': "Elencare i documenti dell'unità documentaria e versare di "
+                                  'nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-103': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Campo obbligatorio mancante nel documento',
+                        'descrizione': "Un documento dell'indice manca di un campo obbligatorio.",
+                        'azione': 'Completare il campo indicato e versare di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-104': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Impronta incompleta',
+                        'descrizione': "L'impronta di un documento non indica valore e algoritmo.",
+                        'azione': 'Indicare impronta e algoritmo e versare di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-201': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Documenti duplicati',
+                        'descrizione': "Lo stesso documento compare più volte nell'unità "
+                                       'documentaria.',
+                        'azione': 'Togliere i duplicati e versare di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-202': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Nome file duplicato',
+                        'descrizione': 'Due documenti hanno lo stesso nome file.',
+                        'azione': 'Dare nomi univoci ai file e versare di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-301': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Documento principale mancante',
+                        'descrizione': "L'unità documentaria non ha un documento principale.",
+                        'azione': 'Indicare il documento principale e versare di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-302': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Più documenti principali',
+                        'descrizione': "L'unità documentaria ha più di un documento principale.",
+                        'azione': 'Lasciare un solo documento principale e versare di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-401': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Formato non ammesso',
+                        'descrizione': 'Uno o più documenti hanno un formato non ammesso per la '
+                                       'conservazione.',
+                        'azione': 'Convertire i file in un formato ammesso e versare di nuovo.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-501': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Verifica delle impronte fallita',
+                        'descrizione': "L'impronta ricalcolata di uno o più file non corrisponde a "
+                                       'quella dichiarata.',
+                        'azione': 'Verificare i file e le impronte e versare di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-502': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'File nello storage diverso da quello versato',
+                        'descrizione': 'Il file letto dallo storage di transito non ha la '
+                                       'dimensione o le impronte misurate dal gateway durante il '
+                                       'versamento (file alterato o sostituito dopo la ricezione); '
+                                       "l'elenco è in `dettagli.errori`.",
+                        'azione': "Versare di nuovo l'unità documentaria; se si ripete, segnalare "
+                                  'al conservatore.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-601': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Metadati non conformi',
+                        'descrizione': "I metadati dell'Allegato 5 non sono conformi; l'elenco per "
+                                       'campo è in `dettagli.errori`.',
+                        'azione': 'Correggere i campi indicati e versare di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-701': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Classe documentale mancante',
+                        'descrizione': 'La classe documentale non è indicata.',
+                        'azione': 'Indicare la classe documentale e versare di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-702': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Classe documentale non attiva',
+                        'descrizione': 'La classe documentale non è attiva per il cliente.',
+                        'azione': "Chiedere l'attivazione della classe al conservatore.",
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-703': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Classe documentale non censita',
+                        'descrizione': 'La classe documentale non è censita per il cliente.',
+                        'azione': 'Chiedere la configurazione della classe al conservatore.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-705': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Identificativo del cliente non valido',
+                        'descrizione': 'Il PdV porta un identificativo del cliente non valido.',
+                        'azione': 'Segnalare al conservatore.',
+                        'esito': 'ERRORE',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-801': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'File oltre il limite di dimensione',
+                        'descrizione': 'Uno o più file superano la dimensione massima ammessa.',
+                        'azione': 'Ridurre i file o concordare il limite col conservatore.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-802': {'famiglia': 'VLD',
+                        'status': 500,
+                        'titolo': 'Regole applicate al PdV non leggibili',
+                        'descrizione': 'La fotografia delle regole salvata al versamento '
+                                       '(`regole_applicate`) non è interpretabile; la verifica non '
+                                       'sostituisce valori indovinati e si ferma.',
+                        'azione': 'Nessuna per il cliente; il conservatore corregge e rielabora il '
+                                  'PdV.',
+                        'esito': 'ERRORE',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-901': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Anno non valido',
+                        'descrizione': "L'anno della chiave dell'unità documentaria è fuori "
+                                       "dall'intervallo ammesso.",
+                        'azione': "Correggere l'anno e versare di nuovo.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-902': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Anno non numerico',
+                        'descrizione': "L'anno della chiave dell'unità documentaria non è un "
+                                       'numero intero.',
+                        'azione': "Correggere l'anno e versare di nuovo.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-903': {'famiglia': 'VLD',
+                        'status': 422,
+                        'titolo': 'Numero del documento vuoto',
+                        'descrizione': "Il numero della chiave dell'unità documentaria è presente "
+                                       'ma vuoto.',
+                        'azione': 'Indicare il numero o ometterlo e versare di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'VLD-EVT-000': {'famiglia': 'VLD',
+                            'status': 500,
+                            'titolo': 'Evento di verifica non leggibile',
+                            'descrizione': 'Il messaggio ricevuto dalla pipeline non è un oggetto '
+                                           'JSON.',
+                            'azione': "Nessuna per il cliente; il conservatore analizza l'evento.",
+                            'esito': 'ERRORE',
+                            'ritentabile': False,
+                            'contesto': 'asincrono'},
+            'VLD-EVT-001': {'famiglia': 'VLD',
+                            'status': 500,
+                            'titolo': 'Evento di verifica con identificativi non validi',
+                            'descrizione': "L'evento non porta identificativi validi di PdV o "
+                                           'cliente.',
+                            'azione': "Nessuna per il cliente; il conservatore analizza l'evento.",
+                            'esito': 'ERRORE',
+                            'ritentabile': False,
+                            'contesto': 'asincrono'},
+            'VLD-EVT-002': {'famiglia': 'VLD',
+                            'status': 500,
+                            'titolo': 'Evento di verifica senza indice',
+                            'descrizione': "L'evento non contiene l'indice del PdV.",
+                            'azione': "Nessuna per il cliente; il conservatore analizza l'evento.",
+                            'esito': 'ERRORE',
+                            'ritentabile': False,
+                            'contesto': 'asincrono'},
+            'VLD-EVT-003': {'famiglia': 'VLD',
+                            'status': 500,
+                            'titolo': "PdV dell'evento inesistente",
+                            'descrizione': "Il PdV indicato dall'evento non esiste per il cliente.",
+                            'azione': "Nessuna per il cliente; il conservatore analizza l'evento.",
+                            'esito': 'ERRORE',
+                            'ritentabile': False,
+                            'contesto': 'asincrono'},
+            'AIP-EVENTO-001': {'famiglia': 'AIP',
+                               'status': 500,
+                               'titolo': 'Evento di costruzione non leggibile',
+                               'descrizione': 'Il messaggio ricevuto non è un oggetto JSON.',
+                               'azione': 'Nessuna per il cliente; il conservatore analizza '
+                                         "l'evento.",
+                               'esito': 'ERRORE',
+                               'ritentabile': False,
+                               'contesto': 'asincrono'},
+            'AIP-EVENTO-002': {'famiglia': 'AIP',
+                               'status': 500,
+                               'titolo': 'Evento di costruzione con identificativi non validi',
+                               'descrizione': "L'evento non porta identificativi validi di PdV o "
+                                              'cliente.',
+                               'azione': 'Nessuna per il cliente; il conservatore analizza '
+                                         "l'evento.",
+                               'esito': 'ERRORE',
+                               'ritentabile': False,
+                               'contesto': 'asincrono'},
+            'AIP-EVENTO-003': {'famiglia': 'AIP',
+                               'status': 500,
+                               'titolo': 'Indice senza documenti',
+                               'descrizione': "L'indice del PdV da archiviare non contiene "
+                                              'documenti.',
+                               'azione': 'Nessuna per il cliente; il conservatore analizza '
+                                         "l'evento.",
+                               'esito': 'ERRORE',
+                               'ritentabile': False,
+                               'contesto': 'asincrono'},
+            'AIP-PDV-001': {'famiglia': 'AIP',
+                            'status': 500,
+                            'titolo': 'PdV inesistente',
+                            'descrizione': 'Il PdV da archiviare non esiste per il cliente '
+                                           'indicato.',
+                            'azione': "Nessuna per il cliente; il conservatore analizza l'evento.",
+                            'esito': 'ERRORE',
+                            'ritentabile': False,
+                            'contesto': 'asincrono'},
+            'AIP-PDV-002': {'famiglia': 'AIP',
+                            'status': 500,
+                            'titolo': "PdV in uno stato che non ammette l'archiviazione",
+                            'descrizione': 'Il PdV non è nello stato richiesto per costruire il '
+                                           'PdA.',
+                            'azione': "Nessuna per il cliente; il conservatore analizza l'evento.",
+                            'esito': 'ERRORE',
+                            'ritentabile': False,
+                            'contesto': 'asincrono'},
+            'AIP-INTEGRITA-001': {'famiglia': 'AIP',
+                                  'status': 500,
+                                  'titolo': "Algoritmo d'impronta non ammesso",
+                                  'descrizione': "L'algoritmo d'impronta del file non è fra quelli "
+                                                 'ammessi.',
+                                  'azione': 'Segnalare al conservatore.',
+                                  'esito': 'ERRORE',
+                                  'ritentabile': False,
+                                  'contesto': 'asincrono'},
+            'AIP-INTEGRITA-002': {'famiglia': 'AIP',
+                                  'status': 500,
+                                  'titolo': 'Impronta non corrispondente',
+                                  'descrizione': "L'impronta ricalcolata sul file in archiviazione "
+                                                 'non corrisponde a quella dichiarata.',
+                                  'azione': 'Segnalare al conservatore.',
+                                  'esito': 'ERRORE',
+                                  'ritentabile': False,
+                                  'contesto': 'asincrono'},
+            'AIP-INTEGRITA-003': {'famiglia': 'AIP',
+                                  'status': 500,
+                                  'titolo': 'Dimensione del file non corrispondente',
+                                  'descrizione': 'Il file letto ha una dimensione diversa da '
+                                                 'quella versata.',
+                                  'azione': 'Segnalare al conservatore.',
+                                  'esito': 'ERRORE',
+                                  'ritentabile': False,
+                                  'contesto': 'asincrono'},
+            'AIP-METADATI-001': {'famiglia': 'AIP',
+                                 'status': 500,
+                                 'titolo': 'Metadati insufficienti per il PdA',
+                                 'descrizione': 'Mancano metadati necessari a costruire il PdA '
+                                                '(es. modalità di formazione).',
+                                 'azione': 'Segnalare al conservatore.',
+                                 'esito': 'ERRORE',
+                                 'ritentabile': False,
+                                 'contesto': 'asincrono'},
+            'AIP-FILE-001': {'famiglia': 'AIP',
+                             'status': 500,
+                             'titolo': 'File del documento non referenziato',
+                             'descrizione': "Un documento dell'indice non ha il riferimento al "
+                                            'file nello storage.',
+                             'azione': 'Segnalare al conservatore.',
+                             'esito': 'ERRORE',
+                             'ritentabile': False,
+                             'contesto': 'asincrono'},
+            'AIP-STORAGE-001': {'famiglia': 'AIP',
+                                'status': 500,
+                                'titolo': 'Oggetto già presente con contenuto diverso',
+                                'descrizione': 'Lo storage conservativo contiene già un oggetto '
+                                               'con la stessa chiave ma contenuto diverso.',
+                                'azione': 'Segnalare al conservatore.',
+                                'esito': 'ERRORE',
+                                'ritentabile': False,
+                                'contesto': 'asincrono'},
+            'AIP-STORAGE-002': {'famiglia': 'AIP',
+                                'status': 500,
+                                'titolo': 'Copia nello storage conservativo non corrispondente',
+                                'descrizione': 'La copia del file nello storage conservativo non '
+                                               "ha l'impronta o la dimensione del file versato "
+                                               '(verifica dopo la copia lato storage).',
+                                'azione': 'Segnalare al conservatore.',
+                                'esito': 'ERRORE',
+                                'ritentabile': False,
+                                'contesto': 'asincrono'},
+            'SEC-001': {'famiglia': 'SEC',
+                        'status': 400,
+                        'titolo': 'Testo troppo lungo',
+                        'descrizione': 'Un testo supera la lunghezza massima ammessa.',
+                        'azione': 'Accorciare il testo e reinviare.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'SEC-002': {'famiglia': 'SEC',
+                        'status': 400,
+                        'titolo': 'Testo con sequenze non ammesse',
+                        'descrizione': "Un testo contiene sequenze tipiche di un'iniezione SQL.",
+                        'azione': 'Togliere le sequenze non ammesse e reinviare.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'SEC-003': {'famiglia': 'SEC',
+                        'status': 400,
+                        'titolo': 'Testo con marcatori non ammessi',
+                        'descrizione': 'Un testo contiene marcatori HTML o script non ammessi.',
+                        'azione': 'Togliere i marcatori e reinviare.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'SEC-004': {'famiglia': 'SEC',
+                        'status': 400,
+                        'titolo': 'Percorso non ammesso',
+                        'descrizione': 'Un nome contiene sequenze di attraversamento di cartelle.',
+                        'azione': 'Usare un nome semplice, senza separatori di cartella.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'SEC-005': {'famiglia': 'SEC',
+                        'status': 400,
+                        'titolo': 'Indirizzo non ammesso',
+                        'descrizione': "L'indirizzo punta a una rete interna o non ammessa.",
+                        'azione': 'Indicare un indirizzo pubblico raggiungibile.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'SEC-006': {'famiglia': 'SEC',
+                        'status': 400,
+                        'titolo': 'Estensione del file non ammessa',
+                        'descrizione': "L'estensione del nome file non è fra quelle ammesse.",
+                        'azione': "Usare un file con un'estensione ammessa.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'AUTH-000': {'famiglia': 'AUTH',
+                         'status': 401,
+                         'titolo': 'Autenticazione richiesta',
+                         'descrizione': 'La richiesta non porta credenziali.',
+                         'azione': 'Inviare un token Bearer o una chiave API.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'AUTH-001': {'famiglia': 'AUTH',
+                         'status': 401,
+                         'titolo': 'Credenziali non valide',
+                         'descrizione': 'Il token o la chiave API non sono validi o sono stati '
+                                        'revocati.',
+                         'azione': 'Ottenere un nuovo token o verificare la chiave API.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'AUTH-002': {'famiglia': 'AUTH',
+                         'status': 401,
+                         'titolo': 'Credenziali scadute',
+                         'descrizione': 'Il token o la chiave API sono scaduti.',
+                         'azione': 'Rinnovare il token (nuovo accesso) o la chiave API.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'AUTH-003': {'famiglia': 'AUTH',
+                         'status': 401,
+                         'titolo': 'Accesso revocato',
+                         'descrizione': "L'utenza o l'ente non sono più attivi, oppure il ruolo è "
+                                        'cambiato.',
+                         'azione': "Accedere di nuovo o rivolgersi all'amministratore.",
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'AUTH-004': {'famiglia': 'AUTH',
+                         'status': 401,
+                         'titolo': 'Sessione scaduta per inattività',
+                         'descrizione': 'La sessione del portale è rimasta inattiva oltre il '
+                                        'limite (30 minuti, 15 per i ruoli privilegiati) oppure è '
+                                        'stata chiusa.',
+                         'azione': 'Accedere di nuovo dal portale.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'AUTH-010': {'famiglia': 'AUTH',
+                         'status': 403,
+                         'titolo': 'Permessi insufficienti',
+                         'descrizione': "Il ruolo dell'utente non consente l'operazione.",
+                         'azione': "Chiedere l'operazione a un utente con il ruolo adeguato.",
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'AUTH-011': {'famiglia': 'AUTH',
+                         'status': 403,
+                         'titolo': 'Scope non autorizzato',
+                         'descrizione': 'Il token o la chiave non hanno lo scope richiesto '
+                                        "dall'operazione.",
+                         'azione': 'Usare credenziali con lo scope richiesto.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'AUTH-020': {'famiglia': 'AUTH',
+                         'status': 403,
+                         'titolo': 'Accesso negato a questo ente',
+                         'descrizione': "L'utente non può operare sui dati dell'ente indicato.",
+                         'azione': 'Operare solo sui dati del proprio ente.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'AUTH-021': {'famiglia': 'AUTH',
+                         'status': 403,
+                         'titolo': 'Cliente non determinabile dal token',
+                         'descrizione': 'Il token non indica un cliente valido.',
+                         'azione': 'Usare un token emesso per un utente di un ente.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'AUTH-030': {'famiglia': 'AUTH',
+                         'status': 503,
+                         'titolo': 'Chiavi API non disponibili',
+                         'descrizione': 'Le chiavi API non si possono verificare in questo '
+                                        'ambiente (configurazione incompleta).',
+                         'azione': "Usare l'accesso con token o segnalare al conservatore.",
+                         'esito': 'ERRORE',
+                         'ritentabile': False},
+            'AUTH-040': {'famiglia': 'AUTH',
+                         'status': 403,
+                         'titolo': 'Richiesta non protetta contro la falsificazione',
+                         'descrizione': 'Richiesta che modifica dati con la sessione del portale '
+                                        '(cookie) senza il token anti-CSRF corrispondente o da '
+                                        "un'origine diversa da quella del portale.",
+                         'azione': "Ripetere l'operazione dal portale (la pagina invia il token "
+                                   'X-CSRF-Token); i sistemi versanti usano il token Bearer o la '
+                                   'chiave API, non il cookie.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'AUTH-041': {'famiglia': 'AUTH',
+                         'status': 400,
+                         'titolo': 'Credenziali duplicate o contrastanti',
+                         'descrizione': 'La richiesta presenta più di una credenziale dello stesso '
+                                        'tipo (più intestazioni Authorization o X-Api-Key) oppure '
+                                        'il cookie della sessione e un token Bearer diversi: non '
+                                        'si sceglie quale usare.',
+                         'azione': 'Inviare una sola credenziale per richiesta.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'AUTH-503': {'famiglia': 'AUTH',
+                         'status': 503,
+                         'titolo': "Verifica dell'accesso non disponibile",
+                         'descrizione': 'Il controllo di revoca non si è potuto eseguire.',
+                         'azione': 'Riprovare tra poco.',
+                         'esito': 'ERRORE',
+                         'ritentabile': True,
+                         'retry_after': 30},
+            'SPID-001': {'famiglia': 'SPID',
+                         'status': 503,
+                         'titolo': 'Aggregatore SPID/CIE non configurato',
+                         'descrizione': "L'accesso con SPID o CIE non è configurato in questo "
+                                        'ambiente.',
+                         'azione': "Usare un altro metodo d'accesso o segnalare al conservatore.",
+                         'esito': 'ERRORE',
+                         'ritentabile': False},
+            'SPID-002': {'famiglia': 'SPID',
+                         'status': 400,
+                         'titolo': 'Accesso scaduto o già concluso',
+                         'descrizione': "Lo stato dell'accesso non è valido (scaduto o già usato).",
+                         'azione': "Ripetere l'accesso.",
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'SPID-003': {'famiglia': 'SPID',
+                         'status': 401,
+                         'titolo': 'Accesso annullato o rifiutato',
+                         'descrizione': "Il gestore dell'identità ha annullato o rifiutato "
+                                        "l'accesso.",
+                         'azione': "Ripetere l'accesso.",
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'SPID-004': {'famiglia': 'SPID',
+                         'status': 502,
+                         'titolo': "Errore nello scambio con l'aggregatore",
+                         'descrizione': "L'aggregatore non ha risposto correttamente.",
+                         'azione': "Ripetere l'accesso tra poco.",
+                         'esito': 'ERRORE',
+                         'ritentabile': True},
+            'SPID-005': {'famiglia': 'SPID',
+                         'status': 401,
+                         'titolo': 'Identità digitale non verificata',
+                         'descrizione': "L'asserzione dell'identità non ha superato le verifiche.",
+                         'azione': "Ripetere l'accesso.",
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'SPID-006': {'famiglia': 'SPID',
+                         'status': 400,
+                         'titolo': 'Accesso iniziato in un altro browser o scaduto',
+                         'descrizione': "L'accesso è stato avviato in un altro browser o è "
+                                        'scaduto.',
+                         'azione': "Ripetere l'accesso da questo browser.",
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'SPID-007': {'famiglia': 'SPID',
+                         'status': 401,
+                         'titolo': 'Codice fiscale assente o non valido',
+                         'descrizione': "L'identità digitale non contiene un codice fiscale "
+                                        'valido.',
+                         'azione': "Rivolgersi al gestore dell'identità digitale.",
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'SPID-008': {'famiglia': 'SPID',
+                         'status': 403,
+                         'titolo': 'Nessun utente attivo per questo codice fiscale',
+                         'descrizione': 'Nessun ente attivo ha un utente attivo con questo codice '
+                                        'fiscale.',
+                         'azione': "Chiedere l'abilitazione all'amministratore dell'ente.",
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'SPID-009': {'famiglia': 'SPID',
+                         'status': 403,
+                         'titolo': 'Livello di autenticazione insufficiente',
+                         'descrizione': 'Il livello SPID usato è inferiore a quello richiesto.',
+                         'azione': 'Accedere con il livello richiesto (almeno SPID L2).',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'SPID-010': {'famiglia': 'SPID',
+                         'status': 400,
+                         'titolo': 'Indirizzo di ritorno non ammesso',
+                         'descrizione': "L'indirizzo di ritorno indicato non è fra quelli ammessi.",
+                         'azione': "Avviare l'accesso dal portale.",
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'SPID-011': {'famiglia': 'SPID',
+                         'status': 400,
+                         'titolo': 'Provider non ammesso',
+                         'descrizione': 'Il provider indicato non è ammesso (valori spid, cie).',
+                         'azione': 'Indicare spid o cie.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'SPID-012': {'famiglia': 'SPID',
+                         'status': 400,
+                         'titolo': 'Codice di accesso non valido',
+                         'descrizione': 'Il codice di accesso non è valido, è già stato usato o è '
+                                        'scaduto.',
+                         'azione': "Ripetere l'accesso.",
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'PDND-401': {'famiglia': 'PDND',
+                         'status': 401,
+                         'titolo': 'Voucher PDND non valido',
+                         'descrizione': 'Il voucher manca, non è valido o non indica il client.',
+                         'azione': 'Richiedere un nuovo voucher a PDND e reinviare.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False,
+                         'alias': ['invalid_token']},
+            'PDND-401-SCADUTO': {'famiglia': 'PDND',
+                                 'status': 401,
+                                 'titolo': 'Voucher PDND scaduto',
+                                 'descrizione': 'Il voucher è scaduto.',
+                                 'azione': 'Richiedere un nuovo voucher a PDND e reinviare.',
+                                 'esito': 'NON_VALIDO',
+                                 'ritentabile': False,
+                                 'alias': ['token_expired']},
+            'PDND-403': {'famiglia': 'PDND',
+                         'status': 403,
+                         'titolo': 'Fruitore non registrato',
+                         'descrizione': 'Il client PDND non è associato a un cliente del servizio.',
+                         'azione': "Chiedere al conservatore l'associazione del client al cliente.",
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False,
+                         'alias': ['fruitore_non_registrato']},
+            'PDND-403-CLIENTE': {'famiglia': 'PDND',
+                                 'status': 403,
+                                 'titolo': 'Cliente non attivo',
+                                 'descrizione': 'Il cliente associato al fruitore non è attivo.',
+                                 'azione': 'Rivolgersi al conservatore.',
+                                 'esito': 'RIFIUTATO',
+                                 'ritentabile': False,
+                                 'alias': ['cliente_non_attivo']},
+            'PDND-404': {'famiglia': 'PDND',
+                         'status': 404,
+                         'titolo': 'Pacchetto non trovato',
+                         'descrizione': 'Il pacchetto richiesto non esiste o non appartiene al '
+                                        'cliente del fruitore.',
+                         'azione': "Verificare l'identificativo.",
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False,
+                         'alias': ['aip_not_found']},
+            'PDND-422': {'famiglia': 'PDND',
+                         'status': 422,
+                         'titolo': 'Contenuto del file non valido',
+                         'descrizione': 'Il file inviato non è codificato correttamente in base64.',
+                         'azione': 'Codificare il file in base64 standard e reinviare.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False,
+                         'alias': ['file_b64_non_valido']},
+            'PDND-RIFIUTO': {'famiglia': 'PDND',
+                             'status': 422,
+                             'titolo': 'Dismesso: vedi i codici del versamento (VRS, RGL, VAL)',
+                             'descrizione': 'Il versamento inoltrato tramite PDND è stato '
+                                            'rifiutato dal servizio di versamento. Da R03 '
+                                            "l'e-service PDND usa il caso d'uso unico del "
+                                            'versamento e risponde con lo stesso codice del REST '
+                                            '(es. VRS-130, VRS-121).',
+                             'azione': 'Gestire i codici del versamento; il vecchio '
+                                       '`versamento_rifiutato` non è più emesso.',
+                             'esito': 'NON_VALIDO',
+                             'ritentabile': False,
+                             'alias': ['versamento_rifiutato'],
+                             'dismesso': True,
+                             'sostituito_da': ['VRS-130']},
+            'PDND-502': {'famiglia': 'PDND',
+                         'status': 502,
+                         'titolo': 'Dismesso: vedi VRS-500 e VRS-501',
+                         'descrizione': 'Il servizio di versamento non è raggiungibile o ha '
+                                        "risposto con un errore. Da R03 l'e-service PDND non "
+                                        'chiama più il gateway via HTTP; i guasti di storage e '
+                                        'database sono VRS-500 e VRS-501 (503).',
+                         'azione': 'Gestire VRS-500 e VRS-501 (ritentabili).',
+                         'esito': 'ERRORE',
+                         'ritentabile': True,
+                         'alias': ['versamento_failed'],
+                         'dismesso': True,
+                         'sostituito_da': ['VRS-500', 'VRS-501']},
+            'PDND-503': {'famiglia': 'PDND',
+                         'status': 503,
+                         'titolo': 'PDND non configurato',
+                         'descrizione': 'Gli e-service PDND non sono disponibili per '
+                                        'configurazione incompleta.',
+                         'azione': 'Segnalare al conservatore.',
+                         'esito': 'ERRORE',
+                         'ritentabile': False,
+                         'alias': ['pdnd_not_configured']},
+            'PDND-503-OCCUPATO': {'famiglia': 'PDND',
+                                  'status': 503,
+                                  'titolo': 'Troppi versamenti PDND contemporanei',
+                                  'descrizione': 'La replica del servizio sta già elaborando il '
+                                                 'numero massimo di versamenti PDND contemporanei '
+                                                 '(impostazione PDND_RICHIESTE_CONTEMPORANEE_MAX), '
+                                                 'oppure lo spazio temporaneo su disco della '
+                                                 'replica (DISCO_TEMPORANEO_BUDGET_MB, condiviso '
+                                                 'con i versamenti multipart) è già prenotato da '
+                                                 'altre richieste in corso (R03 f3). Il file in '
+                                                 'base64 non è stato letto (R03 f1).',
+                                  'azione': 'Ripetere la stessa richiesta (con la stessa '
+                                            'Idempotency-Key) dopo i secondi indicati in '
+                                            'Retry-After.',
+                                  'esito': 'ERRORE',
+                                  'ritentabile': True,
+                                  'retry_after': 5},
+            'PDND-413': {'famiglia': 'PDND',
+                         'status': 413,
+                         'titolo': 'File oltre il limite del canale PDND',
+                         'descrizione': 'Il file in base64 supera la dimensione massima ammessa '
+                                        "dall'e-service di versamento.",
+                         'azione': 'Ridurre il file; per file grandi usare le API REST con le '
+                                   'sessioni di caricamento.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'RATE-001': {'famiglia': 'RATE',
+                         'status': 429,
+                         'titolo': 'Dismesso: vedi QTA-001',
+                         'descrizione': 'Il cliente ha superato il numero di richieste ammesso '
+                                        'nella finestra.',
+                         'azione': 'Attendere i secondi indicati in Retry-After e riprovare.',
+                         'esito': 'ERRORE',
+                         'ritentabile': True,
+                         'retry_after': 60,
+                         'dismesso': True,
+                         'sostituito_da': ['QTA-001']},
+            'QTA-001': {'famiglia': 'QTA',
+                        'status': 429,
+                        'titolo': 'Limite di richieste al minuto superato',
+                        'descrizione': "L'ente ha superato il numero di richieste al minuto "
+                                       'previsto dal suo piano (vale per token, chiavi API e '
+                                       'canali).',
+                        'azione': 'Attendere i secondi indicati in Retry-After e riprovare; per '
+                                  'limiti più alti rivolgersi al conservatore.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 60},
+            'QTA-002': {'famiglia': 'QTA',
+                        'status': 429,
+                        'titolo': 'Limite giornaliero di versamenti superato',
+                        'descrizione': "L'ente ha raggiunto il numero di pacchetti di versamento "
+                                       'al giorno previsto dal suo piano.',
+                        'azione': 'Riprovare dal giorno successivo (Retry-After indica i secondi '
+                                  'alla mezzanotte, ora italiana) o chiedere al conservatore un '
+                                  'piano adeguato.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 3600},
+            'LC-501': {'famiglia': 'LC',
+                       'status': 501,
+                       'titolo': 'Dismesso: vedi LC-410 (migrazione non disponibile dal gateway)',
+                       'descrizione': "L'esportazione verso un nuovo conservatore non era "
+                                      'realizzata; dal R05 è il riversamento in uscita del '
+                                      'servizio ciclo-vita.',
+                       'azione': 'Usare POST /api/v1/ciclo-vita/pratiche/riversamento-uscita.',
+                       'esito': 'RIFIUTATO',
+                       'ritentabile': False,
+                       'dismesso': True,
+                       'sostituito_da': ['LC-410']},
+            'LC-503': {'famiglia': 'LC',
+                       'status': 503,
+                       'titolo': 'Dismesso: vedi LC-410 (ciclo di vita non disponibile dal '
+                                 'gateway)',
+                       'descrizione': 'Lo scenario richiedeva un flusso autorizzato non '
+                                      'realizzato; dal R05 le pratiche sono nel servizio '
+                                      'ciclo-vita.',
+                       'azione': 'Usare le pratiche di /api/v1/ciclo-vita.',
+                       'esito': 'RIFIUTATO',
+                       'ritentabile': False,
+                       'dismesso': True,
+                       'sostituito_da': ['LC-410']},
+            'LC-400-CURSORE': {'famiglia': 'LC',
+                               'status': 400,
+                               'titolo': 'Cursore non valido',
+                               'descrizione': 'Il cursore non appartiene a questo elenco o è '
+                                              'illeggibile.',
+                               'azione': 'Ripartire dalla prima pagina senza cursore.',
+                               'esito': 'NON_VALIDO',
+                               'ritentabile': False},
+            'LC-403-RUOLO': {'famiglia': 'LC',
+                             'status': 403,
+                             'titolo': "Ruolo non abilitato all'operazione sulla pratica",
+                             'descrizione': 'Il ruolo non può avviare la pratica, chiedere la '
+                                            "transizione o caricare l'allegato (matrice dei "
+                                            'permessi del ciclo di vita).',
+                             'azione': "Chiedere l'operazione a un utente con il ruolo indicato "
+                                       'nel messaggio.',
+                             'esito': 'RIFIUTATO',
+                             'ritentabile': False},
+            'LC-404': {'famiglia': 'LC',
+                       'status': 404,
+                       'titolo': 'Pratica non trovata',
+                       'descrizione': "La pratica non esiste o non appartiene all'ente.",
+                       'azione': "Verificare l'identificativo.",
+                       'esito': 'NON_VALIDO',
+                       'ritentabile': False},
+            'LC-404-ENTE': {'famiglia': 'LC',
+                            'status': 404,
+                            'titolo': 'Ente non trovato',
+                            'descrizione': "L'ente indicato non esiste o non è nel perimetro "
+                                           "dell'utente.",
+                            'azione': "Verificare l'identificativo dell'ente.",
+                            'esito': 'NON_VALIDO',
+                            'ritentabile': False},
+            'LC-404-PDV': {'famiglia': 'LC',
+                           'status': 404,
+                           'titolo': 'Versamento non trovato',
+                           'descrizione': "Il PdV o il PdA non esiste o non appartiene all'ente.",
+                           'azione': "Verificare l'identificativo.",
+                           'esito': 'NON_VALIDO',
+                           'ritentabile': False},
+            'LC-404-ALLEGATO': {'famiglia': 'LC',
+                                'status': 404,
+                                'titolo': 'Allegato non trovato',
+                                'descrizione': "L'allegato citato non appartiene alla pratica.",
+                                'azione': "Caricare l'allegato nella pratica e citarne "
+                                          "l'identificativo.",
+                                'esito': 'NON_VALIDO',
+                                'ritentabile': False},
+            'LC-409-STATO-CAMBIATO': {'famiglia': 'LC',
+                                      'status': 409,
+                                      'titolo': 'Stato della pratica cambiato',
+                                      'descrizione': 'Lo stato della pratica non è quello atteso '
+                                                     "dal client (STATO_CAMBIATO); un'altra "
+                                                     "richiesta l'ha modificata. Lo stato attuale "
+                                                     'è in `dettagli`.',
+                                      'azione': 'Rileggere la pratica e ripetere la richiesta con '
+                                                'lo stato attuale.',
+                                      'esito': 'RIFIUTATO',
+                                      'ritentabile': False},
+            'LC-409-PIANO-CAMBIATO': {'famiglia': 'LC',
+                                      'status': 409,
+                                      'titolo': "Piano cambiato dall'anteprima",
+                                      'descrizione': 'Il piano ricalcolato al momento di applicare '
+                                                     "ha un'impronta diversa da quella "
+                                                     "dell'anteprima (PIANO_CAMBIATO); nulla è "
+                                                     'stato scritto. Il piano nuovo è in '
+                                                     '`dettagli.piano`.',
+                                      'azione': 'Rivedere il piano nuovo e confermare con la sua '
+                                                'impronta.',
+                                      'esito': 'RIFIUTATO',
+                                      'ritentabile': False},
+            'LC-409-TRANSIZIONE': {'famiglia': 'LC',
+                                   'status': 409,
+                                   'titolo': 'Transizione non ammessa',
+                                   'descrizione': 'La transizione richiesta non è prevista dalla '
+                                                  'macchina a stati della pratica in questo stato '
+                                                  '(o per questo tipo di ente).',
+                                   'azione': 'Scegliere una delle transizioni indicate in '
+                                             '`azioni_consentite` della pratica.',
+                                   'esito': 'RIFIUTATO',
+                                   'ritentabile': False},
+            'LC-409-IN-ESECUZIONE': {'famiglia': 'LC',
+                                     'status': 409,
+                                     'titolo': 'Esecuzione già richiesta',
+                                     'descrizione': "L'esecuzione della pratica è già stata "
+                                                    'chiesta ed è in corso. Finché il servizio non '
+                                                    "l'ha avviata si può solo respingere; una "
+                                                    'volta avviata (dettagli.esecuzione_avviata) '
+                                                    'nessuna transizione è più ammessa: il '
+                                                    'servizio la porta a termine con il verbale e '
+                                                    'gli esiti per elemento.',
+                                     'azione': 'Seguire lo stato della pratica.',
+                                     'esito': 'RIFIUTATO',
+                                     'ritentabile': False},
+            'LC-409-ANNULLATO': {'famiglia': 'LC',
+                                 'status': 409,
+                                 'titolo': 'Versamento già annullato',
+                                 'descrizione': 'Il versamento ha già una pratica di annullamento.',
+                                 'azione': "Nessuna azione: l'annullamento è registrato.",
+                                 'esito': 'RIFIUTATO',
+                                 'ritentabile': False},
+            'LC-409-ANNULLAMENTO': {'famiglia': 'LC',
+                                    'status': 409,
+                                    'titolo': 'Annullamento non ammesso',
+                                    'descrizione': 'La configurazione del servizio non ammette '
+                                                   "l'annullamento dopo la conservazione.",
+                                    'azione': 'Concordare con il conservatore una rettifica o uno '
+                                              'scarto.',
+                                    'esito': 'RIFIUTATO',
+                                    'ritentabile': False},
+            'LC-409-PDV-STATO': {'famiglia': 'LC',
+                                 'status': 409,
+                                 'titolo': 'Stato del versamento incompatibile',
+                                 'descrizione': 'Il versamento è in lavorazione o in uno stato che '
+                                                "non ammette l'operazione (la rettifica richiede "
+                                                'un PdV CONSERVATO).',
+                                 'azione': 'Attendere la fine della lavorazione o scegliere un '
+                                           'altro versamento.',
+                                 'esito': 'RIFIUTATO',
+                                 'ritentabile': False},
+            'LC-409-PRATICA-APERTA': {'famiglia': 'LC',
+                                      'status': 409,
+                                      'titolo': 'Pratica già aperta',
+                                      'descrizione': 'Esiste già una pratica dello stesso tipo non '
+                                                     'conclusa per lo stesso versamento.',
+                                      'azione': 'Seguire la pratica esistente.',
+                                      'esito': 'RIFIUTATO',
+                                      'ritentabile': False},
+            'LC-409-IDEMPOTENZA': {'famiglia': 'LC',
+                                   'status': 409,
+                                   'titolo': "Idempotency-Key già usata con un'altra richiesta",
+                                   'descrizione': "La stessa chiave d'idempotenza è stata usata "
+                                                  'per una richiesta diversa.',
+                                   'azione': 'Usare una chiave nuova per una richiesta nuova.',
+                                   'esito': 'RIFIUTATO',
+                                   'ritentabile': False},
+            'LC-410': {'famiglia': 'LC',
+                       'status': 410,
+                       'titolo': 'Operazione spostata nel servizio del ciclo di vita',
+                       'descrizione': "L'avvio degli scenari del ciclo di vita dal gateway è "
+                                      'dismesso: le pratiche si gestiscono con '
+                                      '/api/v1/ciclo-vita/pratiche. Nessuna modifica è stata '
+                                      'eseguita.',
+                       'azione': "Usare l'endpoint indicato in `dettagli.sostituto` (intestazione "
+                                 'Link).',
+                       'esito': 'RIFIUTATO',
+                       'ritentabile': False},
+            'LC-413-ALLEGATO': {'famiglia': 'LC',
+                                'status': 413,
+                                'titolo': 'Allegato troppo grande',
+                                'descrizione': "L'allegato supera la dimensione massima ammessa "
+                                               '(ALLEGATI_MAX_MB).',
+                                'azione': 'Ridurre il documento o concordare il limite con il '
+                                          'conservatore.',
+                                'esito': 'NON_VALIDO',
+                                'ritentabile': False},
+            'LC-422-ALLEGATI': {'famiglia': 'LC',
+                                'status': 422,
+                                'titolo': 'Allegati obbligatori mancanti',
+                                'descrizione': 'La transizione richiede allegati caricati nella '
+                                               'pratica e citati nella richiesta.',
+                                'azione': 'Caricare gli allegati indicati e citarli nella '
+                                          'transizione.',
+                                'esito': 'NON_VALIDO',
+                                'ritentabile': False},
+            'LC-422-MOTIVO': {'famiglia': 'LC',
+                              'status': 422,
+                              'titolo': 'Motivo insufficiente',
+                              'descrizione': 'R09: la chiusura con eccezioni di uno scarto chiede '
+                                             "un motivo di almeno 20 caratteri: resta nell'audit e "
+                                             'nel registro delle impronte.',
+                              'azione': 'Spiegare perché i pacchetti rimasti non si cancelleranno '
+                                        '(es. blocco legale definitivo).',
+                              'esito': 'NON_VALIDO',
+                              'ritentabile': False},
+            'LC-403-QUATTRO-OCCHI': {'famiglia': 'LC',
+                                     'status': 403,
+                                     'titolo': 'Approvazione non ammessa',
+                                     'descrizione': "R09 (D23): l'annullamento lo approva una "
+                                                    "persona diversa da chi l'ha chiesto, "
+                                                    "dell'ente, con un ruolo ammesso dall'ente "
+                                                    '(ANNULLAMENTO_RUOLI_APPROVAZIONE) e con un '
+                                                    'accesso personale (non con chiave API).',
+                                     'azione': "Chiedere l'approvazione a un'altra persona "
+                                               "autorizzata dell'ente.",
+                                     'esito': 'RIFIUTATO',
+                                     'ritentabile': False},
+            'LC-409-APPROVAZIONE': {'famiglia': 'LC',
+                                    'status': 409,
+                                    'titolo': 'Nessuna approvazione in attesa',
+                                    'descrizione': 'R09 (D23): la pratica non è un annullamento in '
+                                                   'attesa della seconda approvazione (già '
+                                                   'approvata, respinta o eseguita).',
+                                    'azione': 'Ricaricare la pratica e controllarne lo stato.',
+                                    'esito': 'RIFIUTATO',
+                                    'ritentabile': False},
+            'LC-422-ALLEGATO-TIPO': {'famiglia': 'LC',
+                                     'status': 422,
+                                     'titolo': 'Allegato non ammesso',
+                                     'descrizione': 'Tipo di allegato non caricabile dagli utenti, '
+                                                    'oppure file vuoto.',
+                                     'azione': 'Usare AUTORIZZAZIONE_PRODUTTORE, NULLA_OSTA o '
+                                               'ALTRO con un file non vuoto.',
+                                     'esito': 'NON_VALIDO',
+                                     'ritentabile': False},
+            'LC-422-FIRMA': {'famiglia': 'LC',
+                             'status': 422,
+                             'titolo': 'Firma del documento non accettabile',
+                             'descrizione': 'Il documento deve essere firmato (CAdES .p7m o PDF '
+                                            'con firma PAdES) e, da R08, la firma è VERIFICATA al '
+                                            "livello dell'ente (CICLO_VITA_FIRME_LIVELLO): firma "
+                                            'alterata, certificato revocato, catena non '
+                                            'riconducibile a un prestatore fidato o stato di '
+                                            'revoca non disponibile (livello CON_REVOCHE) la '
+                                            'rendono non accettabile. Il motivo in parole è in '
+                                            "`dettaglio`, l'esito normalizzato in "
+                                            '`dettagli.firma`.',
+                             'azione': 'Caricare il documento firmato digitalmente con un '
+                                       'certificato valido e non revocato.',
+                             'esito': 'NON_VALIDO',
+                             'ritentabile': False},
+            'LC-422-CRITERI': {'famiglia': 'LC',
+                               'status': 422,
+                               'titolo': 'Criteri della pratica non validi',
+                               'descrizione': 'Criteri incoerenti (indicare anni oppure '
+                                              'scadenza_entro), classe non disponibile, nessun PdA '
+                                              'selezionabile o troppi PdA per una pratica.',
+                               'azione': 'Correggere o restringere i criteri.',
+                               'esito': 'NON_VALIDO',
+                               'ritentabile': False},
+            'LC-422-METADATI': {'famiglia': 'LC',
+                                'status': 422,
+                                'titolo': 'Metadati della rettifica non validi',
+                                'descrizione': 'Metadati vuoti, con nomi non ammessi o valori di '
+                                               'tipo non previsto, oppure identificativo del '
+                                               'pacchetto assente.',
+                                'azione': 'Indicare aip_id o pdv_id e metadati con nomi in '
+                                          'minuscolo e valori semplici.',
+                                'esito': 'NON_VALIDO',
+                                'ritentabile': False},
+            'LC-422-CARICAMENTO': {'famiglia': 'LC',
+                                   'status': 422,
+                                   'titolo': 'Sessione di caricamento non utilizzabile',
+                                   'descrizione': 'La sessione di caricamento del PdD ricevuto non '
+                                                  "esiste per l'ente, non è COMPLETA, è già stata "
+                                                  'usata o supera la dimensione ammessa.',
+                                   'azione': 'Caricare di nuovo il PdD con una sessione di '
+                                             'caricamento e usare il suo identificativo.',
+                                   'esito': 'NON_VALIDO',
+                                   'ritentabile': False},
+            'LC-503-DB': {'famiglia': 'LC',
+                          'status': 503,
+                          'titolo': 'Ciclo di vita temporaneamente non disponibile',
+                          'descrizione': 'Il database non ha risposto.',
+                          'azione': 'Riprovare tra poco.',
+                          'esito': 'ERRORE',
+                          'ritentabile': True,
+                          'retry_after': 30},
+            'LC-422-RICHIESTA-FIRMATA': {'famiglia': 'LC',
+                                         'status': 422,
+                                         'titolo': 'Richiesta di annullamento firmata mancante o '
+                                                   'non pertinente',
+                                         'descrizione': "L'ente richiede la richiesta di "
+                                                        'annullamento firmata '
+                                                        '(ANNULLAMENTO_RICHIESTA_FIRMATA = '
+                                                        'OBBLIGATORIA) o il documento firmato non '
+                                                        "riporta l'identificativo del versamento "
+                                                        '(R08, D22).',
+                                         'azione': 'Allegare in `documento_firmato` la richiesta '
+                                                   "firmata che cita l'identificativo del "
+                                                   'versamento.',
+                                         'esito': 'NON_VALIDO',
+                                         'ritentabile': False},
+            'LC-503-FIRME': {'famiglia': 'LC',
+                             'status': 503,
+                             'titolo': 'Verifica delle firme non disponibile',
+                             'descrizione': 'Il verificatore delle firme (servizio verifica-firme '
+                                            'o ripiego) non ha risposto; nulla è stato registrato.',
+                             'azione': 'Riprovare tra poco.',
+                             'esito': 'ERRORE',
+                             'ritentabile': True,
+                             'retry_after': 60},
+            'LC-503-STORAGE': {'famiglia': 'LC',
+                               'status': 503,
+                               'titolo': 'Storage conservativo non disponibile',
+                               'descrizione': 'La scrittura nel WORM non è riuscita; nulla è stato '
+                                              'registrato.',
+                               'azione': 'Riprovare tra poco.',
+                               'esito': 'ERRORE',
+                               'ritentabile': True,
+                               'retry_after': 60},
+            'LC-422-IMPRONTA': {'famiglia': 'LC',
+                                'status': 422,
+                                'titolo': 'Impronta del file ricevuto cambiata',
+                                'descrizione': "Durante l'invio al gateway l'impronta di un file "
+                                               'del PdD ricevuto non corrisponde a quella '
+                                               'verificata.',
+                                'azione': 'Verificare il PdD ricevuto e ripetere il riversamento.',
+                                'esito': 'NON_VALIDO',
+                                'ritentabile': False,
+                                'contesto': 'asincrono'},
+            'LC-500-LAVORATORE': {'famiglia': 'LC',
+                                  'status': 500,
+                                  'titolo': 'Errore interno del lavoratore del ciclo di vita',
+                                  'descrizione': 'Il passo della pratica è terminato con '
+                                                 "un'eccezione non prevista; la pratica sarà "
+                                                 'ripresa.',
+                                  'azione': "Segnalare al conservatore se l'errore persiste.",
+                                  'esito': 'ERRORE',
+                                  'ritentabile': True,
+                                  'contesto': 'asincrono'},
+            'LC-403-CONFERMA': {'famiglia': 'LC',
+                                'status': 403,
+                                'titolo': 'Conferma firmata della decisione richiesta',
+                                'descrizione': 'Questa decisione (approvazione o esecuzione di uno '
+                                               'scarto, esecuzione di un riversamento in uscita, '
+                                               'richiesta o approvazione di un annullamento, '
+                                               'rettifica, ripresa di una pratica sospesa) '
+                                               'richiede la conferma firmata dal gateway dopo una '
+                                               "conferma dell'identità recente; manca, è scaduta, "
+                                               'è già stata usata o non corrisponde alla pratica, '
+                                               'alla versione o al contenuto deciso. Con una '
+                                               'chiave API non si può ottenere.',
+                                'azione': 'Ripetere la decisione dalla console confermando la '
+                                          'propria identità quando richiesto.',
+                                'esito': 'RIFIUTATO',
+                                'ritentabile': False},
+            'LC-503-CONFERMA': {'famiglia': 'LC',
+                                'status': 503,
+                                'titolo': 'Verifica delle conferme non disponibile',
+                                'descrizione': 'Le chiavi pubbliche del gateway per verificare le '
+                                               'conferme delle decisioni non sono configurate: '
+                                               'nessuna decisione sensibile si registra '
+                                               '(fail-closed).',
+                                'azione': "Segnalare all'operatore dell'infrastruttura: "
+                                          'CONFERME_CHIAVI_PUBBLICHE nella configurazione di '
+                                          'ciclo-vita (runbook conferme_decisione).',
+                                'esito': 'ERRORE',
+                                'ritentabile': True,
+                                'retry_after': 60},
+            'LC-409-AUTORIZZAZIONI': {'famiglia': 'LC',
+                                      'status': 409,
+                                      'titolo': 'Autorizzazioni dello scarto non verificate',
+                                      'descrizione': 'Prima di cancellare, il lavoratore ha '
+                                                     'ricontrollato da sé la catena delle '
+                                                     'autorizzazioni della pratica di scarto '
+                                                     '(cronologia completa e continua, nulla osta '
+                                                     'della Soprintendenza per le pubbliche '
+                                                     'amministrazioni, autorizzazione del '
+                                                     'produttore e nulla osta presenti nello '
+                                                     "storage conservativo con l'impronta "
+                                                     'registrata, piano approvato) e qualcosa non '
+                                                     'torna (elenco in `ultimo_errore.difetti`). '
+                                                     'Nessun documento è stato cancellato e la '
+                                                     'pratica non ha più lavoro.',
+                                      'azione': 'Segnalare al conservatore: anomalia di sicurezza '
+                                                'da verificare (runbook scarto_incompleto, § '
+                                                'autorizzazioni non verificate). La pratica si può '
+                                                'respingere.',
+                                      'esito': 'RIFIUTATO',
+                                      'ritentabile': False,
+                                      'contesto': 'asincrono'},
+            'LC-409-TENTATIVI-ESAURITI': {'famiglia': 'LC',
+                                          'status': 409,
+                                          'titolo': 'Lavoro della pratica sospeso dopo troppi '
+                                                    'tentativi',
+                                          'descrizione': 'Il lavoratore ha fallito il passo della '
+                                                         'pratica per '
+                                                         '`LAVORATORE_TENTATIVI_MASSIMI` volte di '
+                                                         'seguito (registro, gateway, distribution '
+                                                         'o storage che rifiutano sempre, oppure '
+                                                         'un difetto): il lavoro è stato tolto e '
+                                                         'la pratica è ferma in uno stato di '
+                                                         "errore esplicito, con l'ultimo errore in "
+                                                         '`ultimo_errore.ultimo` e il lavoro '
+                                                         'sospeso in '
+                                                         '`ultimo_errore.lavoro_sospeso`. Nessun '
+                                                         'nuovo tentativo automatico; ciò che era '
+                                                         'già stato fatto resta registrato.',
+                                          'azione': 'Segnalare al conservatore: corretta la causa, '
+                                                    'la pratica si riprende con la procedura del '
+                                                    'runbook pratica_sospesa (allarme '
+                                                    "PraticaSospesa). Se l'esecuzione non era "
+                                                    'ancora iniziata, la pratica si può anche '
+                                                    'respingere.',
+                                          'esito': 'ERRORE',
+                                          'ritentabile': False,
+                                          'contesto': 'asincrono'},
+            'LC-409-NON-SOSPESA': {'famiglia': 'LC',
+                                   'status': 409,
+                                   'titolo': 'Pratica non sospesa',
+                                   'descrizione': 'Si è chiesto di riprendere una pratica che non '
+                                                  'è sospesa dopo i tentativi esauriti '
+                                                  '(`LC-409-TENTATIVI-ESAURITI`): ha ancora il suo '
+                                                  'lavoro, oppure non ne ha mai avuto uno sospeso.',
+                                   'azione': 'Ricaricare la pratica e controllarne lo stato.',
+                                   'esito': 'RIFIUTATO',
+                                   'ritentabile': False},
+            'LC-503-REGISTRO': {'famiglia': 'LC',
+                                'status': 503,
+                                'titolo': 'Registro delle impronte non disponibile',
+                                'descrizione': 'La foglia del ciclo di vita non è stata accettata '
+                                               'dal registro (servizio irraggiungibile o non '
+                                               'configurato); il passo sarà ripetuto.',
+                                'azione': 'Nessuna azione: la pratica riprende da sola.',
+                                'esito': 'ERRORE',
+                                'ritentabile': True,
+                                'contesto': 'asincrono'},
+            'LC-503-GATEWAY': {'famiglia': 'LC',
+                               'status': 503,
+                               'titolo': 'Gateway non disponibile per il versamento',
+                               'descrizione': 'Il versamento della rettifica o del riversamento '
+                                              'non è riuscito per un errore temporaneo o di '
+                                              'configurazione; il passo sarà ripetuto.',
+                               'azione': 'Nessuna azione: la pratica riprende da sola.',
+                               'esito': 'ERRORE',
+                               'ritentabile': True,
+                               'contesto': 'asincrono'},
+            'LC-503-DISTRIBUTION': {'famiglia': 'LC',
+                                    'status': 503,
+                                    'titolo': 'Distribution non disponibile per i pacchetti di '
+                                              'migrazione',
+                                    'descrizione': 'La richiesta dei PdD MIGRAZIONE non è riuscita '
+                                                   'per un errore temporaneo o di configurazione; '
+                                                   'il passo sarà ripetuto.',
+                                    'azione': 'Nessuna azione: la pratica riprende da sola.',
+                                    'esito': 'ERRORE',
+                                    'ritentabile': True,
+                                    'contesto': 'asincrono'},
+            'LC-503-LAVORATORE': {'famiglia': 'LC',
+                                  'status': 503,
+                                  'titolo': 'Passo della pratica rinviato',
+                                  'descrizione': 'Un sistema esterno o lo storage non ha risposto; '
+                                                 "il passo sarà ripetuto dopo l'attesa prevista.",
+                                  'azione': 'Nessuna azione: la pratica riprende da sola.',
+                                  'esito': 'ERRORE',
+                                  'ritentabile': True,
+                                  'contesto': 'asincrono'},
+            'HC-403': {'famiglia': 'HC',
+                       'status': 403,
+                       'titolo': 'Ruolo non autorizzato alla verifica della catena',
+                       'descrizione': 'La verifica completa della catena è riservata ai ruoli del '
+                                      'conservatore.',
+                       'azione': 'Chiedere la verifica a un responsabile del conservatore.',
+                       'esito': 'RIFIUTATO',
+                       'ritentabile': False},
+            'HC-404': {'famiglia': 'HC',
+                       'status': 404,
+                       'titolo': 'Verifica non trovata',
+                       'descrizione': 'La verifica della catena indicata non esiste.',
+                       'azione': "Verificare l'identificativo.",
+                       'esito': 'NON_VALIDO',
+                       'ritentabile': False},
+            'HC-409': {'famiglia': 'HC',
+                       'status': 409,
+                       'titolo': 'Verifica già in corso',
+                       'descrizione': 'Una verifica completa della catena è già in esecuzione.',
+                       'azione': 'Attendere la fine della verifica in corso.',
+                       'esito': 'ERRORE',
+                       'ritentabile': True},
+            'HC-503': {'famiglia': 'HC',
+                       'status': 503,
+                       'titolo': 'Catena temporaneamente non disponibile',
+                       'descrizione': 'Il database della catena non ha risposto.',
+                       'azione': 'Riprovare tra poco.',
+                       'esito': 'ERRORE',
+                       'ritentabile': True,
+                       'retry_after': 30},
+            'CAT-400-CURSORE': {'famiglia': 'CAT',
+                                'status': 400,
+                                'titolo': 'Cursore non valido',
+                                'descrizione': 'Il cursore indicato non è stato prodotto da questo '
+                                               'elenco del registro (allarmi).',
+                                'azione': 'Ripartire dalla prima pagina, senza cursore.',
+                                'esito': 'NON_VALIDO',
+                                'ritentabile': False},
+            'CAT-403': {'famiglia': 'CAT',
+                        'status': 403,
+                        'titolo': 'Lettura del registro non autorizzata',
+                        'descrizione': 'Le foglie del registro sono riservate ai ruoli del '
+                                       'conservatore e ai token di servizio con lo scope di '
+                                       'lettura del registro (testimone, verificatori).',
+                        'azione': "Usare un'utenza del conservatore o il token di servizio "
+                                  'previsto.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'CAT-404': {'famiglia': 'CAT',
+                        'status': 404,
+                        'titolo': 'Elemento del registro non trovato',
+                        'descrizione': 'Il checkpoint, il PdA o il documento indicati non esistono '
+                                       '(o il PdA appartiene a un altro ente).',
+                        'azione': 'Verificare URN del PdA, identificativo del documento e '
+                                  'dimensione del checkpoint.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'CAT-409': {'famiglia': 'CAT',
+                        'status': 409,
+                        'titolo': 'PdA non ancora coperto da un checkpoint',
+                        'descrizione': 'Il PdA non è ancora nel registro oppure è stato aggiunto '
+                                       'dopo il checkpoint richiesto.',
+                        'azione': 'Riprovare dopo il prossimo checkpoint (cadenza '
+                                  'CATENA_CHECKPOINT_SECONDI) o chiedere la prova rispetto '
+                                  "all'ultimo checkpoint.",
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 60},
+            'CAT-409-RISCONTRO': {'famiglia': 'CAT',
+                                  'status': 409,
+                                  'titolo': 'Foglia del ciclo di vita senza riscontro',
+                                  'descrizione': 'Il registro aggiunge una foglia di scarto, '
+                                                 'annullamento o rettifica solo se il fatto '
+                                                 'risulta dal database: pratica del tipo indicato, '
+                                                 'dello stesso ente del PdA, nello stato in cui la '
+                                                 'foglia si chiede, e PdA (o PdV) nello stato '
+                                                 'atteso (scarto: oggetto ELIMINATO e PdA in '
+                                                 'ELIMINAZIONE; annullamento: PdV ANNULLATO), con '
+                                                 'il fatto di esecuzione scritto dal lavoratore di '
+                                                 'ciclo-vita (scarto: PdA eliminato; annullamento: '
+                                                 "atto archiviato con l'impronta della foglia; "
+                                                 'rettifica: PdV di rettifica versato, R06).',
+                                  'azione': 'Verificare la pratica indicata in riferimento.pratica '
+                                            'e lo stato del PdA; il servizio ciclo-vita chiede la '
+                                            'foglia solo dopo aver registrato il fatto.',
+                                  'esito': 'RIFIUTATO',
+                                  'ritentabile': False},
+            'CAT-422': {'famiglia': 'CAT',
+                        'status': 422,
+                        'titolo': 'Dimensioni del registro non valide',
+                        'descrizione': 'La prova di consistenza richiede 0 ≤ da ≤ a ≤ dimensione '
+                                       "dell'ultimo checkpoint.",
+                        'azione': 'Indicare dimensioni di checkpoint emessi.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'CAT-503': {'famiglia': 'CAT',
+                        'status': 503,
+                        'titolo': 'Registro temporaneamente non disponibile',
+                        'descrizione': 'Il database del registro non ha risposto.',
+                        'azione': 'Riprovare tra poco.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'CAT-WORM-DIVERSO': {'famiglia': 'CAT',
+                                 'status': 500,
+                                 'titolo': 'Oggetto del registro diverso nello storage '
+                                           'conservativo',
+                                 'descrizione': 'Un oggetto del registro delle impronte '
+                                                '(checkpoint, segmento di foglie, albero del PdA o '
+                                                'RdV) è già presente nello storage conservativo '
+                                                'con un contenuto diverso; nulla è stato '
+                                                'sovrascritto ed è stato registrato un allarme di '
+                                                'integrità.',
+                                 'azione': 'Nessuna per il cliente; il conservatore indaga '
+                                           "l'allarme di integrità.",
+                                 'esito': 'ERRORE',
+                                 'ritentabile': False},
+            'DST-101': {'famiglia': 'DST',
+                        'status': 422,
+                        'titolo': 'Pacchetto non distribuibile',
+                        'descrizione': 'Lo stato del pacchetto non ne consente la distribuzione.',
+                        'azione': 'Attendere che il pacchetto sia conservato.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'DST-102': {'famiglia': 'DST',
+                        'status': 400,
+                        'titolo': 'File richiesti mancanti',
+                        'descrizione': "Una distribuzione di tipo ESTRATTO richiede l'elenco dei "
+                                       'file.',
+                        'azione': 'Indicare `file_richiesti` e reinviare.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'DST-403': {'famiglia': 'DST',
+                        'status': 403,
+                        'titolo': 'Richiesta non attribuibile',
+                        'descrizione': "Il token non indica l'utente che richiede la "
+                                       'distribuzione.',
+                        'azione': 'Usare un token emesso per un utente.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'DST-404': {'famiglia': 'DST',
+                        'status': 404,
+                        'titolo': 'Pacchetto non trovato',
+                        'descrizione': 'Il pacchetto o la richiesta non esistono o non '
+                                       'appartengono al cliente.',
+                        'azione': "Verificare l'identificativo.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'DST-422': {'famiglia': 'DST',
+                        'status': 422,
+                        'titolo': 'Richiesta di distribuzione non valida',
+                        'descrizione': 'Un identificativo o un campo della richiesta non è valido.',
+                        'azione': 'Correggere il campo indicato e reinviare.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'DST-503': {'famiglia': 'DST',
+                        'status': 503,
+                        'titolo': 'Distribuzione temporaneamente non disponibile',
+                        'descrizione': "Il registro o l'indice di ricerca non hanno risposto.",
+                        'azione': 'Riprovare tra poco.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'DST-ENTE': {'famiglia': 'DST',
+                         'status': 403,
+                         'titolo': 'Ente non valido',
+                         'descrizione': 'Il token non indica un ente valido oppure `tenant_id` non '
+                                        'è valido.',
+                         'azione': 'Indicare un ente valido.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'DST-103': {'famiglia': 'DST',
+                        'status': 422,
+                        'titolo': 'File richiesti non presenti nel pacchetto',
+                        'descrizione': 'Uno o più nomi di `file_richiesti` non corrispondono a '
+                                       'documenti del pacchetto di archiviazione.',
+                        'azione': 'Indicare i nomi dei file come compaiono nel pacchetto (elenco '
+                                  'in `dettagli.disponibili`).',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'DST-104': {'famiglia': 'DST',
+                        'status': 422,
+                        'titolo': 'Cursore di ricerca non valido',
+                        'descrizione': 'Il cursore indicato non è stato emesso da questa ricerca o '
+                                       'è stato alterato.',
+                        'azione': 'Ripartire dalla prima pagina senza cursore e usare il `cursore` '
+                                  'restituito.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'DST-410': {'famiglia': 'DST',
+                        'status': 410,
+                        'titolo': 'Pacchetto di distribuzione scaduto',
+                        'descrizione': 'I collegamenti del pacchetto di distribuzione sono scaduti '
+                                       'o il pacchetto è stato rimosso dallo storage temporaneo.',
+                        'azione': 'Richiedere un nuovo pacchetto di distribuzione.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'DST-409': {'famiglia': 'DST',
+                        'status': 409,
+                        'titolo': 'Pacchetto di distribuzione non rigenerabile',
+                        'descrizione': 'R07 (D18): si rigenera solo un pacchetto scaduto (stato '
+                                       'SCADUTO o PRONTO oltre la scadenza); lo stato attuale è in '
+                                       '`dettagli.stato`.',
+                        'azione': 'Scaricare il pacchetto ancora valido o attendere che sia '
+                                  'pronto.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'DST-502': {'famiglia': 'DST',
+                        'status': 502,
+                        'titolo': 'Impronta di un file del pacchetto non corrispondente',
+                        'descrizione': "Un file letto dallo storage non corrisponde all'impronta "
+                                       'registrata alla conservazione; il pacchetto non è stato '
+                                       "consegnato e l'anomalia è registrata.",
+                        'azione': "Segnalare al conservatore indicando l'identificativo della "
+                                  'richiesta.',
+                        'esito': 'ERRORE',
+                        'ritentabile': False},
+            'FSC-401': {'famiglia': 'FSC',
+                        'status': 401,
+                        'titolo': 'Autenticazione richiesta',
+                        'descrizione': 'I fascicoli richiedono un token JWT.',
+                        'azione': 'Inviare un token Bearer.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'FSC-403': {'famiglia': 'FSC',
+                        'status': 403,
+                        'titolo': 'Cliente non indicato',
+                        'descrizione': 'Il token non indica un cliente.',
+                        'azione': 'Usare un token emesso per un utente di un ente.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'FSC-403-RUOLO': {'famiglia': 'FSC',
+                              'status': 403,
+                              'titolo': 'Profilo non abilitato alla modifica dei fascicoli',
+                              'descrizione': 'Il profilo può consultare i fascicoli ma non crearli '
+                                             'o modificarli.',
+                              'azione': "Chiedere l'operazione a un utente abilitato.",
+                              'esito': 'RIFIUTATO',
+                              'ritentabile': False},
+            'FSC-404': {'famiglia': 'FSC',
+                        'status': 404,
+                        'titolo': 'Fascicolo non trovato',
+                        'descrizione': 'Il fascicolo non esiste o non appartiene al cliente.',
+                        'azione': "Verificare l'identificativo.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'FSC-405': {'famiglia': 'FSC',
+                        'status': 404,
+                        'titolo': 'Pacchetto non trovato',
+                        'descrizione': 'Il pacchetto da aggiungere al fascicolo non esiste o non '
+                                       'appartiene al cliente.',
+                        'azione': "Verificare l'identificativo del pacchetto.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'FSC-409': {'famiglia': 'FSC',
+                        'status': 409,
+                        'titolo': 'Operazione in conflitto con lo stato del fascicolo',
+                        'descrizione': 'Codice già usato, fascicolo non aperto o pacchetto già '
+                                       'presente.',
+                        'azione': 'Leggere il motivo nel titolo e correggere la richiesta.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'FSC-422-RESPONSABILE': {'famiglia': 'FSC',
+                                     'status': 422,
+                                     'titolo': 'Responsabile non valido',
+                                     'descrizione': 'Il responsabile deve essere un utente attivo '
+                                                    'dello stesso ente.',
+                                     'azione': "Indicare un utente attivo dell'ente.",
+                                     'esito': 'NON_VALIDO',
+                                     'ritentabile': False},
+            'FSC-400-CURSORE': {'famiglia': 'FSC',
+                                'status': 400,
+                                'titolo': 'Cursore non valido',
+                                'descrizione': "Il cursore non appartiene all'elenco dei fascicoli "
+                                               'o è illeggibile.',
+                                'azione': 'Ripartire dalla prima pagina senza cursore.',
+                                'esito': 'NON_VALIDO',
+                                'ritentabile': False},
+            'FSC-422-CHIUSURA': {'famiglia': 'FSC',
+                                 'status': 422,
+                                 'titolo': 'Data di chiusura non valida',
+                                 'descrizione': "La data di chiusura è precedente all'apertura del "
+                                                'fascicolo o futura.',
+                                 'azione': "Indicare una data fra l'apertura e oggi.",
+                                 'esito': 'NON_VALIDO',
+                                 'ritentabile': False},
+            'FSC-503': {'famiglia': 'FSC',
+                        'status': 503,
+                        'titolo': 'Fascicoli temporaneamente non disponibili',
+                        'descrizione': 'Il database non ha risposto.',
+                        'azione': 'Riprovare tra poco.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'MIG-101': {'famiglia': 'MIG',
+                        'status': 422,
+                        'titolo': 'Pacchetto non migrabile',
+                        'descrizione': 'Lo stato del pacchetto non ne consente la migrazione.',
+                        'azione': 'Attendere che il pacchetto sia conservato.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'MIG-401': {'famiglia': 'MIG',
+                        'status': 401,
+                        'titolo': 'Autenticazione richiesta',
+                        'descrizione': 'La migrazione richiede un token JWT.',
+                        'azione': 'Inviare un token Bearer.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'MIG-403': {'famiglia': 'MIG',
+                        'status': 403,
+                        'titolo': 'Ruolo non autorizzato alla migrazione',
+                        'descrizione': 'Solo i ruoli del conservatore possono migrare pacchetti.',
+                        'azione': "Chiedere l'operazione a un responsabile del conservatore.",
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'MIG-404': {'famiglia': 'MIG',
+                        'status': 404,
+                        'titolo': 'Pacchetto o job non trovato',
+                        'descrizione': 'Il pacchetto o il job di migrazione non esistono.',
+                        'azione': "Verificare l'identificativo.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'MIG-422': {'famiglia': 'MIG',
+                        'status': 422,
+                        'titolo': 'Identificativo del pacchetto non valido',
+                        'descrizione': "Uno o più identificativi non sono UUID; l'elenco è in "
+                                       '`dettagli.non_validi`.',
+                        'azione': 'Correggere gli identificativi e reinviare.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'MIG-503': {'famiglia': 'MIG',
+                        'status': 503,
+                        'titolo': 'Migrazione temporaneamente non disponibile',
+                        'descrizione': 'Il database non ha risposto.',
+                        'azione': 'Riprovare tra poco.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'DL-400': {'famiglia': 'DL',
+                       'status': 400,
+                       'titolo': 'Ente non valido',
+                       'descrizione': 'Il parametro `tenant_id` non è valido.',
+                       'azione': "Indicare un identificativo d'ente valido.",
+                       'esito': 'NON_VALIDO',
+                       'ritentabile': False},
+            'DL-401': {'famiglia': 'DL',
+                       'status': 401,
+                       'titolo': 'Autenticazione richiesta',
+                       'descrizione': 'Lo scaricamento richiede un token JWT.',
+                       'azione': 'Inviare un token Bearer.',
+                       'esito': 'NON_VALIDO',
+                       'ritentabile': False},
+            'DL-403': {'famiglia': 'DL',
+                       'status': 403,
+                       'titolo': 'Cliente non indicato',
+                       'descrizione': 'Il token non indica un cliente.',
+                       'azione': 'Usare un token emesso per un utente di un ente.',
+                       'esito': 'RIFIUTATO',
+                       'ritentabile': False},
+            'DL-403-CONTENUTO': {'famiglia': 'DL',
+                                 'status': 403,
+                                 'titolo': 'Contenuto di un altro ente non accessibile',
+                                 'descrizione': 'Anche i profili del conservatore leggono solo i '
+                                                'metadati dei pacchetti di altri enti.',
+                                 'azione': 'Scaricare solo i contenuti del proprio ente.',
+                                 'esito': 'RIFIUTATO',
+                                 'ritentabile': False},
+            'DL-404': {'famiglia': 'DL',
+                       'status': 404,
+                       'titolo': 'Pacchetto o file non trovato',
+                       'descrizione': 'Il pacchetto, il PdV o il file richiesto non esistono.',
+                       'azione': "Verificare l'identificativo.",
+                       'esito': 'NON_VALIDO',
+                       'ritentabile': False},
+            'DL-404-RDV': {'famiglia': 'DL',
+                           'status': 404,
+                           'titolo': 'Rapporto di versamento non ancora disponibile',
+                           'descrizione': 'Il rapporto si emette dopo il sigillo nella catena '
+                                          'delle impronte.',
+                           'azione': 'Riprovare quando il pacchetto è conservato.',
+                           'esito': 'ERRORE',
+                           'ritentabile': True},
+            'DL-502': {'famiglia': 'DL',
+                       'status': 502,
+                       'titolo': 'Archivio non disponibile',
+                       'descrizione': 'Lo storage non ha restituito il contenuto richiesto.',
+                       'azione': "Riprovare tra poco; se persiste segnalare l'identificativo della "
+                                 'richiesta.',
+                       'esito': 'ERRORE',
+                       'ritentabile': True},
+            'DL-502-IMPRONTA': {'famiglia': 'DL',
+                                'status': 502,
+                                'titolo': 'Contenuto non integro',
+                                'descrizione': "Il contenuto letto non corrisponde all'impronta "
+                                               'registrata.',
+                                'azione': "Segnalare al conservatore indicando l'identificativo "
+                                          'della richiesta.',
+                                'esito': 'ERRORE',
+                                'ritentabile': False},
+            'DL-503': {'famiglia': 'DL',
+                       'status': 503,
+                       'titolo': 'Scaricamento temporaneamente non disponibile',
+                       'descrizione': 'Il database non ha risposto.',
+                       'azione': 'Riprovare tra poco.',
+                       'esito': 'ERRORE',
+                       'ritentabile': True,
+                       'retry_after': 30},
+            'DSH-400': {'famiglia': 'DSH',
+                        'status': 400,
+                        'titolo': 'Ente non valido',
+                        'descrizione': 'Il parametro `tenant_id` non è valido.',
+                        'azione': "Indicare un identificativo d'ente valido.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'DSH-400-ENTE': {'famiglia': 'DSH',
+                             'status': 400,
+                             'titolo': 'Ente da indicare',
+                             'descrizione': "Il profilo deve indicare l'ente su cui operare.",
+                             'azione': 'Indicare `tenant_id`.',
+                             'esito': 'NON_VALIDO',
+                             'ritentabile': False},
+            'DSH-104': {'famiglia': 'DSH',
+                        'status': 422,
+                        'titolo': 'Cursore non valido',
+                        'descrizione': 'Il cursore indicato non è stato emesso da questo elenco o '
+                                       'è stato alterato.',
+                        'azione': 'Ripartire dalla prima pagina senza cursore e usare il `cursore` '
+                                  'restituito.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'DSH-422': {'famiglia': 'DSH',
+                        'status': 422,
+                        'titolo': 'Parametro non valido',
+                        'descrizione': 'Un parametro della richiesta non è valido.',
+                        'azione': 'Correggere il parametro indicato.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'DSH-502': {'famiglia': 'DSH',
+                        'status': 502,
+                        'titolo': 'Servizio interno non disponibile',
+                        'descrizione': 'Un servizio interno non è raggiungibile o ha risposto con '
+                                       'un errore.',
+                        'azione': "Riprovare tra poco; se persiste segnalare l'identificativo "
+                                  'della richiesta.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True},
+            'DSH-503': {'famiglia': 'DSH',
+                        'status': 503,
+                        'titolo': 'Dati temporaneamente non disponibili',
+                        'descrizione': 'Il database non ha risposto.',
+                        'azione': 'Riprovare tra poco.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'DSH-UPSTREAM': {'famiglia': 'DSH',
+                             'status': 400,
+                             'titolo': 'Richiesta rifiutata da un servizio interno',
+                             'descrizione': 'Il servizio interno ha rifiutato la richiesta senza '
+                                            'un codice leggibile.',
+                             'azione': 'Verificare la richiesta; se persiste segnalare '
+                                       "l'identificativo della richiesta.",
+                             'esito': 'NON_VALIDO',
+                             'ritentabile': False},
+            'GOV-UUID': {'famiglia': 'GOV',
+                         'status': 400,
+                         'titolo': 'Identificativo non valido',
+                         'descrizione': "L'identificativo indicato (ente, cliente) non è un UUID "
+                                        'valido.',
+                         'azione': "Correggere l'identificativo.",
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'GOV-404': {'famiglia': 'GOV',
+                        'status': 404,
+                        'titolo': 'Cliente non trovato',
+                        'descrizione': 'Il cliente indicato non esiste.',
+                        'azione': "Verificare l'identificativo.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'GOV-409': {'famiglia': 'GOV',
+                        'status': 409,
+                        'titolo': 'Registrazione in conflitto',
+                        'descrizione': 'Il dato è già registrato (es. numero di contratto) o è in '
+                                       'corso una registrazione concorrente.',
+                        'azione': 'Ricaricare i dati e verificare prima di ripetere.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'GOV-409-FIRMA': {'famiglia': 'GOV',
+                              'status': 409,
+                              'titolo': 'Documento non firmabile',
+                              'descrizione': 'Il documento non è più da firmare (firmato, '
+                                             "annullato) o la firma spetta a un'altra persona.",
+                              'azione': "Ricaricare l'elenco dei documenti da firmare.",
+                              'esito': 'RIFIUTATO',
+                              'ritentabile': False},
+            'GOV-422-FIRMA': {'famiglia': 'GOV',
+                              'status': 422,
+                              'titolo': 'Documento da firmare non valido',
+                              'descrizione': 'Tipo, titolo, nome o contenuto del documento da '
+                                             'firmare non sono validi (tipo in maiuscolo, '
+                                             'contenuto non vuoto entro il limite).',
+                              'azione': 'Correggere i campi indicati.',
+                              'esito': 'NON_VALIDO',
+                              'ritentabile': False},
+            'GOV-502-FIRMA': {'famiglia': 'GOV',
+                              'status': 502,
+                              'titolo': 'Firma restituita non coerente',
+                              'descrizione': 'Il servizio di firma ha restituito una busta che non '
+                                             'corrisponde al documento o alla credenziale della '
+                                             'persona: non si registra.',
+                              'azione': 'Riprovare; se persiste, segnalare al conservatore.',
+                              'esito': 'ERRORE',
+                              'ritentabile': True},
+            'GOV-503': {'famiglia': 'GOV',
+                        'status': 503,
+                        'titolo': 'Dati di governo temporaneamente non disponibili',
+                        'descrizione': 'Il database non ha risposto.',
+                        'azione': 'Riprovare tra poco.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'SLA-422': {'famiglia': 'SLA',
+                        'status': 422,
+                        'titolo': 'Mese non valido',
+                        'descrizione': 'Il mese deve essere nel formato AAAA-MM.',
+                        'azione': 'Correggere il parametro.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'SLA-503': {'famiglia': 'SLA',
+                        'status': 503,
+                        'titolo': 'Rapporto non disponibile',
+                        'descrizione': 'Il database non ha risposto.',
+                        'azione': 'Riprovare tra poco.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'SIG-401': {'famiglia': 'SIG',
+                        'status': 401,
+                        'titolo': 'Autenticazione richiesta',
+                        'descrizione': 'Il servizio di firma richiede un token JWT.',
+                        'azione': 'Inviare un token Bearer.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'SIG-403': {'famiglia': 'SIG',
+                        'status': 403,
+                        'titolo': 'Operazione riservata al token di servizio',
+                        'descrizione': 'Firma e marca sono riservate ai servizi interni con lo '
+                                       'scope dedicato.',
+                        'azione': 'Usare il token di servizio.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'SIG-413': {'famiglia': 'SIG',
+                        'status': 413,
+                        'titolo': 'Contenuto troppo grande',
+                        'descrizione': 'Il contenuto supera la dimensione massima ammessa dal '
+                                       'servizio di firma.',
+                        'azione': "Firmare l'impronta invece del contenuto.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'SIG-422-BASE64': {'famiglia': 'SIG',
+                               'status': 422,
+                               'titolo': 'Contenuto non in base64',
+                               'descrizione': 'Un campo non è codificato in base64 valido.',
+                               'azione': 'Codificare il campo in base64 standard.',
+                               'esito': 'NON_VALIDO',
+                               'ritentabile': False},
+            'SIG-422-IMPRONTA': {'famiglia': 'SIG',
+                                 'status': 422,
+                                 'titolo': 'Impronta non valida',
+                                 'descrizione': "L'impronta manca, non è esadecimale o non è di 32 "
+                                                'byte.',
+                                 'azione': "Indicare un'impronta SHA-256 esadecimale o il "
+                                           'contenuto.',
+                                 'esito': 'NON_VALIDO',
+                                 'ritentabile': False},
+            'FIRMA-500': {'famiglia': 'FIRMA',
+                          'status': 500,
+                          'titolo': 'Errore del servizio di firma',
+                          'descrizione': 'Errore non classificato del servizio di firma.',
+                          'azione': "Segnalare al conservatore indicando l'identificativo della "
+                                    'richiesta.',
+                          'esito': 'ERRORE',
+                          'ritentabile': False},
+            'FIRMA-503-CONFIGURAZIONE': {'famiglia': 'FIRMA',
+                                         'status': 503,
+                                         'titolo': 'Configurazione dei fornitori non disponibile',
+                                         'descrizione': 'Il servizio di firma non riesce a leggere '
+                                                        'il registro dei fornitori o i parametri '
+                                                        '(database non raggiungibile o segreti non '
+                                                        'leggibili).',
+                                         'azione': 'Ritentare più tardi; se persiste, controllare '
+                                                   'il database e il Secret del servizio di firma.',
+                                         'esito': 'ERRORE',
+                                         'ritentabile': True},
+            'FIRMA-502-FIRMA-NON-VALIDA': {'famiglia': 'FIRMA',
+                                           'status': 502,
+                                           'titolo': 'Firma prodotta non valida',
+                                           'descrizione': 'La firma o la marca restituita dal '
+                                                          'fornitore non supera la verifica '
+                                                          'crittografica (impronta, firma, catena '
+                                                          'o certificato atteso) e non si usa.',
+                                           'azione': 'Ritentare; se persiste, controllare il '
+                                                     'fornitore e le radici configurate in '
+                                                     'console.',
+                                           'esito': 'ERRORE',
+                                           'ritentabile': True},
+            'FIRMA-404-FORNITORE': {'famiglia': 'FIRMA',
+                                    'status': 404,
+                                    'titolo': 'Fornitore di firma non registrato',
+                                    'descrizione': 'Nessun fornitore di firma o marca con il '
+                                                   'codice indicato.',
+                                    'azione': 'Controllare il codice nella pagina «Fornitori di '
+                                              'firma e marca».',
+                                    'esito': 'NON_VALIDO',
+                                    'ritentabile': False},
+            'FIRMA-403-FORNITORI': {'famiglia': 'FIRMA',
+                                    'status': 403,
+                                    'titolo': 'Operazione riservata al conservatore',
+                                    'descrizione': 'Registrare, modificare e provare i fornitori '
+                                                   'di firma e marca è un permesso mai delegabile '
+                                                   'dei ruoli del conservatore.',
+                                    'azione': 'Chiedere a un responsabile del conservatore.',
+                                    'esito': 'RIFIUTATO',
+                                    'ritentabile': False},
+            'FIRMA-422-CONFIGURAZIONE': {'famiglia': 'FIRMA',
+                                         'status': 422,
+                                         'titolo': 'Configurazione del fornitore non valida',
+                                         'descrizione': 'La configurazione del fornitore di firma '
+                                                        'o marca non è utilizzabile (campi '
+                                                        'mancanti, indirizzi, radici, segreti '
+                                                        'nella console, fornitore di sviluppo in '
+                                                        'produzione).',
+                                         'azione': 'Correggere i campi indicati nei motivi.',
+                                         'esito': 'NON_VALIDO',
+                                         'ritentabile': False},
+            'FIRMA-429-PROVA': {'famiglia': 'FIRMA',
+                                'status': 429,
+                                'titolo': 'Troppe prove di connessione',
+                                'descrizione': 'Le prove con firma di prova consumano firme del '
+                                               'prestatore e sono limitate.',
+                                'azione': 'Riprovare fra qualche minuto.',
+                                'esito': 'ERRORE',
+                                'ritentabile': True},
+            'FIRMA-503-NON-CONFIGURATA': {'famiglia': 'FIRMA',
+                                          'status': 503,
+                                          'titolo': 'Firma non configurata',
+                                          'descrizione': 'Nessun fornitore è configurato per '
+                                                         "l'operazione richiesta.",
+                                          'azione': 'Segnalare al conservatore.',
+                                          'esito': 'ERRORE',
+                                          'ritentabile': False},
+            'FIRMA-409-SVILUPPO-IN-PRODUZIONE': {'famiglia': 'FIRMA',
+                                                 'status': 409,
+                                                 'titolo': 'Adattatore di sviluppo vietato in '
+                                                           'produzione',
+                                                 'descrizione': "L'adattatore di sviluppo non può "
+                                                                'firmare né marcare in produzione.',
+                                                 'azione': 'Configurare un fornitore qualificato.',
+                                                 'esito': 'RIFIUTATO',
+                                                 'ritentabile': False},
+            'FIRMA-502-FORNITORE': {'famiglia': 'FIRMA',
+                                    'status': 502,
+                                    'titolo': 'Errore del fornitore di firma o marca',
+                                    'descrizione': 'Il fornitore remoto ha risposto con un errore '
+                                                   'o una risposta non valida.',
+                                    'azione': 'Riprovare più tardi.',
+                                    'esito': 'ERRORE',
+                                    'ritentabile': True},
+            'FIRMA-503-LIMITE': {'famiglia': 'FIRMA',
+                                 'status': 503,
+                                 'titolo': 'Limite di frequenza non verificabile',
+                                 'descrizione': 'Il contatore condiviso fra le repliche (Redis) '
+                                                'non ha risposto; le operazioni che consumano '
+                                                'firme del prestatore non partono senza il '
+                                                'controllo del limite.',
+                                 'azione': 'Riprovare tra poco; se persiste, controllare Redis.',
+                                 'esito': 'ERRORE',
+                                 'ritentabile': True},
+            'FIRMA-403-PERSONALE': {'famiglia': 'FIRMA',
+                                    'status': 403,
+                                    'titolo': 'Firma personale non consentita',
+                                    'descrizione': 'La firma personale con OTP è riservata alle '
+                                                   'persone del conservatore con una credenziale '
+                                                   'personale, con un accesso al portale (mai una '
+                                                   'chiave API o un token di servizio).',
+                                    'azione': 'Accedere con la propria utenza del conservatore.',
+                                    'esito': 'RIFIUTATO',
+                                    'ritentabile': False},
+            'FIRMA-404-CREDENZIALE': {'famiglia': 'FIRMA',
+                                      'status': 404,
+                                      'titolo': 'Nessuna credenziale di firma personale',
+                                      'descrizione': 'La persona non ha una credenziale di firma '
+                                                     'personale attiva, oppure il fornitore '
+                                                     'indicato non è un fornitore CSC attivo e '
+                                                     'costruito.',
+                                      'azione': 'Chiedere al conservatore di registrare la '
+                                                'credenziale personale (Console, Firma '
+                                                'qualificata).',
+                                      'esito': 'RIFIUTATO',
+                                      'ritentabile': False},
+            'FIRMA-422-OTP': {'famiglia': 'FIRMA',
+                              'status': 422,
+                              'titolo': 'OTP o PIN non accettato',
+                              'descrizione': 'Il prestatore ha rifiutato il codice monouso (OTP) o '
+                                             'il PIN della firma personale.',
+                              'azione': 'Chiedere un nuovo OTP e riprovare.',
+                              'esito': 'NON_VALIDO',
+                              'ritentabile': False},
+            'FIRMA-429-PERSONALE': {'famiglia': 'FIRMA',
+                                    'status': 429,
+                                    'titolo': 'Troppi tentativi di firma personale',
+                                    'descrizione': 'Le richieste di OTP e i tentativi di firma '
+                                                   'personale sono limitati per persona.',
+                                    'azione': 'Riprovare fra qualche minuto.',
+                                    'esito': 'ERRORE',
+                                    'ritentabile': True},
+            'FIRMA-422-RICHIESTA': {'famiglia': 'FIRMA',
+                                    'status': 422,
+                                    'titolo': 'Richiesta di firma non utilizzabile',
+                                    'descrizione': 'Il contenuto non è utilizzabile per '
+                                                   "l'operazione (es. non PDF per PAdES).",
+                                    'azione': 'Correggere il contenuto o il tipo di firma.',
+                                    'esito': 'NON_VALIDO',
+                                    'ritentabile': False},
+            'ONB-001': {'famiglia': 'ONB',
+                        'status': 409,
+                        'titolo': 'Cliente già registrato',
+                        'descrizione': 'Un cliente con lo stesso codice fiscale è già presente.',
+                        'azione': 'Usare il cliente esistente.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'ONB-201': {'famiglia': 'ONB',
+                        'status': 422,
+                        'titolo': 'Transizione di stato non ammessa',
+                        'descrizione': 'Il cambio di stato richiesto non è consentito dallo stato '
+                                       'attuale.',
+                        'azione': 'Usare una delle transizioni ammesse indicate nel dettaglio.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'ONB-202': {'famiglia': 'ONB',
+                        'status': 422,
+                        'titolo': 'Stato non valido',
+                        'descrizione': 'Lo stato indicato non esiste.',
+                        'azione': 'Usare uno dei valori ammessi indicati nel dettaglio.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'ONB-203': {'famiglia': 'ONB',
+                        'status': 422,
+                        'titolo': 'Filtro di stato non valido',
+                        'descrizione': 'Lo stato usato come filtro non esiste.',
+                        'azione': 'Usare uno dei valori ammessi.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'ONB-400': {'famiglia': 'ONB',
+                        'status': 400,
+                        'titolo': 'Richiesta non valida',
+                        'descrizione': 'Un parametro o il corpo della richiesta non sono validi.',
+                        'azione': 'Correggere la richiesta.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'ONB-404': {'famiglia': 'ONB',
+                        'status': 404,
+                        'titolo': 'Risorsa non trovata',
+                        'descrizione': 'Cliente, utente o chiave API non trovati.',
+                        'azione': "Verificare l'identificativo.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'ONB-409': {'famiglia': 'ONB',
+                        'status': 409,
+                        'titolo': 'Dato già registrato',
+                        'descrizione': 'Esiste già un utente con la stessa email o lo stesso '
+                                       "codice fiscale nell'ente.",
+                        'azione': "Usare l'utente esistente o correggere il dato.",
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'ONB-412': {'famiglia': 'ONB',
+                        'status': 409,
+                        'titolo': "Preferenze modificate da un'altra sessione",
+                        'descrizione': 'R07 (D31): la versione delle preferenze indicata non è '
+                                       'quella salvata; la versione attuale è in '
+                                       '`dettagli.versione`.',
+                        'azione': 'Rileggere le preferenze e ripetere il salvataggio.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'ONB-422': {'famiglia': 'ONB',
+                        'status': 422,
+                        'titolo': 'Dato non valido',
+                        'descrizione': 'Un campo obbligatorio è vuoto o non è valido.',
+                        'azione': 'Correggere il campo indicato.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'ONB-503': {'famiglia': 'ONB',
+                        'status': 503,
+                        'titolo': 'Servizio utenti temporaneamente non disponibile',
+                        'descrizione': 'Il database non ha risposto.',
+                        'azione': "Riprovare tra poco; se persiste segnalare l'identificativo "
+                                  'della richiesta.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'ONB-530': {'famiglia': 'ONB',
+                        'status': 503,
+                        'titolo': 'Generazione delle chiavi API non disponibile',
+                        'descrizione': 'Le chiavi API non si possono generare in questo ambiente '
+                                       '(configurazione incompleta).',
+                        'azione': 'Segnalare al conservatore.',
+                        'esito': 'ERRORE',
+                        'ritentabile': False},
+            'S3-500': {'famiglia': 'S3',
+                       'status': 503,
+                       'titolo': 'Storage conservativo non disponibile',
+                       'descrizione': 'Lo storage conservativo non ha accettato la scrittura; '
+                                      'nessun oggetto è stato scritto.',
+                       'azione': 'Riprovare più tardi.',
+                       'esito': 'ERRORE',
+                       'ritentabile': True},
+            'S3-CONFIG': {'famiglia': 'S3',
+                          'status': 503,
+                          'titolo': 'Configurazione dello storage non valida',
+                          'descrizione': 'La configurazione dello storage conservativo è '
+                                         'incompleta o non valida; nessun oggetto è stato scritto.',
+                          'azione': 'Nessuna per il cliente; il conservatore corregge la '
+                                    'configurazione.',
+                          'esito': 'ERRORE',
+                          'ritentabile': False},
+            'S3-NO-OBJECT-LOCK': {'famiglia': 'S3',
+                                  'status': 503,
+                                  'titolo': 'Bucket senza Object Lock',
+                                  'descrizione': 'Il bucket non ha Object Lock attivo; lo storage '
+                                                 'non è conservativo e la scrittura è stata '
+                                                 'bloccata.',
+                                  'azione': 'Nessuna per il cliente; il conservatore corregge la '
+                                            'configurazione.',
+                                  'esito': 'ERRORE',
+                                  'ritentabile': False},
+            'S3-GIA-PRESENTE': {'famiglia': 'S3',
+                                'status': 409,
+                                'titolo': 'Oggetto già presente',
+                                'descrizione': 'Un oggetto con la stessa chiave è già nello '
+                                               'storage conservativo e non si sovrascrive.',
+                                'azione': 'Nessuna per il cliente; il servizio confronta il '
+                                          'contenuto esistente.',
+                                'esito': 'ERRORE',
+                                'ritentabile': False},
+            'S3-RETENTION': {'famiglia': 'S3',
+                             'status': 500,
+                             'titolo': 'Conservazione non determinabile',
+                             'descrizione': 'Non è stato possibile calcolare la scadenza di '
+                                            "conservazione dell'oggetto; nessun oggetto è stato "
+                                            'scritto.',
+                             'azione': 'Segnalare al conservatore.',
+                             'esito': 'ERRORE',
+                             'ritentabile': False},
+            'S3-ORIGINE-MODIFICATA': {'famiglia': 'S3',
+                                      'status': 503,
+                                      'titolo': "File d'origine modificato durante la copia",
+                                      'descrizione': 'Il file nello storage di transito è cambiato '
+                                                     'fra il calcolo delle impronte e la copia '
+                                                     'nello storage conservativo; la copia non è '
+                                                     'avvenuta.',
+                                      'azione': 'Nessuna per il cliente; il servizio ritenta e '
+                                                'ricalcola le impronte.',
+                                      'esito': 'ERRORE',
+                                      'ritentabile': True},
+            'S3-COPIA-DIVERSA': {'famiglia': 'S3',
+                                 'status': 500,
+                                 'titolo': "Copia conservativa diversa dall'origine",
+                                 'descrizione': 'La copia nello storage conservativo non ha '
+                                                "l'impronta o la dimensione del file d'origine.",
+                                 'azione': 'Segnalare al conservatore.',
+                                 'esito': 'ERRORE',
+                                 'ritentabile': False},
+            'UPL-404': {'famiglia': 'UPL',
+                        'status': 404,
+                        'titolo': 'File caricato non trovato',
+                        'descrizione': 'Il versamento cita un file caricato che non esiste nello '
+                                       'storage di transito o non appartiene al cliente.',
+                        'azione': "Verificare l'identificativo del caricamento o caricare di nuovo "
+                                  'il file.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-422': {'famiglia': 'UPL',
+                        'status': 422,
+                        'titolo': 'File caricato incompleto o incoerente',
+                        'descrizione': 'Il file caricato citato dal versamento non ha impronte e '
+                                       'testa complete oppure la sua dimensione non corrisponde '
+                                       "all'oggetto nello storage.",
+                        'azione': 'Concludere il caricamento oppure caricare di nuovo il file.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-001': {'famiglia': 'UPL',
+                        'status': 413,
+                        'titolo': 'File oltre la dimensione massima',
+                        'descrizione': "La dimensione dichiarata all'apertura della sessione "
+                                       'supera il limite del servizio di caricamento.',
+                        'azione': 'Ridurre il file o chiedere al conservatore il limite '
+                                  'applicabile.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-002': {'famiglia': 'UPL',
+                        'status': 422,
+                        'titolo': 'Parte non valida',
+                        'descrizione': "Il numero della parte è fuori dall'intervallo della "
+                                       'sessione oppure la sua dimensione è diversa da quella '
+                                       "attesa (dimensione_parte, l'ultima il resto del file).",
+                        'azione': 'Inviare la parte con il numero e la dimensione indicati '
+                                  "all'apertura della sessione.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-003': {'famiglia': 'UPL',
+                        'status': 422,
+                        'titolo': 'Impronta della parte errata',
+                        'descrizione': "L'impronta SHA-256 dichiarata in X-Impronta-Parte non "
+                                       'corrisponde ai byte ricevuti; la parte non è stata '
+                                       'registrata.',
+                        'azione': 'Rileggere la parte dalla sorgente e inviarla di nuovo.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-004': {'famiglia': 'UPL',
+                        'status': 409,
+                        'titolo': 'Parte già ricevuta con un contenuto diverso',
+                        'descrizione': 'Una parte con lo stesso numero è già stata ricevuta con '
+                                       'byte diversi. Ripetere la stessa parte con lo stesso '
+                                       'contenuto è invece ammesso.',
+                        'azione': 'Verificare la sorgente; per ricominciare annullare la sessione '
+                                  'e aprirne una nuova.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-005': {'famiglia': 'UPL',
+                        'status': 409,
+                        'titolo': 'Parti mancanti',
+                        'descrizione': 'La sessione non può essere completata perché alcune parti '
+                                       'non sono state ricevute (elenco in '
+                                       'dettagli.parti_mancanti).',
+                        'azione': 'Inviare le parti mancanti e richiedere di nuovo il '
+                                  'completamento.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-006': {'famiglia': 'UPL',
+                        'status': 422,
+                        'titolo': 'Impronta del file diversa da quella dichiarata',
+                        'descrizione': "L'impronta calcolata dal servizio sul file assemblato non "
+                                       "corrisponde a quella dichiarata all'apertura della "
+                                       'sessione. Compare nel campo errore della sessione.',
+                        'azione': 'Verificare il file sorgente e caricarlo in una nuova sessione.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'contesto': 'asincrono'},
+            'UPL-007': {'famiglia': 'UPL',
+                        'status': 409,
+                        'titolo': "Idempotency-Key già usata per un'altra sessione",
+                        'descrizione': 'La stessa Idempotency-Key ha già aperto una sessione con '
+                                       'nome, dimensione o impronta diversi.',
+                        'azione': 'Usare una nuova chiave per un file diverso.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-008': {'famiglia': 'UPL',
+                        'status': 409,
+                        'titolo': 'Caricamento già usato da un altro versamento',
+                        'descrizione': 'Una sessione di caricamento si usa in un solo versamento; '
+                                       'questa è già legata a un altro PdV.',
+                        'azione': 'Caricare di nuovo il file in una nuova sessione.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'UPL-009': {'famiglia': 'UPL',
+                        'status': 409,
+                        'titolo': 'Caricamento non ancora verificato',
+                        'descrizione': 'Il versamento cita una sessione che non è nello stato '
+                                       'COMPLETO (stato attuale in dettagli.stato).',
+                        'azione': 'Attendere lo stato COMPLETO (GET della sessione); se lo stato è '
+                                  'ERRORE caricare di nuovo il file.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 5},
+            'UPL-400': {'famiglia': 'UPL',
+                        'status': 400,
+                        'titolo': 'Richiesta di caricamento non valida',
+                        'descrizione': "Un'intestazione o un campo della sessione di caricamento "
+                                       'non è nella forma prevista (es. X-Impronta-Parte, '
+                                       "algoritmo d'impronta non ammesso).",
+                        'azione': 'Correggere la richiesta secondo la documentazione delle '
+                                  'sessioni di caricamento.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-409': {'famiglia': 'UPL',
+                        'status': 409,
+                        'titolo': 'Operazione non ammessa nello stato della sessione',
+                        'descrizione': 'Lo stato attuale della sessione (in dettagli.stato) non '
+                                       "ammette l'operazione richiesta.",
+                        'azione': 'Leggere lo stato della sessione e procedere di conseguenza.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-410': {'famiglia': 'UPL',
+                        'status': 410,
+                        'titolo': 'Sessione scaduta o annullata',
+                        'descrizione': 'La sessione di caricamento è scaduta o è stata annullata; '
+                                       'i file caricati sono eliminati.',
+                        'azione': 'Aprire una nuova sessione e caricare di nuovo il file.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-413': {'famiglia': 'UPL',
+                        'status': 413,
+                        'titolo': 'Corpo della richiesta oltre il limite',
+                        'descrizione': 'Il corpo della richiesta supera la dimensione ammessa per '
+                                       'questa operazione.',
+                        'azione': 'Ridurre la richiesta; per i file grandi usare le sessioni di '
+                                  'caricamento.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'UPL-502': {'famiglia': 'UPL',
+                        'status': 502,
+                        'titolo': 'Verifica del file non riuscita',
+                        'descrizione': 'Il file non è stato verificato dopo più tentativi per un '
+                                       'errore dello storage. Compare nel campo errore della '
+                                       'sessione.',
+                        'azione': 'Caricare di nuovo il file in una nuova sessione; se si ripete '
+                                  "segnalare l'identificativo della sessione.",
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'contesto': 'asincrono'},
+            'UPL-503': {'famiglia': 'UPL',
+                        'status': 503,
+                        'titolo': 'Servizio di caricamento temporaneamente non disponibile',
+                        'descrizione': 'Lo storage o il database non sono raggiungibili in questo '
+                                       'momento.',
+                        'azione': 'Ripetere la stessa richiesta più tardi.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'UPL-503-OCCUPATO': {'famiglia': 'UPL',
+                                 'status': 503,
+                                 'titolo': 'Troppi versamenti multipart contemporanei',
+                                 'descrizione': 'La replica del servizio sta già elaborando il '
+                                                'numero massimo di versamenti multipart '
+                                                'contemporanei (impostazione '
+                                                'VERSAMENTO_MULTIPART_RICHIESTE_CONTEMPORANEE_MAX), '
+                                                'oppure lo spazio temporaneo su disco della '
+                                                'replica (DISCO_TEMPORANEO_BUDGET_MB, condiviso '
+                                                'con PDND) è già prenotato da altre richieste in '
+                                                'corso. Il corpo della richiesta non è stato letto '
+                                                '(R03 f3).',
+                                 'azione': 'Ripetere la stessa richiesta (con la stessa '
+                                           'Idempotency-Key) dopo i secondi indicati in '
+                                           'Retry-After; per i file grandi usare le sessioni di '
+                                           'caricamento.',
+                                 'esito': 'ERRORE',
+                                 'ritentabile': True,
+                                 'retry_after': 5},
+            'CMP-001': {'famiglia': 'CMP',
+                        'status': 400,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True},
+            'CMP-002': {'famiglia': 'CMP',
+                        'status': 400,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True},
+            'CMP-003': {'famiglia': 'CMP',
+                        'status': 400,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True},
+            'CMP-004': {'famiglia': 'CMP',
+                        'status': 422,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True},
+            'CMP-010': {'famiglia': 'CMP',
+                        'status': 422,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True},
+            'CMP-011': {'famiglia': 'CMP',
+                        'status': 422,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True},
+            'CMP-012': {'famiglia': 'CMP',
+                        'status': 404,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True},
+            'CMP-013': {'famiglia': 'CMP',
+                        'status': 413,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True},
+            'CMP-014': {'famiglia': 'CMP',
+                        'status': 422,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True},
+            'CMP-015': {'famiglia': 'CMP',
+                        'status': 422,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True},
+            'CMP-016': {'famiglia': 'CMP',
+                        'status': 422,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False,
+                        'dismesso': True},
+            'CMP-503': {'famiglia': 'CMP',
+                        'status': 503,
+                        'titolo': 'Dismesso: adattatori di compatibilità tolti in R18.2',
+                        'descrizione': 'Codice degli adattatori di compatibilità del gateway, '
+                                       'tolti in R18.2 (VD-P-191). Non è più emesso.',
+                        'azione': 'Versare con le interfacce di VerumDoc (REST, sessioni di '
+                                  'caricamento, PDND, SFTP), descritte in '
+                                  'docs/integrazione/README.md.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 5,
+                        'dismesso': True},
+            'RGL-101': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': "Metadato minimo dell'Allegato 5 mancante",
+                        'descrizione': 'Regola (rilievo in `dettagli.rilievi` di VRS-130 o fra gli '
+                                       '`avvisi`). Il documento principale non ha uno dei metadati '
+                                       "minimi dell'Allegato 5 alle Linee guida AgID. Regola "
+                                       'bloccante imposta dalla norma (locked).',
+                        'azione': 'Valorizzare il metadato indicato in `campo` nei `parametri` del '
+                                  'documento principale.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'RGL-102': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'Metadato obbligatorio della classe mancante',
+                        'descrizione': 'Regola (rilievo in `dettagli.rilievi` di VRS-130 o fra gli '
+                                       '`avvisi`). Il documento principale non ha un metadato '
+                                       'obbligatorio per la classe documentale o per il suo '
+                                       'profilo di metadati.',
+                        'azione': 'Valorizzare il metadato indicato in `campo` (nei `parametri` o '
+                                  'in `parametri.metadati_extra`).',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'RGL-103': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'Metadato non previsto',
+                        'descrizione': 'Regola (predefinito AVVISA, fra gli `avvisi`; se '
+                                       'configurata per bloccare, rilievo di VRS-130). Un metadato '
+                                       'dei `parametri` non è previsto né dallo schema né dal '
+                                       'profilo della classe; è conservato così come versato, mai '
+                                       'scartato.',
+                        'azione': 'Verificare il nome del metadato o chiedere di aggiungerlo al '
+                                  'profilo della classe.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'RGL-104': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'File oltre la dimensione massima della classe',
+                        'descrizione': 'Regola (rilievo in `dettagli.rilievi` di VRS-130 o fra gli '
+                                       '`avvisi`). Un file supera la dimensione massima per file '
+                                       'della classe documentale.',
+                        'azione': 'Ridurre il file o versarlo in una classe che lo ammette.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'RGL-105': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'Formato non ammesso dalla classe documentale',
+                        'descrizione': 'Regola (rilievo in `dettagli.rilievi` di VRS-130 o fra gli '
+                                       '`avvisi`). Il formato riconosciuto dal contenuto del file '
+                                       'non è fra quelli ammessi dalla classe. Sostituisce '
+                                       'VRS-112.',
+                        'azione': 'Convertire il file in uno dei formati ammessi indicati nel '
+                                  'messaggio.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'RGL-106': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'Metadato di tipo non valido',
+                        'descrizione': 'Regola (rilievo in `dettagli.rilievi` di VRS-130 o fra gli '
+                                       '`avvisi`). Un metadato del profilo della classe non '
+                                       'rispetta il tipo previsto (data, numero, codice fiscale, '
+                                       'partita IVA, codice IPA, valori ammessi). Il messaggio non '
+                                       'riporta il valore.',
+                        'azione': 'Correggere il valore del metadato indicato in `campo`.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'RGL-107': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'Formato rifiutato dal catalogo dei formati',
+                        'descrizione': 'Regola (rilievo in `dettagli.rilievi` di VRS-130, o del '
+                                       'passo 10 della verifica con VLD-1002). Il formato del '
+                                       'file, riconosciuto dal contenuto (MIME al versamento, PUID '
+                                       'PRONOM e veraPDF nella verifica), ha esito RIFIUTATO nel '
+                                       'catalogo dei formati (FORMATO.<ID>.ESITO del conservatore, '
+                                       "dell'ente o della classe; R08, D02).",
+                        'azione': 'Convertire il file in un formato ammesso dal catalogo (vedi il '
+                                  'validatore preventivo, `file_rifiutati`).',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'RGL-108': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'Formato ammesso con avviso o da convertire',
+                        'descrizione': 'Avviso (fra gli `avvisi`, poi nel rapporto di versamento). '
+                                       'Il formato del file ha esito AVVISO o DA_CONVERTIRE nel '
+                                       'catalogo dei formati (R08, D02).',
+                        'azione': 'Nessuna per il versamento; pianificare la conversione dei file '
+                                  'segnalati.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'RGL-109': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'Firme insufficienti per il livello di verifica',
+                        'descrizione': 'Regola valutata dalla verifica (passo 11, VLD-1101 se '
+                                       'bloccante; altrimenti fra gli avvisi del RdV). La firma di '
+                                       'un file non soddisfa FIRME_LIVELLO_VERIFICA della classe '
+                                       '(RILEVATA, CRITTOGRAFICA, CON_REVOCHE): il motivo in '
+                                       "parole è nel messaggio, l'esito normalizzato nel rapporto "
+                                       'di verifica (R08, D01).',
+                        'azione': 'Versare il documento con una firma valida, di un certificato '
+                                  'non revocato e riconducibile a un prestatore fidato.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'RGL-113': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'Firma indeterminata ammessa con avviso',
+                        'descrizione': 'Regola valutata dalla verifica (passo 11): una firma '
+                                       'INDETERMINATE (firma integra e catena attendibile, ma per '
+                                       'esempio certificato scaduto o revoca non determinabile) '
+                                       'che il conservatore ha scelto di ammettere con avviso '
+                                       '(FIRME_INDETERMINATE_EFFETTO = AVVISA). Con il valore '
+                                       'predefinito (BLOCCA) le firme indeterminate sono rilievi '
+                                       'di RGL-109 (revisione R08, X1).',
+                        'azione': 'Nessuna azione obbligatoria; verificare il certificato del '
+                                  'firmatario e, se possibile, versare il documento con una firma '
+                                  'valida o con marca temporale.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'RGL-503': {'famiglia': 'RGL',
+                        'status': 503,
+                        'titolo': 'Configurazione delle regole non valida',
+                        'descrizione': 'Un valore di configurazione del motore delle regole '
+                                       '(impostazione o profilo di metadati) salvato per il '
+                                       'cliente o la classe non è valido; il versamento è sospeso '
+                                       'per non applicare regole indovinate.',
+                        'azione': "Segnalare al conservatore indicando l'identificativo della "
+                                  'richiesta.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 300},
+            'RGL-110': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'Impostazioni personalizzate per il versamento',
+                        'descrizione': 'Avviso (fra gli `avvisi`, mai una risposta HTTP). Il '
+                                       'versamento porta una personalizzazione motivata delle '
+                                       "impostazioni (`override` dell'indice, livello PDV); motivo "
+                                       'e valori sono nella fotografia delle regole del PdV e nel '
+                                       'rapporto di versamento.',
+                        'azione': 'Nessuna; verificare che la personalizzazione sia voluta.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'RGL-111': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'Personalizzazione del versamento non ammessa',
+                        'descrizione': "L'`override` dell'indice non è ammesso. Motivo mancante o "
+                                       'più corto di 10 caratteri, impostazione sconosciuta, non '
+                                       'personalizzabile sul singolo versamento (imposta dalla '
+                                       'norma, riservata al conservatore o fuori dal suo ambito), '
+                                       "oppure valore del tipo sbagliato. L'elenco è in "
+                                       '`dettagli.problemi`.',
+                        'azione': "Correggere o togliere l'`override` e reinviare.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'RGL-112': {'famiglia': 'RGL',
+                        'status': 422,
+                        'titolo': 'Accordo di versamento non valido',
+                        'descrizione': "L'accordo indicato nel campo `accordo` dell'indice non "
+                                       "esiste per l'ente, non è in vigore nel giorno del "
+                                       'versamento o non vale per la classe documentale. Il '
+                                       'servizio non sceglie un altro accordo al suo posto.',
+                        'azione': 'Indicare un accordo in vigore per la classe, oppure omettere '
+                                  "`accordo` per usare quello dell'ente.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'CFG-400': {'famiglia': 'CFG',
+                        'status': 400,
+                        'titolo': 'Richiesta di configurazione non valida',
+                        'descrizione': "La bozza, l'ambito o il cursore non sono coerenti (livello "
+                                       'non ammesso per la risorsa, ente o classe mancanti, '
+                                       'cursore alterato). Il motivo è nel dettaglio.',
+                        'azione': 'Correggere la richiesta.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'CFG-403': {'famiglia': 'CFG',
+                        'status': 403,
+                        'titolo': 'Modifica della configurazione non consentita',
+                        'descrizione': 'Il ruolo non può modificare la configurazione a quel '
+                                       'livello (il conservatore configura i livelli CONSERVATORE '
+                                       "ed ENTE; l'amministratore dell'ente i livelli ENTE, CLASSE "
+                                       'e ACCORDO del proprio ente).',
+                        'azione': 'Chiedere a chi ha il ruolo adatto.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'CFG-404': {'famiglia': 'CFG',
+                        'status': 404,
+                        'titolo': 'Elemento della configurazione non trovato',
+                        'descrizione': "La bozza, la proposta, l'ente, la classe o il profilo non "
+                                       'esistono o non sono visibili a chi chiede.',
+                        'azione': "Verificare l'identificativo.",
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'CFG-409': {'famiglia': 'CFG',
+                        'status': 409,
+                        'titolo': 'Piano cambiato',
+                        'descrizione': "PIANO_CAMBIATO. Dall'anteprima la configurazione è "
+                                       "cambiata (un'altra modifica applicata, la bozza "
+                                       "aggiornata): l'impronta del piano non coincide e nulla è "
+                                       'stato scritto. Il piano nuovo è in `dettagli.piano`.',
+                        'azione': "Rileggere il piano e ripetere l'applicazione con la nuova "
+                                  '`impronta_piano`.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'CFG-410': {'famiglia': 'CFG',
+                        'status': 409,
+                        'titolo': 'Bozza modificata da altri',
+                        'descrizione': 'La versione della bozza indicata non è quella attuale. La '
+                                       'versione attuale è in `dettagli.versione`.',
+                        'azione': 'Rileggere la bozza e ripetere la modifica.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'CFG-411': {'famiglia': 'CFG',
+                        'status': 409,
+                        'titolo': 'Bozza non più modificabile',
+                        'descrizione': 'La bozza è già stata applicata o annullata.',
+                        'azione': 'Creare una nuova bozza.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'CFG-412': {'famiglia': 'CFG',
+                        'status': 409,
+                        'titolo': 'Proposta già decisa',
+                        'descrizione': 'La proposta è già stata accettata o rifiutata.',
+                        'azione': 'Nessuna.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'CFG-422': {'famiglia': 'CFG',
+                        'status': 422,
+                        'titolo': 'Piano con elementi bloccati',
+                        'descrizione': "L'anteprima ha elementi bloccati (valore imposto dalla "
+                                       'norma, fuori ambito, tipo errato, permessi): la bozza non '
+                                       "si applica. L'elenco è in `dettagli.bloccati`.",
+                        'azione': 'Correggere la bozza togliendo gli elementi bloccati.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'CFG-423': {'famiglia': 'CFG',
+                        'status': 422,
+                        'titolo': 'Decorrenza non ammessa',
+                        'descrizione': 'La data `valido_dal` non è ammessa. Gli accordi e i '
+                                       'profili decorrono da oggi o da una data futura (mai nel '
+                                       'passato né prima della versione precedente); R07 (D28): le '
+                                       'impostazioni di conservatore, ente e classe si possono '
+                                       'programmare da una data futura (la bozza diventa '
+                                       "PROGRAMMATA); le proposte valgono dall'applicazione.",
+                        'azione': 'Indicare una decorrenza ammessa o ometterla.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'CFG-424': {'famiglia': 'CFG',
+                        'status': 409,
+                        'titolo': 'Modifica programmata non annullabile',
+                        'descrizione': 'R07 (D28): la bozza non è programmata (già applicata, '
+                                       'annullata o ancora aperta) e non si può annullare come '
+                                       'modifica programmata.',
+                        'azione': 'Rileggere lo stato della bozza.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'CFG-503': {'famiglia': 'CFG',
+                        'status': 503,
+                        'titolo': 'Configurazione temporaneamente non disponibile',
+                        'descrizione': 'Il database non ha risposto o la configurazione salvata '
+                                       'non è leggibile; nulla è stato scritto.',
+                        'azione': 'Ritentare più tardi; se persiste, segnalare al conservatore con '
+                                  "l'identificativo della richiesta.",
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'VAL-422': {'famiglia': 'VAL',
+                        'status': 422,
+                        'titolo': 'Richiesta non conforme allo schema',
+                        'descrizione': 'Uno o più campi mancano o hanno un tipo o un formato '
+                                       "errato; l'elenco è in `campi`.",
+                        'azione': 'Correggere i campi indicati e reinviare.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'HTTP-400': {'famiglia': 'HTTP',
+                         'status': 400,
+                         'titolo': 'Richiesta non valida',
+                         'descrizione': 'La richiesta non è valida.',
+                         'azione': 'Correggere la richiesta.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'HTTP-401': {'famiglia': 'HTTP',
+                         'status': 401,
+                         'titolo': 'Autenticazione richiesta',
+                         'descrizione': 'La richiesta richiede credenziali valide.',
+                         'azione': 'Inviare credenziali valide.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'HTTP-403': {'famiglia': 'HTTP',
+                         'status': 403,
+                         'titolo': 'Operazione non consentita',
+                         'descrizione': "Le credenziali non consentono l'operazione.",
+                         'azione': 'Usare credenziali abilitate.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'HTTP-404': {'famiglia': 'HTTP',
+                         'status': 404,
+                         'titolo': 'Risorsa non trovata',
+                         'descrizione': "L'indirizzo o la risorsa richiesta non esistono.",
+                         'azione': "Verificare l'indirizzo e l'identificativo.",
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'HTTP-405': {'famiglia': 'HTTP',
+                         'status': 405,
+                         'titolo': 'Metodo non ammesso',
+                         'descrizione': 'Il metodo HTTP non è ammesso su questo indirizzo.',
+                         'azione': "Usare uno dei metodi indicati nell'intestazione Allow.",
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'HTTP-406': {'famiglia': 'HTTP',
+                         'status': 406,
+                         'titolo': 'Formato di risposta non disponibile',
+                         'descrizione': "Il formato richiesto nell'intestazione Accept non è "
+                                        'disponibile.',
+                         'azione': 'Accettare uno dei formati offerti.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'HTTP-409': {'famiglia': 'HTTP',
+                         'status': 409,
+                         'titolo': 'Conflitto',
+                         'descrizione': 'La richiesta è in conflitto con lo stato della risorsa.',
+                         'azione': 'Ricaricare la risorsa e ripetere se ancora necessario.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'HTTP-413': {'famiglia': 'HTTP',
+                         'status': 413,
+                         'titolo': 'Richiesta troppo grande',
+                         'descrizione': 'Il corpo della richiesta supera la dimensione ammessa.',
+                         'azione': 'Ridurre la richiesta.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'HTTP-415': {'famiglia': 'HTTP',
+                         'status': 415,
+                         'titolo': 'Tipo di contenuto non supportato',
+                         'descrizione': 'Il tipo di contenuto della richiesta non è supportato.',
+                         'azione': 'Inviare il corpo nel formato atteso.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'HTTP-422': {'famiglia': 'HTTP',
+                         'status': 422,
+                         'titolo': 'Richiesta non elaborabile',
+                         'descrizione': 'La richiesta è ben formata ma non elaborabile.',
+                         'azione': 'Correggere il contenuto della richiesta.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'HTTP-429': {'famiglia': 'HTTP',
+                         'status': 429,
+                         'titolo': 'Troppe richieste',
+                         'descrizione': 'Sono state inviate troppe richieste.',
+                         'azione': 'Attendere e riprovare.',
+                         'esito': 'ERRORE',
+                         'ritentabile': True,
+                         'retry_after': 60},
+            'HTTP-500': {'famiglia': 'HTTP',
+                         'status': 500,
+                         'titolo': 'Errore del servizio',
+                         'descrizione': 'Il servizio ha restituito un errore senza codice.',
+                         'azione': "Segnalare al conservatore indicando l'identificativo della "
+                                   'richiesta.',
+                         'esito': 'ERRORE',
+                         'ritentabile': False},
+            'HTTP-501': {'famiglia': 'HTTP',
+                         'status': 501,
+                         'titolo': 'Funzione non disponibile',
+                         'descrizione': 'La funzione richiesta non è disponibile.',
+                         'azione': "Concordare l'operazione con il conservatore.",
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'HTTP-502': {'famiglia': 'HTTP',
+                         'status': 502,
+                         'titolo': 'Servizio interno non raggiungibile',
+                         'descrizione': 'Un servizio interno non ha risposto correttamente.',
+                         'azione': 'Riprovare tra poco.',
+                         'esito': 'ERRORE',
+                         'ritentabile': True},
+            'HTTP-503': {'famiglia': 'HTTP',
+                         'status': 503,
+                         'titolo': 'Servizio temporaneamente non disponibile',
+                         'descrizione': 'Il servizio non è al momento disponibile.',
+                         'azione': 'Riprovare tra poco.',
+                         'esito': 'ERRORE',
+                         'ritentabile': True,
+                         'retry_after': 30},
+            'HTTP-504': {'famiglia': 'HTTP',
+                         'status': 504,
+                         'titolo': 'Tempo di risposta superato',
+                         'descrizione': 'Un servizio interno non ha risposto in tempo.',
+                         'azione': 'Riprovare tra poco.',
+                         'esito': 'ERRORE',
+                         'ritentabile': True},
+            'INTERNAL-001': {'famiglia': 'INTERNAL',
+                             'status': 500,
+                             'titolo': 'Errore interno del servizio',
+                             'descrizione': 'Errore non previsto; il dettaglio è nei log del '
+                                            'conservatore.',
+                             'azione': "Segnalare al conservatore indicando l'identificativo della "
+                                       'richiesta.',
+                             'esito': 'ERRORE',
+                             'ritentabile': False},
+            'WH-001': {'famiglia': 'WH',
+                       'status': 422,
+                       'titolo': 'Indirizzo del webhook non valido',
+                       'descrizione': "L'indirizzo non è un URL https assoluto, contiene "
+                                      'credenziali o un frammento, oppure supera la lunghezza '
+                                      'ammessa.',
+                       'azione': 'Indicare un URL https assoluto senza utente, password e '
+                                 'frammento (#).',
+                       'esito': 'NON_VALIDO',
+                       'ritentabile': False},
+            'WH-002': {'famiglia': 'WH',
+                       'status': 422,
+                       'titolo': 'Indirizzo del webhook non ammesso',
+                       'descrizione': "L'indirizzo punta a una rete privata, di loopback, locale o "
+                                      'riservata (protezione SSRF).',
+                       'azione': 'Indicare un indirizzo raggiungibile su Internet.',
+                       'esito': 'RIFIUTATO',
+                       'ritentabile': False},
+            'WH-003': {'famiglia': 'WH',
+                       'status': 422,
+                       'titolo': 'Tipo di evento sconosciuto',
+                       'descrizione': "Fra i tipi di evento della sottoscrizione ce n'è uno che "
+                                      'non esiste nel catalogo degli eventi.',
+                       'azione': 'Usare solo i tipi elencati nella documentazione dei webhook '
+                                 '(`dettagli.ammessi`).',
+                       'esito': 'NON_VALIDO',
+                       'ritentabile': False},
+            'WH-004': {'famiglia': 'WH',
+                       'status': 409,
+                       'titolo': 'Numero massimo di webhook raggiunto',
+                       'descrizione': "L'ente ha già il numero massimo di sottoscrizioni ammesse.",
+                       'azione': 'Eliminare una sottoscrizione non più usata o aggiungere i tipi '
+                                 'di evento a una esistente.',
+                       'esito': 'RIFIUTATO',
+                       'ritentabile': False},
+            'WH-010': {'famiglia': 'WH',
+                       'status': 404,
+                       'titolo': 'Consegna non trovata',
+                       'descrizione': 'La consegna non esiste per questa sottoscrizione e questo '
+                                      'ente.',
+                       'azione': 'Verificare gli identificativi della sottoscrizione e della '
+                                 'consegna.',
+                       'esito': 'NON_VALIDO',
+                       'ritentabile': False},
+            'WH-011': {'famiglia': 'WH',
+                       'status': 409,
+                       'titolo': 'Consegna non ripetibile',
+                       'descrizione': 'Si può ripetere solo una consegna FALLITA (ritentativi '
+                                      'esauriti); lo stato attuale è in `dettagli.stato`.',
+                       'azione': "Attendere l'esito dei ritentativi automatici.",
+                       'esito': 'RIFIUTATO',
+                       'ritentabile': False},
+            'WH-012': {'famiglia': 'WH',
+                       'status': 422,
+                       'titolo': 'Consegna oltre la retention',
+                       'descrizione': 'La consegna riguarda un evento più vecchio della retention '
+                                      'degli eventi per i clienti '
+                                      '(RETENZIONE_EVENTI_CLIENTE_GIORNI) e non si può più '
+                                      "ripetere; data dell'evento e retention in `dettagli`.",
+                       'azione': 'Recuperare lo stato attuale della risorsa con le API di '
+                                 'consultazione.',
+                       'esito': 'RIFIUTATO',
+                       'ritentabile': False},
+            'WH-013': {'famiglia': 'WH',
+                       'status': 409,
+                       'titolo': 'Nessuna rotazione in corso',
+                       'descrizione': 'Il webhook non ha un segreto precedente ancora valido da '
+                                      'ritirare.',
+                       'azione': 'Nessuna; per un segreto nuovo usare la rotazione.',
+                       'esito': 'RIFIUTATO',
+                       'ritentabile': False},
+            'WH-030': {'famiglia': 'WH',
+                       'status': 503,
+                       'titolo': 'Webhook non disponibili in questo ambiente',
+                       'descrizione': 'La chiave di cifratura dei segreti dei webhook non è '
+                                      'configurata.',
+                       'azione': "Usare l'elenco degli eventi (GET /api/v1/eventi) o segnalare al "
+                                 'conservatore.',
+                       'esito': 'ERRORE',
+                       'ritentabile': False},
+            'WH-101': {'famiglia': 'WH',
+                       'status': 504,
+                       'titolo': 'Tempo di risposta del destinatario superato',
+                       'descrizione': 'Esito di una consegna (campo `ultimo_codice`). Il sistema '
+                                      'del cliente non ha risposto entro il tempo massimo.',
+                       'azione': "Rispondere 2xx subito e lavorare l'evento dopo; la consegna sarà "
+                                 'ritentata.',
+                       'esito': 'ERRORE',
+                       'ritentabile': True,
+                       'contesto': 'asincrono'},
+            'WH-102': {'famiglia': 'WH',
+                       'status': 502,
+                       'titolo': 'Connessione al destinatario non riuscita',
+                       'descrizione': 'Esito di una consegna. Nome non risolto, connessione '
+                                      'rifiutata o certificato TLS non valido.',
+                       'azione': "Verificare l'indirizzo, il DNS e il certificato del sistema che "
+                                 'riceve; la consegna sarà ritentata.',
+                       'esito': 'ERRORE',
+                       'ritentabile': True,
+                       'contesto': 'asincrono'},
+            'WH-103': {'famiglia': 'WH',
+                       'status': 502,
+                       'titolo': 'Risposta non positiva del destinatario',
+                       'descrizione': 'Esito di una consegna. Il destinatario ha risposto con uno '
+                                      'stato diverso da 2xx (i reindirizzamenti non si seguono); '
+                                      'lo stato è in `ultimo_stato_http`.',
+                       'azione': "Rispondere 2xx quando l'evento è stato ricevuto; la consegna "
+                                 'sarà ritentata.',
+                       'esito': 'ERRORE',
+                       'ritentabile': True,
+                       'contesto': 'asincrono'},
+            'WH-104': {'famiglia': 'WH',
+                       'status': 422,
+                       'titolo': 'Indirizzo risolto non ammesso',
+                       'descrizione': "Esito di una consegna. Al momento dell'invio il nome del "
+                                      'destinatario risolveva verso un indirizzo privato, di '
+                                      'loopback o riservato (protezione SSRF); la consegna non è '
+                                      'partita.',
+                       'azione': "Correggere il DNS o l'indirizzo del webhook, poi ripetere la "
+                                 'consegna.',
+                       'esito': 'RIFIUTATO',
+                       'ritentabile': False,
+                       'contesto': 'asincrono'},
+            'WH-106': {'famiglia': 'WH',
+                       'status': 500,
+                       'titolo': 'Segreto del webhook non leggibile',
+                       'descrizione': 'Esito di una consegna. Il segreto della sottoscrizione non '
+                                      'si può decifrare con le chiavi configurate; la consegna non '
+                                      'è partita.',
+                       'azione': 'Segnalare al conservatore; eliminare e ricreare il webhook per '
+                                 'ottenere un nuovo segreto.',
+                       'esito': 'ERRORE',
+                       'ritentabile': False,
+                       'contesto': 'asincrono'},
+            'WH-404': {'famiglia': 'WH',
+                       'status': 404,
+                       'titolo': 'Webhook non trovato',
+                       'descrizione': 'La sottoscrizione non esiste, è stata eliminata o '
+                                      'appartiene a un altro ente.',
+                       'azione': "Verificare l'identificativo della sottoscrizione.",
+                       'esito': 'NON_VALIDO',
+                       'ritentabile': False},
+            'WH-503': {'famiglia': 'WH',
+                       'status': 503,
+                       'titolo': 'Gestione dei webhook temporaneamente non disponibile',
+                       'descrizione': 'Il database dei webhook non ha risposto.',
+                       'azione': 'Riprovare tra poco.',
+                       'esito': 'ERRORE',
+                       'ritentabile': True,
+                       'retry_after': 30},
+            'EVT-001': {'famiglia': 'EVT',
+                        'status': 422,
+                        'titolo': 'Tipo di evento sconosciuto',
+                        'descrizione': 'Il filtro `tipo` contiene un tipo di evento che non esiste '
+                                       'nel catalogo degli eventi.',
+                        'azione': 'Usare solo i tipi elencati nella documentazione '
+                                  '(`dettagli.ammessi`).',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'EVT-503': {'famiglia': 'EVT',
+                        'status': 503,
+                        'titolo': 'Elenco degli eventi temporaneamente non disponibile',
+                        'descrizione': 'Il database degli eventi non ha risposto.',
+                        'azione': 'Riprovare tra poco con lo stesso cursore.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'SFTP-001': {'famiglia': 'SFTP',
+                         'status': 422,
+                         'titolo': 'Chiave pubblica SSH non valida',
+                         'descrizione': 'Il testo inviato non è una chiave pubblica in formato '
+                                        'OpenSSH («tipo base64 [commento]») oppure il tipo '
+                                        'dichiarato non corrisponde al contenuto.',
+                         'azione': 'Incollare la riga del file .pub generato con ssh-keygen.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'SFTP-002': {'famiglia': 'SFTP',
+                         'status': 422,
+                         'titolo': 'Tipo o lunghezza della chiave non ammessi',
+                         'descrizione': 'Sono ammesse solo chiavi dei tipi e delle lunghezze '
+                                        'consentiti dal servizio (ed25519, ecdsa, rsa di almeno '
+                                        '3072 bit con le impostazioni predefinite).',
+                         'azione': 'Generare una chiave ammessa (es. ssh-keygen -t ed25519) e '
+                                   'registrarla.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'SFTP-003': {'famiglia': 'SFTP',
+                         'status': 409,
+                         'titolo': "Chiave già registrata per l'account",
+                         'descrizione': "Fra le chiavi attive dell'account ce n'è già una con la "
+                                        'stessa impronta.',
+                         'azione': 'Nessuna; per sostituirla revocare prima quella esistente.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'SFTP-004': {'famiglia': 'SFTP',
+                         'status': 409,
+                         'titolo': 'Nome utente SFTP non disponibile',
+                         'descrizione': 'Il nome di accesso scelto è già in uso (i nomi sono unici '
+                                        'fra tutti gli enti).',
+                         'azione': 'Scegliere un altro nome utente.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'SFTP-404': {'famiglia': 'SFTP',
+                         'status': 404,
+                         'titolo': 'Account o chiave SFTP non trovati',
+                         'descrizione': "L'account o la chiave indicati non esistono in questo "
+                                        'ente.',
+                         'azione': 'Verificare gli identificativi.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'SFTP-409': {'famiglia': 'SFTP',
+                         'status': 409,
+                         'titolo': "Operazione non ammessa nello stato dell'account",
+                         'descrizione': "L'operazione richiede un account (o un utente "
+                                        'responsabile) in uno stato diverso da quello attuale, ad '
+                                        'esempio la riattivazione di un account il cui '
+                                        'responsabile non è più attivo.',
+                         'azione': 'Leggere il dettaglio; se serve indicare un altro utente '
+                                   'responsabile.',
+                         'esito': 'RIFIUTATO',
+                         'ritentabile': False},
+            'SFTP-503': {'famiglia': 'SFTP',
+                         'status': 503,
+                         'titolo': 'Gestione degli account SFTP temporaneamente non disponibile',
+                         'descrizione': 'Il database non ha risposto.',
+                         'azione': 'Riprovare tra poco; se il problema continua comunicare '
+                                   "l'identificativo della richiesta.",
+                         'esito': 'ERRORE',
+                         'ritentabile': True,
+                         'retry_after': 30},
+            'SFTP-101': {'famiglia': 'SFTP',
+                         'status': 422,
+                         'titolo': 'Indice della cartella assente',
+                         'descrizione': 'La cartella di versamento non contiene il file '
+                                        'indice.json.',
+                         'azione': 'Caricare la cartella con indice.json e rinominarla di nuovo.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False,
+                         'contesto': 'asincrono'},
+            'SFTP-102': {'famiglia': 'SFTP',
+                         'status': 422,
+                         'titolo': 'Indice della cartella non leggibile',
+                         'descrizione': 'indice.json non è un oggetto JSON valido in UTF-8 oppure '
+                                        'supera la dimensione massima ammessa.',
+                         'azione': "Correggere indice.json (stesso schema dell'indice dell'API "
+                                   'REST) e reinviare la cartella.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False,
+                         'contesto': 'asincrono'},
+            'SFTP-103': {'famiglia': 'SFTP',
+                         'status': 422,
+                         'titolo': "File dichiarato nell'indice assente dalla cartella",
+                         'descrizione': "Un nome_file dell'indice non corrisponde ad alcun file "
+                                        'della cartella.',
+                         'azione': 'Caricare tutti i file dichiarati (stesso nome, maiuscole '
+                                   'comprese) e reinviare la cartella.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False,
+                         'contesto': 'asincrono'},
+            'SFTP-104': {'famiglia': 'SFTP',
+                         'status': 422,
+                         'titolo': "File della cartella non dichiarato nell'indice",
+                         'descrizione': "La cartella contiene un file che l'indice non dichiara.",
+                         'azione': "Togliere il file o dichiararlo nell'indice e reinviare la "
+                                   'cartella.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False,
+                         'contesto': 'asincrono'},
+            'SFTP-105': {'famiglia': 'SFTP',
+                         'status': 422,
+                         'titolo': 'Contenuto della cartella non ammesso',
+                         'descrizione': 'La cartella contiene sottocartelle, collegamenti, file '
+                                        "temporanei non rinominati oppure un nome_file dell'indice "
+                                        'non è un semplice nome di file.',
+                         'azione': 'Una cartella per pacchetto, solo file a un livello con nomi '
+                                   'semplici; reinviare la cartella.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False,
+                         'contesto': 'asincrono'},
+            'SFTP-201': {'famiglia': 'SFTP',
+                         'status': 503,
+                         'titolo': 'Servizio di versamento non raggiungibile',
+                         'descrizione': 'Il canale SFTP non è riuscito a consegnare il pacchetto '
+                                        'al servizio di versamento dopo tutti i tentativi previsti '
+                                        '(rete, tempi di risposta, risposte non interpretabili).',
+                         'azione': 'Reinviare la stessa cartella più tardi; il reinvio non crea '
+                                   'duplicati.',
+                         'esito': 'ERRORE',
+                         'ritentabile': True,
+                         'contesto': 'asincrono'},
+            'SFTP-202': {'famiglia': 'SFTP',
+                         'status': 503,
+                         'titolo': 'Verifica dei file caricati non conclusa',
+                         'descrizione': 'La verifica dei file caricati (impronte e formato) non si '
+                                        'è conclusa entro il tempo previsto.',
+                         'azione': 'Nessuna se lo stato è IN_RIPROVA; altrimenti reinviare la '
+                                   'stessa cartella più tardi.',
+                         'esito': 'ERRORE',
+                         'ritentabile': True,
+                         'contesto': 'asincrono'},
+            'SFTP-500': {'famiglia': 'SFTP',
+                         'status': 500,
+                         'titolo': 'Errore interno del canale SFTP',
+                         'descrizione': 'Errore non previsto durante la lavorazione della '
+                                        'cartella; il dettaglio è nei log del conservatore.',
+                         'azione': 'Nessuna se lo stato è IN_RIPROVA; altrimenti segnalare al '
+                                   "conservatore con l'identificativo della lavorazione.",
+                         'esito': 'ERRORE',
+                         'ritentabile': True,
+                         'contesto': 'asincrono'},
+            'TST-400': {'famiglia': 'TST',
+                        'status': 400,
+                        'titolo': 'Richiesta di controfirma non valida',
+                        'descrizione': 'Il corpo non rispetta il protocollo del testimone (riga '
+                                       '«old», righe della prova in base64, checkpoint in formato '
+                                       'signed note) oppure la dimensione precedente supera quella '
+                                       'del checkpoint.',
+                        'azione': 'Correggere il client del registro secondo il protocollo K3 e '
+                                  'reinviare.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'TST-401': {'famiglia': 'TST',
+                        'status': 401,
+                        'titolo': 'Registro non autenticato',
+                        'descrizione': 'Manca il token di servizio del registro oppure non è fra '
+                                       'quelli accettati dal testimone.',
+                        'azione': 'Configurare nel registro il token concordato con il testimone '
+                                  '(TESTIMONE_TOKEN).',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'TST-403': {'famiglia': 'TST',
+                        'status': 403,
+                        'titolo': 'Firma del registro non valida',
+                        'descrizione': 'Il checkpoint non porta una firma valida della chiave del '
+                                       'registro configurata nel testimone.',
+                        'azione': 'Verificare che il registro firmi con la chiave pubblicata e che '
+                                  'il testimone abbia la chiave pubblica corretta.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'TST-404': {'famiglia': 'TST',
+                        'status': 404,
+                        'titolo': 'Checkpoint non trovato',
+                        'descrizione': 'Il testimone non ha controfirmato alcun checkpoint con '
+                                       "l'origine o la dimensione richieste.",
+                        'azione': 'Controllare origine e dimensione; il testimone conserva solo i '
+                                  'checkpoint che ha controfirmato.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'TST-405': {'famiglia': 'TST',
+                        'status': 404,
+                        'titolo': 'Origine del registro non ammessa',
+                        'descrizione': "L'origine del checkpoint (prima riga) non è fra quelle che "
+                                       'questo testimone osserva.',
+                        'azione': "Usare l'origine dell'ambiente corretto o aggiungerla alle "
+                                  'origini ammesse del testimone.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'TST-409': {'famiglia': 'TST',
+                        'status': 409,
+                        'titolo': 'Dimensione precedente non coincidente',
+                        'descrizione': "La dimensione «old» indicata dal registro non è l'ultima "
+                                       'controfirmata dal testimone. Per compatibilità con il '
+                                       'protocollo tlog-witness il corpo della risposta è '
+                                       'text/plain con la sola dimensione nota al testimone.',
+                        'azione': 'Ricalcolare la prova di consistenza a partire dalla dimensione '
+                                  'restituita e reinviare.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'TST-413': {'famiglia': 'TST',
+                        'status': 413,
+                        'titolo': 'Richiesta di controfirma troppo grande',
+                        'descrizione': 'Il corpo supera la dimensione massima o il numero massimo '
+                                       'di righe della prova ammessi dal testimone.',
+                        'azione': 'Controllare il client del registro; una prova di consistenza ha '
+                                  'al più qualche decina di righe.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'TST-422': {'famiglia': 'TST',
+                        'status': 422,
+                        'titolo': 'Prova di consistenza non valida',
+                        'descrizione': 'La prova non dimostra che il nuovo checkpoint estende '
+                                       "l'ultimo controfirmato. L'esito è registrato come allarme "
+                                       'del testimone.',
+                        'azione': 'Verificare il registro (un registro integro produce sempre una '
+                                  'prova valida). Se la prova è corretta, segnalare al '
+                                  'conservatore.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'TST-423': {'famiglia': 'TST',
+                        'status': 423,
+                        'titolo': 'Testimone bloccato per incoerenza del registro',
+                        'descrizione': 'Il testimone ha ricevuto due checkpoint firmati dal '
+                                       'registro con la stessa dimensione e radici diverse (fork) '
+                                       'e non controfirma più nulla finché un operatore del '
+                                       'testimone non interviene.',
+                        'azione': 'Avviare la procedura di incidente della catena; lo sblocco è '
+                                  'solo manuale e registrato.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'TST-500': {'famiglia': 'TST',
+                        'status': 500,
+                        'titolo': 'Errore interno del testimone',
+                        'descrizione': 'Errore non previsto del testimone; il dettaglio è solo nei '
+                                       "log con l'identificativo della richiesta.",
+                        'azione': "Ritentare più tardi; se persiste segnalare con l'identificativo "
+                                  'della richiesta.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True},
+            'TST-503': {'famiglia': 'TST',
+                        'status': 503,
+                        'titolo': 'Testimone non disponibile',
+                        'descrizione': 'Il database del testimone non risponde o il testimone non '
+                                       'è configurato (chiave, chiave del registro).',
+                        'azione': 'Ritentare più tardi.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'IDEM-400': {'famiglia': 'IDEM',
+                         'status': 400,
+                         'titolo': 'Idempotency-Key non valida',
+                         'descrizione': "L'intestazione Idempotency-Key deve avere da 8 a 200 "
+                                        'caratteri fra lettere, cifre e i segni punto, trattino '
+                                        'basso, due punti e trattino (stessa regola del '
+                                        'versamento).',
+                         'azione': 'Correggere la chiave; usarne una nuova per ogni operazione '
+                                   'diversa.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'IDEM-409': {'famiglia': 'IDEM',
+                         'status': 409,
+                         'titolo': 'Idempotency-Key già usata con una richiesta diversa',
+                         'descrizione': 'La stessa Idempotency-Key è già stata usata, entro la sua '
+                                        'validità, con un corpo diverso. Nessuna risorsa nuova è '
+                                        'stata creata.',
+                         'azione': 'Usare una nuova chiave per una richiesta diversa; per ripetere '
+                                   'la stessa richiesta inviare lo stesso corpo.',
+                         'esito': 'NON_VALIDO',
+                         'ritentabile': False},
+            'IDEM-409-IN-CORSO': {'famiglia': 'IDEM',
+                                  'status': 409,
+                                  'titolo': 'Richiesta con la stessa Idempotency-Key in corso',
+                                  'descrizione': 'Una richiesta identica con la stessa chiave è '
+                                                 'ancora in elaborazione.',
+                                  'azione': "Ripetere la richiesta dopo l'attesa indicata in "
+                                            'Retry-After; riceverà lo stesso esito.',
+                                  'esito': 'ERRORE',
+                                  'ritentabile': True,
+                                  'retry_after': 2},
+            'DSH-404-SCARTO': {'famiglia': 'DSH',
+                               'status': 404,
+                               'titolo': 'Messaggio scartato non trovato',
+                               'descrizione': 'Nessun messaggio delle code di scarto ha questo '
+                                              'identificativo.',
+                               'azione': "Rileggere l'elenco delle code di scarto.",
+                               'esito': 'NON_VALIDO',
+                               'ritentabile': False},
+            'DSH-409-SCARTO': {'famiglia': 'DSH',
+                               'status': 409,
+                               'titolo': 'Messaggio scartato già gestito',
+                               'descrizione': 'Il messaggio è già stato rielaborato o archiviato, '
+                                              "anche da un'altra persona, e lo stato atteso non "
+                                              'coincide.',
+                               'azione': 'Rileggere il dettaglio del messaggio.',
+                               'esito': 'RIFIUTATO',
+                               'ritentabile': False},
+            'DSH-409-PIANO': {'famiglia': 'DSH',
+                              'status': 409,
+                              'titolo': 'Piano cambiato',
+                              'descrizione': 'Il piano di rielaborazione ricalcolato al momento '
+                                             "dell'applicazione non coincide con l'anteprima "
+                                             'confermata (impronta del piano diversa). Nulla è '
+                                             'stato applicato; la risposta contiene il piano '
+                                             'aggiornato.',
+                              'azione': 'Controllare il piano aggiornato e confermarlo di nuovo.',
+                              'esito': 'RIFIUTATO',
+                              'ritentabile': False},
+            'DSH-422-PIANO': {'famiglia': 'DSH',
+                              'status': 422,
+                              'titolo': 'Selezione da rielaborare non valida',
+                              'descrizione': 'Indicare almeno un messaggio scartato o un filtro, '
+                                             'entro il massimo di elementi per piano.',
+                              'azione': 'Correggere la selezione.',
+                              'esito': 'NON_VALIDO',
+                              'ritentabile': False},
+            'GOV-404-FRUITORE': {'famiglia': 'GOV',
+                                 'status': 404,
+                                 'titolo': 'Fruitore PDND non trovato',
+                                 'descrizione': 'Nessun fruitore PDND registrato con questo '
+                                                'identificativo.',
+                                 'azione': "Verificare l'identificativo.",
+                                 'esito': 'NON_VALIDO',
+                                 'ritentabile': False},
+            'GOV-409-FRUITORE': {'famiglia': 'GOV',
+                                 'status': 409,
+                                 'titolo': 'Client PDND già registrato',
+                                 'descrizione': 'Il client_id PDND è già associato a un fruitore '
+                                                '(di questo o di un altro ente).',
+                                 'azione': 'Usare il fruitore esistente o disattivarlo prima di '
+                                           'registrarne un altro.',
+                                 'esito': 'RIFIUTATO',
+                                 'ritentabile': False},
+            'PDND-401-RIUSATO': {'famiglia': 'PDND',
+                                 'status': 401,
+                                 'titolo': 'Voucher PDND già usato',
+                                 'descrizione': 'Il voucher (identificato dal suo jti) è già stato '
+                                                'presentato; ogni voucher vale per una sola '
+                                                'richiesta, oppure non ha il claim jti.',
+                                 'azione': 'Richiedere un nuovo voucher a PDND per ogni richiesta.',
+                                 'esito': 'NON_VALIDO',
+                                 'ritentabile': False},
+            'PDND-503-REPLAY': {'famiglia': 'PDND',
+                                'status': 503,
+                                'titolo': 'Controllo dei voucher non disponibile',
+                                'descrizione': 'Il registro dei voucher già usati non risponde; '
+                                               'per sicurezza il voucher non è accettato.',
+                                'azione': 'Ritentare con un nuovo voucher tra poco.',
+                                'esito': 'ERRORE',
+                                'ritentabile': True,
+                                'retry_after': 5},
+            'INT-400': {'famiglia': 'INT',
+                        'status': 400,
+                        'titolo': 'Cursore del registro delle verifiche non valido',
+                        'descrizione': 'Il cursore indicato non è nel formato emesso dal servizio '
+                                       '(copiato male o costruito a mano).',
+                        'azione': 'Ripartire dalla prima pagina senza cursore e usare il campo '
+                                  '`cursore_successivo` della risposta.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'INT-403': {'famiglia': 'INT',
+                        'status': 403,
+                        'titolo': "Ruolo non autorizzato a richiedere verifiche d'integrità",
+                        'descrizione': 'Le verifiche su richiesta le avviano il personale del '
+                                       'conservatore (SUPER_ADMIN, RSC_CONSERVATORE) e '
+                                       "l'amministratore dell'ente sui propri pacchetti.",
+                        'azione': 'Chiedere la verifica a un utente con il ruolo adatto.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'INT-404': {'famiglia': 'INT',
+                        'status': 404,
+                        'titolo': 'Pacchetto, ente o richiesta di verifica non trovati',
+                        'descrizione': "Uno o più PdA indicati, l'ente o la richiesta di verifica "
+                                       'non esistono o non sono visibili con le credenziali usate.',
+                        'azione': "Controllare gli identificativi (URN o id del PdA, id dell'ente, "
+                                  'id della richiesta).',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'INT-409': {'famiglia': 'INT',
+                        'status': 409,
+                        'titolo': "Verifica dell'ente già in corso",
+                        'descrizione': "Per l'ente è già attiva una verifica di tutti i pacchetti; "
+                                       'una seconda rileggerebbe gli stessi oggetti.',
+                        'azione': 'Seguire lo stato della richiesta indicata in '
+                                  '`dettagli.richiesta_id`.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'INT-422': {'famiglia': 'INT',
+                        'status': 422,
+                        'titolo': 'Richiesta di verifica non valida',
+                        'descrizione': 'Va indicato un elenco di PdA (al più il numero ammesso) '
+                                       'oppure un ente, non entrambi né nessuno dei due.',
+                        'azione': 'Correggere il corpo della richiesta e reinviarla.',
+                        'esito': 'NON_VALIDO',
+                        'ritentabile': False},
+            'INT-503': {'famiglia': 'INT',
+                        'status': 503,
+                        'titolo': 'Registro delle verifiche non disponibile',
+                        'descrizione': 'Il database del servizio non ha risposto; nessuna verifica '
+                                       'avviata o letta.',
+                        'azione': 'Ritentare più tardi.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'ACC-401': {'famiglia': 'ACC',
+                        'status': 401,
+                        'titolo': 'Accesso non riuscito',
+                        'descrizione': 'Indirizzo e-mail, password o codice non corretti, oppure '
+                                       'accesso temporaneamente bloccato dopo troppi tentativi. Il '
+                                       "messaggio è lo stesso in ogni caso: non rivela se l'utente "
+                                       'esiste.',
+                        'azione': 'Controllare i dati e riprovare; dopo il blocco attendere '
+                                  'qualche minuto.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'ACC-403-METODO': {'famiglia': 'ACC',
+                               'status': 403,
+                               'titolo': "Metodo d'accesso non ammesso",
+                               'descrizione': "L'ente non ammette questo metodo d'accesso, o il "
+                                              "conservatore non l'ha abilitato.",
+                               'azione': "Accedere con un metodo ammesso dall'ente o chiedere "
+                                         "all'amministratore dell'ente.",
+                               'esito': 'RIFIUTATO',
+                               'ritentabile': False},
+            'ACC-400-PASSAGGIO': {'famiglia': 'ACC',
+                                  'status': 400,
+                                  'titolo': 'Passaggio scaduto o già usato',
+                                  'descrizione': "Il passaggio dell'accesso o dell'attivazione non "
+                                                 'è valido, è scaduto o è stato iniziato in un '
+                                                 'altro browser.',
+                                  'azione': "Ricominciare l'accesso o riaprire il collegamento "
+                                            "d'invito.",
+                                  'esito': 'NON_VALIDO',
+                                  'ritentabile': False},
+            'ACC-404-INVITO': {'famiglia': 'ACC',
+                               'status': 404,
+                               'titolo': 'Invito non valido',
+                               'descrizione': "Il collegamento d'invito non è valido, è scaduto, è "
+                                              "già stato usato o l'indirizzo e-mail non "
+                                              'corrisponde.',
+                               'azione': "Chiedere un nuovo invito all'amministratore dell'ente.",
+                               'esito': 'RIFIUTATO',
+                               'ritentabile': False},
+            'ACC-409-INVITO': {'famiglia': 'ACC',
+                               'status': 409,
+                               'titolo': 'Invito non possibile',
+                               'descrizione': "L'utente è già attivo, oppure l'indirizzo e-mail è "
+                                              "già usato nell'ente.",
+                               'azione': "Controllare l'elenco degli utenti dell'ente.",
+                               'esito': 'RIFIUTATO',
+                               'ritentabile': False},
+            'ACC-422-PASSWORD': {'famiglia': 'ACC',
+                                 'status': 422,
+                                 'titolo': 'Password non ammessa',
+                                 'descrizione': 'La password non rispetta la lunghezza minima o le '
+                                                'altre regole indicate.',
+                                 'azione': 'Scegliere una password più lunga.',
+                                 'esito': 'NON_VALIDO',
+                                 'ritentabile': False},
+            'ACC-422-CODICE': {'famiglia': 'ACC',
+                               'status': 422,
+                               'titolo': 'Codice a tempo non valido',
+                               'descrizione': 'Il codice a sei cifre non corrisponde o è già stato '
+                                              'usato.',
+                               'azione': "Inserire il codice attuale dell'app di autenticazione.",
+                               'esito': 'NON_VALIDO',
+                               'ritentabile': False},
+            'ACC-400-PASSKEY': {'famiglia': 'ACC',
+                                'status': 400,
+                                'titolo': 'Passkey non verificata',
+                                'descrizione': 'La passkey non è stata riconosciuta o la firma non '
+                                               'è valida.',
+                                'azione': 'Riprovare o accedere con un altro metodo.',
+                                'esito': 'RIFIUTATO',
+                                'ritentabile': False},
+            'ACC-422-FORNITORE': {'famiglia': 'ACC',
+                                  'status': 422,
+                                  'titolo': 'Configurazione del fornitore non valida',
+                                  'descrizione': 'Mancano campi obbligatori o un indirizzo non è '
+                                                 'https.',
+                                  'azione': 'Correggere la configurazione e salvare di nuovo.',
+                                  'esito': 'NON_VALIDO',
+                                  'ritentabile': False},
+            'ACC-429': {'famiglia': 'ACC',
+                        'status': 429,
+                        'titolo': 'Troppi tentativi',
+                        'descrizione': "Troppi tentativi d'accesso da questo indirizzo in poco "
+                                       'tempo.',
+                        'azione': 'Attendere qualche minuto e riprovare.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 900},
+            'ACC-403-CREDENZIALI': {'famiglia': 'ACC',
+                                    'status': 403,
+                                    'titolo': 'Gestione delle credenziali non disponibile',
+                                    'descrizione': 'Le proprie credenziali si gestiscono solo da '
+                                                   'una sessione personale della console (non con '
+                                                   'una chiave API o un token di canale), oppure '
+                                                   "l'ente ammette solo SPID o CIE, oppure il "
+                                                   "metodo chiesto non è ammesso dall'ente.",
+                                    'azione': 'Accedere alla console con la propria utenza; con '
+                                              'solo SPID o CIE le credenziali si gestiscono presso '
+                                              "il gestore dell'identità digitale.",
+                                    'esito': 'RIFIUTATO',
+                                    'ritentabile': False},
+            'ACC-403-RIAUTENTICAZIONE': {'famiglia': 'ACC',
+                                         'status': 403,
+                                         'titolo': "Conferma dell'identità richiesta",
+                                         'descrizione': 'Ogni modifica delle credenziali, e ogni '
+                                                        'decisione sensibile del ciclo di vita '
+                                                        '(R17), richiede di confermare la propria '
+                                                        'identità da poco (password e codice a '
+                                                        'tempo, o passkey; con solo SPID o CIE '
+                                                        "l'accesso appena fatto) in questa "
+                                                        'sessione; la conferma è scaduta, manca o '
+                                                        "è già stata usata per un'altra decisione.",
+                                         'azione': "Confermare l'identità e ripetere l'operazione "
+                                                   'entro la finestra indicata.',
+                                         'esito': 'RIFIUTATO',
+                                         'ritentabile': False},
+            'ACC-403-CONFERMA-DECISIONE': {'famiglia': 'ACC',
+                                           'status': 403,
+                                           'titolo': 'Conferma della decisione non concessa',
+                                           'descrizione': 'Il gateway firma la conferma di una '
+                                                          'decisione sensibile (scarto, '
+                                                          'annullamento, rettifica, riversamento '
+                                                          'in uscita, ripresa) solo per una '
+                                                          'sessione personale della console, per '
+                                                          "un'azione del proprio ruolo e del "
+                                                          'proprio ente (o del conservatore), dopo '
+                                                          "una conferma dell'identità recente in "
+                                                          'questa sessione; ogni conferma '
+                                                          "dell'identità vale per UNA sola "
+                                                          'decisione.',
+                                           'azione': 'Confermare di nuovo la propria identità e '
+                                                     "ripetere la decisione; per un'azione di un "
+                                                     'altro ruolo, farla fare a chi ne ha titolo.',
+                                           'esito': 'RIFIUTATO',
+                                           'ritentabile': False},
+            'ACC-422-CONFERMA-DECISIONE': {'famiglia': 'ACC',
+                                           'status': 422,
+                                           'titolo': 'Richiesta di conferma non valida',
+                                           'descrizione': "L'azione, la pratica, la versione "
+                                                          "attesa o l'impronta del contenuto "
+                                                          'indicate non sono valide (impronta '
+                                                          'SHA-256 esadecimale; una richiesta che '
+                                                          'crea la pratica non indica pratica né '
+                                                          'versione).',
+                                           'azione': 'Ricaricare la pagina e ripetere la '
+                                                     'decisione.',
+                                           'esito': 'NON_VALIDO',
+                                           'ritentabile': False},
+            'ACC-503-CONFERMA-DECISIONE': {'famiglia': 'ACC',
+                                           'status': 503,
+                                           'titolo': 'Conferma delle decisioni non disponibile',
+                                           'descrizione': 'La chiave con cui il gateway firma le '
+                                                          'conferme delle decisioni non è '
+                                                          'configurata o non è valida: nessuna '
+                                                          'decisione sensibile si conferma '
+                                                          '(fail-closed).',
+                                           'azione': "Segnalare all'operatore dell'infrastruttura: "
+                                                     'chiave CONFERME_CHIAVE_PRIVATA e '
+                                                     'CONFERME_KID nel Secret del gateway (runbook '
+                                                     'conferme_decisione).',
+                                           'esito': 'ERRORE',
+                                           'ritentabile': True,
+                                           'retry_after': 60},
+            'ACC-422-RIAUTENTICAZIONE': {'famiglia': 'ACC',
+                                         'status': 422,
+                                         'titolo': 'Credenziali non corrette',
+                                         'descrizione': 'La password, il codice o la passkey '
+                                                        "indicati per confermare l'identità non "
+                                                        "sono corretti, oppure l'accesso con "
+                                                        'password è temporaneamente bloccato dopo '
+                                                        'troppi tentativi.',
+                                         'azione': 'Controllare i dati e riprovare; dopo il blocco '
+                                                   'attendere qualche minuto.',
+                                         'esito': 'RIFIUTATO',
+                                         'ritentabile': False},
+            'ACC-404-CREDENZIALE': {'famiglia': 'ACC',
+                                    'status': 404,
+                                    'titolo': 'Credenziale non trovata',
+                                    'descrizione': 'La passkey indicata non esiste o non è tua, '
+                                                   'oppure non hai una password o un codice a '
+                                                   'tempo da cambiare.',
+                                    'azione': 'Ricaricare la pagina delle credenziali.',
+                                    'esito': 'RIFIUTATO',
+                                    'ritentabile': False},
+            'ACC-409-ULTIMA': {'famiglia': 'ACC',
+                               'status': 409,
+                               'titolo': 'Ultima credenziale utilizzabile',
+                               'descrizione': "Non si può revocare l'ultima credenziale con cui "
+                                              "accedere con i metodi ammessi dall'ente: resteresti "
+                                              'senza accesso.',
+                               'azione': "Aggiungere prima un'altra passkey (o un altro metodo "
+                                         'ammesso) e poi revocare questa.',
+                               'esito': 'RIFIUTATO',
+                               'ritentabile': False},
+            'ACC-503': {'famiglia': 'ACC',
+                        'status': 503,
+                        'titolo': 'Accesso locale non disponibile',
+                        'descrizione': 'La chiave di cifratura delle credenziali non è configurata '
+                                       'o un servizio non ha risposto.',
+                        'azione': 'Riprovare più tardi; se il problema continua avvisare il '
+                                  'conservatore.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'RUO-403': {'famiglia': 'RUO',
+                        'status': 403,
+                        'titolo': 'Permessi non concedibili',
+                        'descrizione': 'Il ruolo chiede permessi non concedibili, mai delegabili o '
+                                       'che chi lo crea non ha; oppure un ruolo base non ammesso.',
+                        'azione': 'Togliere i permessi indicati.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'RUO-404': {'famiglia': 'RUO',
+                        'status': 404,
+                        'titolo': 'Ruolo non trovato',
+                        'descrizione': 'Il ruolo personalizzato non esiste in questo ente.',
+                        'azione': "Ricaricare l'elenco dei ruoli.",
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'RUO-409': {'famiglia': 'RUO',
+                        'status': 409,
+                        'titolo': 'Ruolo in conflitto',
+                        'descrizione': 'Esiste già un ruolo con questo nome, il ruolo è stato '
+                                       "modificato da un'altra persona o è ancora assegnato a "
+                                       'qualcuno.',
+                        'azione': 'Ricaricare la pagina e riprovare.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'NTF-409': {'famiglia': 'NTF',
+                        'status': 409,
+                        'titolo': 'Preferenze cambiate',
+                        'descrizione': "Le preferenze sono state salvate da un'altra sessione.",
+                        'azione': 'Ricaricare la pagina e riprovare.',
+                        'esito': 'RIFIUTATO',
+                        'ritentabile': False},
+            'NTF-422-OBBLIGATORIA': {'famiglia': 'NTF',
+                                     'status': 422,
+                                     'titolo': 'Avviso obbligatorio',
+                                     'descrizione': "Questo avviso lo ha reso obbligatorio l'ente "
+                                                    '(o il conservatore) e non si può spegnere.',
+                                     'azione': "Lasciare l'avviso attivo o chiedere "
+                                               "all'amministratore dell'ente.",
+                                     'esito': 'RIFIUTATO',
+                                     'ritentabile': False},
+            'NTF-403-PEC': {'famiglia': 'NTF',
+                            'status': 403,
+                            'titolo': 'Canali PEC riservati al conservatore',
+                            'descrizione': 'Registro, prova e ricevute dei canali PEC li gestisce '
+                                           'un ruolo fisso del conservatore con il permesso mai '
+                                           'delegabile pec_canali:gestisci.',
+                            'azione': 'Chiedere al conservatore.',
+                            'esito': 'RIFIUTATO',
+                            'ritentabile': False},
+            'NTF-404-PEC': {'famiglia': 'NTF',
+                            'status': 404,
+                            'titolo': 'Canale, messaggio o ricevuta PEC non trovati',
+                            'descrizione': "L'elemento indicato non esiste o non appartiene "
+                                           "all'ente.",
+                            'azione': "Ricaricare l'elenco.",
+                            'esito': 'RIFIUTATO',
+                            'ritentabile': False},
+            'NTF-409-PEC': {'famiglia': 'NTF',
+                            'status': 409,
+                            'titolo': "Canale PEC modificato da un'altra persona",
+                            'descrizione': 'La versione letta non è più quella attuale.',
+                            'azione': 'Ricaricare la pagina e ripetere la modifica.',
+                            'esito': 'RIFIUTATO',
+                            'ritentabile': False},
+            'NTF-422-PEC': {'famiglia': 'NTF',
+                            'status': 422,
+                            'titolo': 'Configurazione del canale PEC non valida',
+                            'descrizione': 'I motivi sono in `dettagli.motivi` (campi mancanti, '
+                                           'segreti nella configurazione, canale di sviluppo in '
+                                           'produzione, connessioni non cifrate).',
+                            'azione': 'Correggere la configurazione; i segreti vanno nel Secret '
+                                      'del lavoratore della posta (PEC_SEGRETI_JSON).',
+                            'esito': 'NON_VALIDO',
+                            'ritentabile': False},
+            'NTF-429-PEC': {'famiglia': 'NTF',
+                            'status': 429,
+                            'titolo': 'Troppe prove di invio PEC',
+                            'descrizione': "Nell'ultima ora sono già state chieste le prove "
+                                           'ammesse (PEC_PROVE_PER_ORA).',
+                            'azione': 'Ritentare più tardi.',
+                            'esito': 'ERRORE',
+                            'ritentabile': True,
+                            'retry_after': 600},
+            'NTF-503': {'famiglia': 'NTF',
+                        'status': 503,
+                        'titolo': 'Notifiche non disponibili',
+                        'descrizione': 'Il database del servizio non ha risposto.',
+                        'azione': 'Ritentare più tardi.',
+                        'esito': 'ERRORE',
+                        'ritentabile': True,
+                        'retry_after': 30},
+            'SFTP-422-IP': {'famiglia': 'SFTP',
+                            'status': 422,
+                            'titolo': 'Elenco di indirizzi non valido',
+                            'descrizione': 'Un indirizzo o una rete non è valido, è più ampio del '
+                                           "consentito o l'elenco supera il numero massimo di "
+                                           'voci.',
+                            'azione': "Correggere l'elenco e salvarlo di nuovo.",
+                            'esito': 'NON_VALIDO',
+                            'ritentabile': False}}}

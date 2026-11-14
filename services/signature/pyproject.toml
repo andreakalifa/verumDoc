@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "verumdoc-signature"
+version = "0.1.0"
+requires-python = ">=3.12"
+license = { text = "EUPL-1.2" }  # R18 (VD-P-190): SPDX, testo in LICENSE
+# Dipendenze verificate con grep degli import di app/ e delle librerie
+# libs/shared usate dal servizio (VD-C-031). FastAPI >=0.117: con le versioni
+# precedenti le rotte 204 con `from __future__ import annotations` non si importano.
+dependencies = [
+    # R16 (VD-C-168): limiti condivisi fra le repliche (riserva atomica, MIT)
+    "redis[hiredis]>=5.0.0,<9",
+    # R16 (VD-C-176): tracce OpenTelemetry (Apache-2.0), attive solo con OTEL_TRACCE_ATTIVE
+    "opentelemetry-sdk>=1.40.0,<2",
+    "fastapi>=0.117.0,<0.157",
+    "uvicorn[standard]>=0.30.0,<1",
+    "pydantic>=2.7.0,<3",
+    "pydantic-settings>=2.3.0,<3",
+    "structlog>=24.1.0",
+    "PyJWT[crypto]>=2.8.0,<3",
+    "cryptography>=42.0.0",
+    "httpx>=0.27.0,<1",
+    "asn1crypto>=1.5.0,<2",
+    "pyHanko>=0.38.0,<0.40",
+    "pyhanko-certvalidator>=0.33.0,<0.35",
+    "prometheus-client>=0.20.0,<1",
+    # R13a: registro dei fornitori e parametri dal database (login di sola lettura)
+    "sqlalchemy[asyncio]>=2.0.30,<2.2",
+    "asyncpg>=0.29.0,<1",
+    # R13a: HSM e smart card (PKCS#11); la libreria del produttore si monta al deploy
+    "python-pkcs11>=0.7.0,<0.11",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+    "bandit>=1.7.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]

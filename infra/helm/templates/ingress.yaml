@@ -1,0 +1,56 @@
+{{- /*
+SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+SPDX-License-Identifier: EUPL-1.2
+*/ -}}
+{{/*
+Ingress unico: instrada per prefisso ai servizi giusti (ingress.routes, in ordine
+dal più specifico). Il frontend (/) solo sull'host dell'applicazione.
+*/}}
+{{- if .Values.ingress.enabled }}
+{{- $root := . }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: verumdoc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "verumdoc.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tlsSecretName }}
+  tls:
+    - secretName: {{ .Values.ingress.tlsSecretName }}
+      hosts:
+        {{- range $k, $h := .Values.ingress.hosts }}
+        {{- if $h }}
+        - {{ $h }}
+        {{- end }}
+        {{- end }}
+  {{- end }}
+  rules:
+    {{- range $hostKey, $host := .Values.ingress.hosts }}
+    {{- /* R04: host tolto da un values di account (null) o senza rotte: nessuna regola */}}
+    {{- $rotte := list }}
+    {{- range $r := $root.Values.ingress.routes }}
+    {{- if or (not $r.onlyHost) (eq $r.onlyHost $hostKey) }}
+    {{- $rotte = append $rotte $r }}
+    {{- end }}
+    {{- end }}
+    {{- if and $host $rotte }}
+    - host: {{ $host }}
+      http:
+        paths:
+          {{- range $r := $rotte }}
+          - path: {{ $r.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $r.service }}
+                port:
+                  number: {{ (index $root.Values.services $r.service).port }}
+          {{- end }}
+    {{- end }}
+    {{- end }}
+{{- end }}

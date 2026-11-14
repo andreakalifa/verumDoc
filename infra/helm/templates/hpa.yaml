@@ -1,0 +1,20 @@
+{{- /*
+SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+SPDX-License-Identifier: EUPL-1.2
+*/ -}}
+{{- $root := . }}
+{{- range $name, $svc := .Values.services }}
+{{- if include "verumdoc.attivo" (dict "root" $root "svc" $svc) }}
+{{- if and $svc.autoscaling.enabled (not $svc.autoscaling.keda) }}
+---
+{{ include "verumdoc.hpa" (dict "root" $root "nome" $name "as" $svc.autoscaling) }}
+{{- end }}
+{{- range $wn, $w := $svc.workers }}
+{{- $as := default $svc.autoscaling $w.autoscaling }}
+{{- if and (ne (toString $w.enabled) "false") $as.enabled (not $as.keda) }}
+---
+{{ include "verumdoc.hpa" (dict "root" $root "nome" (printf "%s-%s" $name $wn) "as" $as) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

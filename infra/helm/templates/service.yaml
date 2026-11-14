@@ -1,0 +1,67 @@
+{{- /*
+SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+SPDX-License-Identifier: EUPL-1.2
+*/ -}}
+{{/*
+Service ClusterIP: porta = porta applicativa (8000 per le API, 8080 per il
+frontend), la stessa usata dagli URL interni (http://<servizio>:8000). Per i
+servizi esposti l'ALB controlla la salute sul percorso reale (health.ready).
+Con publicTcp (R03 i2, es. SFTP) un secondo Service LoadBalancer TCP
+<servizio>-pubblico, separato dall'ingress HTTP (AWS Load Balancer Controller → NLB).
+I lavoratori non hanno Service: nessuno li chiama.
+*/}}
+{{- $root := . }}
+{{- range $name, $svc := .Values.services }}
+{{- if include "verumdoc.attivo" (dict "root" $root "svc" $svc) }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+    app: {{ $name }}
+    {{- include "verumdoc.labels" $root | nindent 4 }}
+  {{- if $svc.exposed }}
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: {{ $svc.health.ready }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ $name }}
+  ports:
+    - name: http
+      port: {{ $svc.port }}
+      targetPort: http
+      protocol: TCP
+{{- if $svc.publicTcp }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-pubblico
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+    app: {{ $name }}
+    {{- include "verumdoc.labels" $root | nindent 4 }}
+  annotations:
+    {{- range $k, $v := $svc.publicTcp.annotations }}
+    {{ $k }}: {{ toString $v | quote }}
+    {{- end }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: {{ $name }}
+  loadBalancerSourceRanges:
+    {{- range $c := (default (list "0.0.0.0/0") $svc.publicTcp.sourceRanges) }}
+    - {{ $c }}
+    {{- end }}
+  ports:
+    - name: {{ $svc.publicTcp.name }}
+      port: {{ $svc.publicTcp.port }}
+      targetPort: {{ $svc.publicTcp.name }}
+      protocol: TCP
+{{- end }}
+{{- end }}
+{{- end }}

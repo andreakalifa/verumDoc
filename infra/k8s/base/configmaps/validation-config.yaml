@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: validation-config
+  namespace: verumdoc
+  labels:
+    app: validation
+    app.kubernetes.io/name: validation
+    app.kubernetes.io/part-of: verumdoc
+data:
+  ENV: production
+  LOG_LEVEL: INFO
+  LOG_JSON: 'true'
+  KAFKA_BOOTSTRAP: DA_TERRAFORM:kafka_bootstrap
+  KAFKA_AUTENTICAZIONE: iam
+  KAFKA_REGIONE: eu-south-1
+  S3_ENDPOINT_URL: https://s3.eu-south-1.amazonaws.com
+  S3_REGION: eu-south-1
+  VALIDAZIONE_MAX_FILE_MB: '5120'
+  LETTURA_BLOCCO_KB: '1024'
+  CONCORRENZA_PDV: '8'
+  MAX_MESSAGGI_IN_SOSPESO: '256'
+  ATTESA_DOPO_ERRORE_DLQ_SECONDI: '30'
+  FIRME_VERIFICATORE: dss
+  FIRME_DSS_URL: http://verifica-firme:8080
+  FIRME_RIPIEGO_PDF: 'false'
+  FIRME_REVOCHE_RETE: 'false'
+  FIRME_DIMENSIONE_MAX_MB: '60'
+  FIRME_CONCORRENZA: '2'
+  FORMATI_RICONOSCITORE: siegfried
+  VERIFICA_CONTENUTO_MAX_MB: '512'

@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-testimone
+  namespace: verumdoc-testimone
+  labels:
+    app: testimone
+    app.kubernetes.io/name: testimone
+    app.kubernetes.io/part-of: verumdoc
+spec:
+  podSelector:
+    matchLabels:
+      app: testimone
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 10.20.0.0/20
+    - ipBlock:
+        cidr: 10.20.16.0/20
+    - ipBlock:
+        cidr: 10.20.32.0/20
+    ports:
+    - port: 8000
+      protocol: TCP
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring
+    ports:
+    - port: 8000
+      protocol: TCP
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.20.96.0/20
+    - ipBlock:
+        cidr: 10.20.112.0/20
+    - ipBlock:
+        cidr: 10.20.128.0/20
+    ports:
+    - port: 5432
+      protocol: TCP

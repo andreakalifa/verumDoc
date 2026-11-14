@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Helm values — account del TESTIMONE della catena (R04, contratto K3)
+#
+#   helm upgrade --install verumdoc-testimone infra/helm \
+#     -f infra/helm/values.yaml -f infra/helm/values.testimone.yaml \
+#     --namespace verumdoc-testimone
+#
+# Si applica nel cluster di un ACCOUNT AWS SEPARATO da quello del registro, con
+# amministratori diversi (piano §5.3): chi amministra il registro non deve poter
+# leggere la chiave del testimone né riscriverne il database. Questo rilascio
+# contiene SOLO i servizi con «account: testimone» (topologia.servizi_attivi):
+# niente PgBouncer, niente KEDA, ingress e WAF propri.
+# Kustomize: infra/k8s/testimone (generato da questo file).
+global:
+  account: testimone
+  namespace: verumdoc-testimone
+  # Ruoli IRSA: nessuno (il testimone non usa servizi AWS)
+  ambienteIam: testimone
+
+# Rete della VPC dell'account del testimone (da Terraform di quell'account:
+# DA_IMPOSTARE finché l'account non esiste; il formato è quello della VPC
+# principale, 10.20.0.0/16 come proposta non sovrapposta a prod 10.0 e staging 10.1).
+network:
+  albSourceCidrs: ["10.20.0.0/20", "10.20.16.0/20", "10.20.32.0/20"]
+  nlbSourceCidrs: ["10.20.0.0/20", "10.20.16.0/20", "10.20.32.0/20"]
+  dataCidrs: ["10.20.96.0/20", "10.20.112.0/20", "10.20.128.0/20"]
+  vpcCidr: "10.20.0.0/16"
+
+pgbouncer:
+  enabled: false
+
+# Ingress PROPRIO del testimone: host separato (non /api/v1/testimone sull'host
+# api del registro) perché vive in un altro account, con ALB, certificato e WAF
+# amministrati da altri; un percorso sotto l'host del registro passerebbe per
+# l'ALB e il WAF di chi deve essere controllato.
+ingress:
+  hosts:
+    app: null
+    api: null
+    testimone: "testimone.verumdoc.it"
+  annotations:
+    alb.ingress.kubernetes.io/certificate-arn: "DA_IMPOSTARE:acm_certificate_arn_testimone"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: "DA_IMPOSTARE:waf_web_acl_arn_testimone"
+  routes:
+    - {path: /api/v1/testimone, service: testimone, maxBodyMB: 1, onlyHost: testimone}
+
+# Quota del namespace del testimone (somma dei limiti al massimo delle repliche)
+quotaNamespace:
+  requests.cpu: "4"
+  requests.memory: 8Gi
+  limits.cpu: "8"
+  limits.memory: 8Gi
+  pods: "20"
+  services: "5"
+
+# Nessun volume condiviso nel rilascio del testimone
+storageClasses: null

@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+#
+# R18 (VD-P-190): aggiornamenti delle dipendenze proposti da Dependabot. Ogni pull request
+# passa dalla CI; una dipendenza nuova o con licenza cambiata va annotata in
+# THIRD_PARTY_NOTICES.md (REGOLE_SVILUPPO §20.8).
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directories:
+      - "/services/*"
+      - "/sdk"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      python-minori:
+        update-types: ["minor", "patch"]
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      npm-minori:
+        update-types: ["minor", "patch"]
+  - package-ecosystem: "maven"
+    directory: "/services/verifica-firme"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directories:
+      - "/services/*"
+      - "/frontend"
+      - "/infra/pgbouncer"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

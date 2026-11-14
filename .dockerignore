@@ -1,0 +1,27 @@
+# Contesto di build dei servizi Python (docker-compose: context «.»).
+# I Dockerfile copiano solo services/<svc>/{pyproject.toml,app,...} e libs/:
+# qui si escludono dal contesto segreti locali, ambienti e file generati, così
+# non arrivano mai al demone Docker né, per errore, in un'immagine.
+.git
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/.venv
+**/venv
+**/*.egg-info
+**/node_modules
+frontend/dist
+# Segreti locali (chiavi JWT e pepper di sviluppo, file .env)
+infra/dev_jwt.env
+**/.env
+**/.env.*
+# Test: non servono nelle immagini (libs/shared/*/tests compresi)
+**/tests
+# Un __init__.py nella cartella alembic/ del gateway trasforma la cartella in un
+# pacchetto che, con PYTHONPATH=/app, nasconde la libreria alembic installata
+# («No module named 'alembic.config'», VD-C-007). Tolti da R02, ma una copia di
+# lavoro non ripulita può ancora averli: non entrano mai nell'immagine.
+services/gateway/alembic/__init__.py
+services/gateway/alembic/versions/__init__.py

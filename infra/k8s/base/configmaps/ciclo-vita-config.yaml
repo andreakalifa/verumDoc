@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ciclo-vita-config
+  namespace: verumdoc
+  labels:
+    app: ciclo-vita
+    app.kubernetes.io/name: ciclo-vita
+    app.kubernetes.io/part-of: verumdoc
+data:
+  ENV: production
+  LOG_LEVEL: INFO
+  KAFKA_BOOTSTRAP: DA_TERRAFORM:kafka_bootstrap
+  KAFKA_AUTENTICAZIONE: iam
+  KAFKA_REGIONE: eu-south-1
+  S3_ENDPOINT_URL: https://s3.eu-south-1.amazonaws.com
+  S3_REGION: eu-south-1
+  S3_BUCKET_AIP: verumdoc-prod-aip-prod
+  FIRME_VERIFICATORE: dss
+  FIRME_DSS_URL: http://verifica-firme:8080
+  FIRME_RIPIEGO_PDF: 'false'
+  FIRME_REVOCHE_RETE: 'false'
+  FIRME_DIMENSIONE_MAX_MB: '60'
+  JWT_ISSUER: verumdoc.it
+  JWT_AUDIENCE: verumdoc-api
+  LAVORATORE_ATTIVO: 'false'
+  LAVORATORE_LEASE_SECONDI: '300'
+  LAVORATORE_RITARDI_SECONDI: '[60, 300, 1500, 7200]'
+  LAVORATORE_LOTTO: '200'
+  SCARTO_MAX_PDA_PER_PRATICA: '100000'
+  ALLEGATI_MAX_MB: '50'
+  CONSERVATORE_DENOMINAZIONE: ''
+  OUTBOX_RELAY_ATTIVO: 'true'
+  QUOTE_RICHIESTE_MINUTO: '{"starter": 120, "business": 600, "enterprise": 6000}'
+  QUOTE_PIANO_PREDEFINITO: starter
+  QUOTE_FINESTRA_SECONDI: '60'
+  QUOTE_PIANO_CACHE_SECONDI: '60'
+  CONFERMA_DECISIONI: ATTIVO
+  CONFERME_CHIAVI_PUBBLICHE: DA_IMPOSTARE:conferme_chiavi_pubbliche
+  CONFERME_KID_REVOCATI: ''

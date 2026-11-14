@@ -1,0 +1,93 @@
+{
+ "formato": "verumdoc-profilo-tipologia-1",
+ "codice": "contratto",
+ "nome": "Contratto",
+ "versione": 1,
+ "valido_dal": "2022-01-01",
+ "valido_al": null,
+ "norm_ref": "Profilo di servizio (l'Allegato 5 non ha un profilo dedicato ai contratti); D.Lgs. 36/2023 per i contratti pubblici — da riscontrare",
+ "estende": "documento_informatico",
+ "nota": "Profilo predefinito di VerumDoc (R05). I campi con da_riscontrare=true vanno verificati sul testo ufficiale prima di attivare la tipologia per un ente (VD-C-088).",
+ "campi": [
+  {
+   "nome": "numero_repertorio",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "DatiDiRegistrazione.NumeroDocumento",
+   "descrizione": "Numero di repertorio del contratto",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "data_stipula",
+   "tipo": "data",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Data di stipula",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "parti_contraenti",
+   "tipo": "elenco",
+   "obbligatorio": true,
+   "allegato5": "Soggetti",
+   "descrizione": "Denominazioni delle parti",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "sensibile": true
+  },
+  {
+   "nome": "forma_contratto",
+   "tipo": "enum",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Forma del contratto",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "valori_ammessi": [
+    "forma pubblica amministrativa",
+    "scrittura privata",
+    "scrittura privata autenticata",
+    "atto pubblico notarile",
+    "altro"
+   ]
+  },
+  {
+   "nome": "importo",
+   "tipo": "decimale",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Importo del contratto",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "cig",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Codice identificativo di gara (contratti pubblici)",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "cup",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Codice unico di progetto",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "data_scadenza",
+   "tipo": "data",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Data di scadenza del contratto",
+   "calcolato": false,
+   "da_riscontrare": true
+  }
+ ]
+}

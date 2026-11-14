@@ -1,0 +1,107 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ciclo-vita-lavoratore
+  namespace: verumdoc
+  labels:
+    app: ciclo-vita-lavoratore
+    app.kubernetes.io/name: ciclo-vita-lavoratore
+    app.kubernetes.io/part-of: verumdoc
+    app.kubernetes.io/component: lavoratore
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ciclo-vita-lavoratore
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: ciclo-vita-lavoratore
+        app.kubernetes.io/name: ciclo-vita-lavoratore
+        app.kubernetes.io/component: lavoratore
+      annotations:
+        prometheus.io/scrape: 'false'
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      serviceAccountName: ciclo-vita-lavoratore
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: ciclo-vita
+        image: verumdoc-ciclo-vita
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - -m
+        - app.lavoratore
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        envFrom:
+        - configMapRef:
+            name: ciclo-vita-config
+        - secretRef:
+            name: ciclo-vita-secrets
+        - secretRef:
+            name: ciclo-vita-lavoratore-secrets
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: HASHCHAIN_URL
+          value: http://hashchain:8000
+        - name: GATEWAY_URL
+          value: http://gateway:8000
+        - name: DISTRIBUTION_URL
+          value: http://distribution:8000
+        - name: S3_BUCKET_PDV
+          value: DA_TERRAFORM:s3_staging_bucket
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ciclo-vita-lavoratore-secrets
+              key: DATABASE_URL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 1Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: ciclo-vita-lavoratore
+              topologyKey: kubernetes.io/hostname

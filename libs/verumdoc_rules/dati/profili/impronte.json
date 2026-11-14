@@ -1,0 +1,19 @@
+{
+ "formato": "verumdoc-impronte-profili-1",
+ "nota": "Impronte SHA-256 delle versioni PUBBLICATE dei profili di tipologia (campi composti con l'eredità). Append-only: una riga esistente non si modifica; una versione nuova aggiunge la sua (test_r11_profili). Calcolo: libs.verumdoc_rules.tipologie.impronta_profilo. Le v2 sono state corrette nella revisione di R11 PRIMA del rilascio (mai adottate: VD-P-112).",
+ "versioni": {
+  "aggregazione_documentale.v1": "9b06651d89648a013d60eb1514209160e9c84916218f9a482f98ae01ac4aced4",
+  "aggregazione_documentale.v2": "7a7e4d5769919476874fe230d80d0d6fc39222c1aa88f55511e81f7cad920e86",
+  "contratto.v1": "6dd964857c3dc459d58877568fce6227cb480f886479500a7cce7f6a69d4aa03",
+  "contratto.v2": "715ccc95ff9b19d54a9a54dc23117e2a5c9a2ef96594b220e6343f6e24e6d150",
+  "documento_amministrativo_informatico.v1": "fe2e719df23e0f1620162c76b146e54b56427b18a1cd47b3ac4639fbf7b0e603",
+  "documento_amministrativo_informatico.v2": "bc1f353b71a50d4b766682afe6637e0a84cfdf5ba2bfe0a1d0744e5a2c7aa30f",
+  "documento_informatico.v1": "b8a95d25992dbd979a06d26ae891db16698826926d5cf966755c761406d8e32f",
+  "documento_informatico.v2": "60742902058e72cc14231c2089e00f4b4ec8a44aaf3c670c27c441b4a2b49a53",
+  "documento_informatico.v3": "e48da23e9f5cfa890189df9ea965beead8e139fb4a18b7558036902c9ca92cb1",
+  "fattura.v1": "93954b3201d4019301d4a3498048335ae908b9083aa1fd786fe50bd8be64933c",
+  "fattura.v2": "75448dea29749f7f5438363b6b5ac0e69916b3e6d704cdfd5c9898131cf0b9bc",
+  "registro_protocollo.v1": "09b3aa0667e20b4ee58e8acf07a543beaa964a5f829ca1814b60177808c32c14",
+  "registro_protocollo.v2": "f0f0c20447e11bdb481e90e0563a10ccffb301c988d071ca7d35efbe6ff4e85d"
+ }
+}

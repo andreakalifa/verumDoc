@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Helm values — produzione (sovrascrive values.yaml)
+# I predefiniti di values.yaml sono già quelli di produzione: qui solo ciò che la
+# pipeline di rilascio deve sempre impostare.
+global:
+  environment: production
+  imageTag: "DA_IMPOSTARE_IN_PIPELINE"   # tag immutabile, sostituito dalla pipeline

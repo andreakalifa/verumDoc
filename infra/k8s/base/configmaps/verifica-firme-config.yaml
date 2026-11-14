@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: verifica-firme-config
+  namespace: verumdoc
+  labels:
+    app: verifica-firme
+    app.kubernetes.io/name: verifica-firme
+    app.kubernetes.io/part-of: verumdoc
+data:
+  VERIFICA_MODO: trusted-list
+  VERIFICA_LOTL_URL: https://ec.europa.eu/tools/lotl/eu-lotl.xml
+  VERIFICA_OJ_URL: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.C_.2019.276.01.0001.01.ENG
+  VERIFICA_LOTL_KEYSTORE: /opt/verifica-firme/lotl-keystore.p12
+  VERIFICA_CACHE_DIR: /tmp/verifica-firme
+  VERIFICA_AGGIORNAMENTO_MS: '21600000'
+  VERIFICA_REVOCHE_IN_RETE: 'true'
+  VERIFICA_DIMENSIONE_MASSIMA: '62914560'
+  VERIFICA_RICHIESTE_CONTEMPORANEE: '8'
+  VERIFICA_RETE_DOMINI: ''
+  VERIFICA_RETE_TEMPO_MS: '10000'
+  VERIFICA_RETE_RISPOSTA_MAX: '67108864'
+  JWT_AUDIENCE_SERVIZIO: verumdoc-verifica-firme
+  JWT_SCOPE_SERVIZIO: firme:verifica

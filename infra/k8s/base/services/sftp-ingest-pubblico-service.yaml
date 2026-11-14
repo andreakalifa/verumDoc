@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: Service
+metadata:
+  name: sftp-ingest-pubblico
+  namespace: verumdoc
+  labels:
+    app: sftp-ingest
+    app.kubernetes.io/name: sftp-ingest
+    app.kubernetes.io/part-of: verumdoc
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=false
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: TCP
+spec:
+  type: LoadBalancer
+  selector:
+    app: sftp-ingest
+  loadBalancerSourceRanges:
+  - 0.0.0.0/0
+  ports:
+  - name: sftp
+    port: 22
+    targetPort: sftp
+    protocol: TCP

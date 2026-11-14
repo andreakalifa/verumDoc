@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: testimone-config
+  namespace: verumdoc-testimone
+  labels:
+    app: testimone
+    app.kubernetes.io/name: testimone
+    app.kubernetes.io/part-of: verumdoc
+data:
+  ENV: production
+  LOG_LEVEL: INFO
+  TESTIMONE_NOME_CHIAVE: verumdoc-testimone
+  TESTIMONE_ORIGINI_AMMESSE: verumdoc.it/registro/v1
+  TESTIMONE_CHIAVI_REGISTRO: DA_IMPOSTARE:verifier_key_registro
+  TESTIMONE_IMPRONTE_TOKEN_REGISTRO: DA_IMPOSTARE:sha256_token_registro

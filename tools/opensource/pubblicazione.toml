@@ -1,0 +1,80 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+#
+# Configurazione di tools/opensource/controlla_pubblicazione.py (R18, VD-P-190).
+#
+# Qui stanno solo regole GENERICHE, pubblicabili. I termini riservati (nomi di persone,
+# nomi di aziende, nomi di prodotti o documenti di terzi da non citare) vanno nel file
+# locale `tools/opensource/pubblicazione.locale.toml`, ignorato da git e con la stessa
+# struttura: le sue liste si AGGIUNGONO a queste. Non scrivere mai un termine riservato
+# in questo file: verrebbe pubblicato proprio dal controllo che deve impedirlo.
+
+[intestazioni]
+# Testo delle intestazioni SPDX obbligatorie nei sorgenti (REGOLE_SVILUPPO §31, R18).
+copyright = "2026 Contributori di VerumDoc"
+licenza = "EUPL-1.2"
+# Cartelle (e file della radice) i cui sorgenti devono avere l'intestazione.
+cartelle = [
+    "services", "libs", "tools", "sdk", "tests", "infra", "frontend/src", "frontend/e2e",
+    ".github",
+]
+file_radice = ["CREA_TOPIC_KAFKA.ps1", "docker-compose.yml", "frontend/Dockerfile",
+               "frontend/vite.config.ts", "frontend/playwright.config.ts",
+               "frontend/eslint.config.mjs"]
+# Percorsi esclusi (glob su percorso relativo): generati da strumenti che non scriviamo,
+# dati di prova i cui byte contano, cartelle di terzi.
+esclusi = [
+    "**/node_modules/**",
+    "docs/catalogo/openapi.yaml",
+    "**/*.min.js",
+]
+
+[segreti]
+# Nomi e tipi di file che non devono MAI essere tracciati (il contenuto non viene letto).
+file_vietati = [
+    "infra/dev_*.env", "**/.env", "**/.env.*", "**/*.pem", "**/*.key", "**/*.p12",
+    "**/*.pfx", "**/*.jks", "**/id_rsa", "**/id_ed25519", "**/*.tfstate", "**/*.tfvars",
+    # documenti d'ufficio e immagini: la documentazione pubblica è in Markdown e le foto
+    # di verifica grafica si rigenerano (R06); un .docx o un .pdf di lavoro non si pubblica
+    "**/*.doc", "**/*.docx", "**/*.xls", "**/*.xlsx", "**/*.ppt", "**/*.pptx", "**/*.odt",
+    "**/*.ods", "**/*.pdf", "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.gif", "**/*.webp",
+]
+# Eccezioni ai nomi vietati (modelli d'esempio senza valori).
+file_ammessi = ["**/.env.example", "**/*.tfvars.example"]
+# Espressioni regolari di segreti evidenti (Python, sensibili alle maiuscole).
+modelli = [
+    # blocco PEM di una chiave privata CON contenuto (non la sola intestazione citata)
+    '-----BEGIN [A-Z ]*PRIVATE KEY-----\s*\n[A-Za-z0-9+/=]{40,}',
+    # token JWT completo (intestazione, corpo e firma)
+    'eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{16,}',
+    'AKIA[0-9A-Z]{16}',
+    '(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36}',
+    'github_pat_[A-Za-z0-9_]{60,}',
+    'xox[abposr]-[A-Za-z0-9-]{10,}',
+    'AIza[0-9A-Za-z_-]{35}',
+    'sk_live_[0-9A-Za-z]{20,}',
+    'glpat-[0-9A-Za-z_-]{20}',
+]
+
+[riferimenti]
+# Espressioni regolari di riferimenti da non pubblicare (Python, ignorano le maiuscole).
+modelli = [
+    # percorsi locali di una macchina di sviluppo
+    '[A-Z]:\\{1,2}Users\\',
+    '/Users/[A-Za-z0-9._-]+/',
+    '/home/(?!app\b|nonroot\b|node\b)[a-z][a-z0-9_-]*/',
+    # cartelle di lavoro temporanee di strumenti di sviluppo
+    '\bscratchpad\b',
+    '/tmp/claude',
+    # indirizzi di posta di caselle personali
+    '[A-Za-z0-9._%+-]+@(?:gmail|googlemail|hotmail|outlook|live|yahoo|libero|virgilio|tiscali|icloud|alice|tin)\.[a-z]{2,3}\b',
+]
+# Eccezioni: "percorso" = [modelli ammessi in quel file]. Il controllo stesso e i suoi
+# test citano i modelli di proposito.
+[riferimenti.eccezioni]
+"tools/opensource/pubblicazione.toml" = ["*"]
+"tools/opensource/controlla_pubblicazione.py" = ["*"]
+"tools/opensource/tests/test_controlla_pubblicazione.py" = ["*"]
+"docs/sviluppo/PUBBLICAZIONE_OPEN_SOURCE.md" = ["*"]
+# nomi di file ostili di prova (percorso Windows inventato)
+"services/dashboard-api/tests/test_g5_sicurezza.py" = ['[A-Z]:\\{1,2}Users\\']

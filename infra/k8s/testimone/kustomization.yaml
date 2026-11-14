@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+# I Secret <servizio>-secrets NON sono qui: vanno creati prima del deploy
+# (secrets/README.md), altrimenti i pod restano in CreateContainerConfigError.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: verumdoc-testimone
+resources:
+- namespace.yaml
+- service-accounts.yaml
+- network-policies/default-deny-all.yaml
+- network-policies/allow-dns-egress.yaml
+- network-policies/allow-testimone.yaml
+- network-policies/allow-testimone-migrazioni.yaml
+- configmaps/testimone-config.yaml
+- deployments/testimone-deployment.yaml
+- services/testimone-service.yaml
+- hpa/testimone-hpa.yaml
+- jobs/testimone-migrazioni-job.yaml
+- ingress.yaml
+labels:
+- pairs:
+    project: verumdoc
+    app.kubernetes.io/managed-by: kustomize
+- pairs:
+    environment: production
+images:
+- name: verumdoc-testimone
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-testimone
+  newTag: DA_IMPOSTARE_IN_PIPELINE

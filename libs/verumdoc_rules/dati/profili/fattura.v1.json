@@ -1,0 +1,123 @@
+{
+ "formato": "verumdoc-profilo-tipologia-1",
+ "codice": "fattura",
+ "nome": "Fattura elettronica",
+ "versione": 1,
+ "valido_dal": "2022-01-01",
+ "valido_al": null,
+ "norm_ref": "DM MEF 17 giugno 2014, art. 3 (metadati dei documenti rilevanti ai fini tributari); specifiche tecniche FatturaPA — da riscontrare",
+ "estende": "documento_informatico",
+ "nota": "Profilo predefinito di VerumDoc (R05). I campi con da_riscontrare=true vanno verificati sul testo ufficiale prima di attivare la tipologia per un ente (VD-C-088).",
+ "campi": [
+  {
+   "nome": "numero_fattura",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "DatiDiRegistrazione.NumeroDocumento",
+   "descrizione": "Numero della fattura",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "data_fattura",
+   "tipo": "data",
+   "obbligatorio": true,
+   "allegato5": "DatiDiRegistrazione.DataRegistrazione",
+   "descrizione": "Data della fattura",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "cedente_denominazione",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "Soggetti (cedente/prestatore)",
+   "descrizione": "Denominazione o cognome e nome del cedente",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "cedente_partita_iva",
+   "tipo": "partita_iva",
+   "obbligatorio": true,
+   "allegato5": "Soggetti (cedente/prestatore)",
+   "descrizione": "Partita IVA del cedente",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "cedente_codice_fiscale",
+   "tipo": "codice_fiscale",
+   "obbligatorio": false,
+   "allegato5": "Soggetti (cedente/prestatore)",
+   "descrizione": "Codice fiscale del cedente",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "sensibile": true
+  },
+  {
+   "nome": "cessionario_denominazione",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "Soggetti (cessionario/committente)",
+   "descrizione": "Denominazione o cognome e nome del cessionario",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "cessionario_codice_fiscale",
+   "tipo": "codice_fiscale",
+   "obbligatorio": false,
+   "allegato5": "Soggetti (cessionario/committente)",
+   "descrizione": "Codice fiscale del cessionario",
+   "calcolato": false,
+   "da_riscontrare": true,
+   "sensibile": true
+  },
+  {
+   "nome": "cessionario_partita_iva",
+   "tipo": "partita_iva",
+   "obbligatorio": false,
+   "allegato5": "Soggetti (cessionario/committente)",
+   "descrizione": "Partita IVA del cessionario",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "tipo_documento_fattura",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Tipo documento FatturaPA (es. TD01)",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "identificativo_sdi",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Identificativo attribuito dal Sistema di interscambio",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "importo_totale",
+   "tipo": "decimale",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Importo totale del documento",
+   "calcolato": false,
+   "da_riscontrare": true
+  },
+  {
+   "nome": "valuta",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Valuta (ISO 4217)",
+   "calcolato": false,
+   "da_riscontrare": true
+  }
+ ]
+}

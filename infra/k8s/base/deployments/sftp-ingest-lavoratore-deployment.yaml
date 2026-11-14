@@ -1,0 +1,143 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sftp-ingest-lavoratore
+  namespace: verumdoc
+  labels:
+    app: sftp-ingest-lavoratore
+    app.kubernetes.io/name: sftp-ingest-lavoratore
+    app.kubernetes.io/part-of: verumdoc
+    app.kubernetes.io/component: lavoratore
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sftp-ingest-lavoratore
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: sftp-ingest-lavoratore
+        app.kubernetes.io/name: sftp-ingest-lavoratore
+        app.kubernetes.io/component: lavoratore
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8000'
+        prometheus.io/path: /metrics
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      serviceAccountName: sftp-ingest
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: sftp-ingest
+        image: verumdoc-sftp-ingest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health/live
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health/ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /api/v1/health/live
+            port: http
+          failureThreshold: 30
+          periodSeconds: 5
+        envFrom:
+        - configMapRef:
+            name: sftp-ingest-config
+        - secretRef:
+            name: sftp-ingest-secrets
+        - secretRef:
+            name: sftp-ingest-lavoratore-secrets
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: SFTP_COMPONENTI
+          value: lavoratore
+        - name: GATEWAY_URL
+          value: http://gateway:8000
+        - name: GATEWAY_TIMEOUT_SECONDI
+          value: '60'
+        - name: LAVORATORE_PARALLELISMO
+          value: '4'
+        - name: LAVORATORE_PARTI_PARALLELE
+          value: '4'
+        - name: LAVORATORE_LEASE_SECONDI
+          value: '300'
+        - name: LAVORATORE_ACCOUNT_PER_GIRO
+          value: '100'
+        - name: LAVORATORE_CONTROLLO_COMPLETO_SECONDI
+          value: '3600'
+        - name: LAVORATORE_QUOTA_ATTESA_MASSIMA_ORE
+          value: '72'
+        - name: GATEWAY_RETRY_AFTER_MAX_SECONDI
+          value: '60'
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: aree
+          mountPath: /var/lib/verumdoc/sftp
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: aree
+        persistentVolumeClaim:
+          claimName: sftp-ingest-aree
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: sftp-ingest-lavoratore
+              topologyKey: kubernetes.io/hostname

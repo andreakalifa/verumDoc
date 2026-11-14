@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Cruscotti versionati di VerumDoc (R14, VD-C-033): i file JSON stanno in
+# infra/observability/grafana/cruscotti/ e si caricano in sola lettura.
+apiVersion: 1
+providers:
+  - name: verumdoc
+    folder: VerumDoc
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/cruscotti

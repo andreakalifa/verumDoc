@@ -1,0 +1,95 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+#
+# Metadati per il catalogo del software pubblico (standard publiccode.yml,
+# https://yml.publiccode.tools/). Prima di pubblicare: sostituire i valori «DA COMPILARE»
+# (url del repository, contatti) e validare il file con l'editor o il validatore di
+# Developers Italia (docs/sviluppo/PUBBLICAZIONE_OPEN_SOURCE.md, passo 6).
+publiccodeYmlVersion: "0"
+
+name: VerumDoc
+# DA COMPILARE: indirizzo del repository pubblico (git clonabile)
+url: "https://github.com/DA-COMPILARE/verumdoc.git"
+landingURL: "https://github.com/DA-COMPILARE/verumdoc"
+
+softwareVersion: "R18"
+releaseDate: "2026-11-14"
+
+platforms:
+  - web
+  - linux
+
+categories:
+  - documentmanagement
+  - digitalassetmanagement
+  - compliancemanagement
+
+developmentStatus: development
+
+softwareType: "standalone/web"
+
+description:
+  it:
+    localisedName: VerumDoc
+    genericName: Sistema di conservazione digitale
+    shortDescription: >-
+      Sistema di conservazione digitale dei documenti informatici progettato sulle
+      Linee guida AgID, con regole e profili versionati.
+    longDescription: >
+      VerumDoc è un sistema di conservazione digitale dei documenti informatici
+      progettato sulle Linee guida AgID sulla formazione, gestione e conservazione dei
+      documenti informatici e sul Regolamento dei servizi di conservazione.
+
+
+      Riceve i pacchetti di versamento da API REST, SFTP e PDND; li verifica con
+      regole configurabili per classe documentale (formati, firme, metadati
+      dell'Allegato 5); li conserva in pacchetti di
+      archiviazione su storage non modificabile con indice SInCRO e una **catena delle
+      impronte verificabile da terzi** con testimone indipendente; ne gestisce
+      l'esibizione, lo scarto con autorizzazioni, le rettifiche e il riversamento.
+
+
+      Regole, profili dei metadati, formati e parametri sono **dati versionati**:
+      quando la norma cambia si pubblica una nuova versione delle regole, senza
+      modificare il codice. Il manuale di conservazione e il piano della sicurezza si
+      generano dalla configurazione reale.
+
+
+      **Stato**: in sviluppo, non ancora utilizzabile per una conservazione a norma
+      (mancano firma e marca qualificate, accesso SPID/CIE tramite aggregatore e
+      verifica dell'indice contro lo schema UNI 11386).
+    documentation: "https://github.com/DA-COMPILARE/verumdoc/blob/main/README.md"
+    features:
+      - Versamento da API REST, SFTP e PDND
+      - Verifica di formati, firme e metadati dell'Allegato 5 per classe documentale
+      - Pacchetti di archiviazione con indice SInCRO su storage WORM
+      - Catena delle impronte RFC 6962 con testimone indipendente e verificatore pubblico
+      - Esibizione, scarto, rettifica, annullamento e riversamento
+      - Regole e profili normativi versionati con validità temporale
+      - Manuale di conservazione generato dalla configurazione
+      - Console web con accesso SPID/CIE predisposto, codice a tempo e passkey
+
+legal:
+  license: EUPL-1.2
+
+maintenance:
+  type: "community"
+  contacts:
+    # DA COMPILARE: nome del manutentore di riferimento (vedi MAINTAINERS); email facoltativa
+    - name: "DA COMPILARE"
+
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - it
+
+dependsOn:
+  open:
+    - name: PostgreSQL
+      versionMin: "15"
+    - name: Apache Kafka
+    - name: Redis
+    - name: OpenSearch
+  proprietary:
+    - name: Servizio di firma e marca temporale qualificate (eIDAS)
+      optional: true

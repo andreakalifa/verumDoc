@@ -1,0 +1,90 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hashchain-verifica-audit
+  namespace: verumdoc
+  labels:
+    app: hashchain-verifica-audit
+    app.kubernetes.io/name: hashchain-verifica-audit
+    app.kubernetes.io/part-of: verumdoc
+    app.kubernetes.io/component: verifica-audit
+spec:
+  schedule: 41 3 * * *
+  timeZone: Europe/Rome
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 10800
+      template:
+        metadata:
+          labels:
+            app: hashchain-verifica-audit
+            app.kubernetes.io/name: hashchain-verifica-audit
+            app.kubernetes.io/component: verifica-audit
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+          serviceAccountName: hashchain-verifica-audit
+          automountServiceAccountToken: false
+          terminationGracePeriodSeconds: 60
+          containers:
+          - name: hashchain
+            image: verumdoc-hashchain
+            imagePullPolicy: IfNotPresent
+            command:
+            - python
+            - -m
+            - app.registro.operatore
+            - verifica-audit
+            - --automatica
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
+            envFrom:
+            - configMapRef:
+                name: hashchain-config
+            - secretRef:
+                name: hashchain-verifica-audit-secrets
+            env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: hashchain-verifica-audit-secrets
+                  key: DATABASE_URL
+            volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          volumes:
+          - name: tmp
+            emptyDir:
+              sizeLimit: 1Gi
+          restartPolicy: Never

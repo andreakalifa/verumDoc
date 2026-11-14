@@ -1,0 +1,57 @@
+{{- /*
+SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+SPDX-License-Identifier: EUPL-1.2
+*/ -}}
+{{/*
+KEDA (R04, piano §4.2): ScaledObject per i carichi con autoscaling.keda (ritardo
+dei gruppi Kafka o coda in PostgreSQL, più la CPU) e le TriggerAuthentication
+comuni (MSK con IAM dell'operatore, PostgreSQL dal Secret keda-postgres).
+Stessa logica di infra/k8s/genera_manifest.py (scaled_object).
+*/}}
+{{- $root := . }}
+{{- $usaKeda := false }}
+{{- range $name, $svc := .Values.services }}
+{{- if include "verumdoc.attivo" (dict "root" $root "svc" $svc) }}
+{{- if and $svc.autoscaling.enabled $svc.autoscaling.keda }}
+{{- $usaKeda = true }}
+---
+{{ include "verumdoc.scaledobject" (dict "root" $root "nome" $name "as" $svc.autoscaling "bootstrap" (index (default (dict) $svc.config) "KAFKA_BOOTSTRAP")) }}
+{{- end }}
+{{- range $wn, $w := $svc.workers }}
+{{- $as := default $svc.autoscaling $w.autoscaling }}
+{{- if and (ne (toString $w.enabled) "false") $as.enabled $as.keda }}
+{{- $usaKeda = true }}
+---
+{{ include "verumdoc.scaledobject" (dict "root" $root "nome" (printf "%s-%s" $name $wn) "as" $as "bootstrap" (default (index (default (dict) $svc.config) "KAFKA_BOOTSTRAP") (index (default (dict) $w.env) "KAFKA_BOOTSTRAP"))) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if $usaKeda }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ .Values.keda.kafka.authenticationRef }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "verumdoc.labels" . | nindent 4 }}
+spec:
+  # Identità dell'operatore KEDA (ruolo IRSA keda-operatore, modulo iam_servizi)
+  podIdentity:
+    provider: aws
+    identityOwner: keda
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ .Values.keda.postgresql.authenticationRef }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "verumdoc.labels" . | nindent 4 }}
+spec:
+  secretTargetRef:
+    - parameter: connection
+      name: {{ .Values.keda.postgresql.secret }}
+      key: connection
+{{- end }}

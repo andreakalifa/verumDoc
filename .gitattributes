@@ -1,0 +1,8 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Script eseguiti nei container Linux: sempre LF, anche su Windows (un CRLF
+# rompe lo shebang di entrypoint.sh e il container esce subito).
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.sql text eol=lf

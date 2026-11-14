@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Allarmi R05: export dell'audit nel WORM (VD-C-112, rapporto r05-catena-residui
+# §6.3). Le righe di audit_global non ancora esportate sono l'unica finestra in
+# cui un superutente del database può alterarle senza traccia: un export fermo
+# o un segmento nel WORM diverso dal database vanno visti subito.
+# Gravità come in verumdoc-r04.yml (pagina = subito; avviso = in orario).
+groups:
+  - name: verumdoc-audit-worm
+    rules:
+      # Periodo al più 1 h (R07, D19: AUDIT_EXPORT_PERIODO_MINUTI in console, 15
+      # predefiniti, 5-60) + margine 10 min (AUDIT_EXPORT_MARGINE_SECONDI): oltre
+      # 2 h l'export è fermo o in errore.
+      - alert: AuditNonEsportato
+        expr: max(verumdoc_catena_audit_ritardo_secondi) > 7200
+        for: 15m
+        labels: {severity: pagina}
+        annotations:
+          summary: "audit_global non esportato nel WORM da oltre 2 ore"
+          description: "Export dell'audit fermo o in errore: la finestra in cui l'audit si può alterare senza traccia si allarga. Runbook: docs/architettura/catena.md §11 (export-audit, verifica-audit)."
+      - alert: AuditWormDivergente
+        expr: max(verumdoc_catena_audit_worm_divergente) == 1
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Un segmento dell'audit nel WORM differisce dalle righe del database"
+          description: "Possibile alterazione di audit_global (o transazione rimasta aperta oltre il margine). Indagare con verifica-audit; adotta-segmento-audit solo con decisione motivata dell'operatore."
+      # Revisione 2 di R05 (S7): l'export trattenuto da una transazione aperta o
+      # sospeso perché l'orizzonte non è verificabile ha un segnale proprio, prima
+      # del ritardo di 2 ore. Il limite a una transazione dimenticata dei servizi è
+      # idle_in_transaction_session_timeout dei loro login (guardia all'avvio).
+      - alert: AuditExportTrattenuto
+        expr: max(verumdoc_catena_audit_transazione_aperta_secondi) > 1800
+        for: 5m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Export dell'audit trattenuto da una transazione aperta da oltre 30 minuti"
+          description: "Una transazione aperta (psql di un operatore, connessione persa) ferma l'export dei periodi successivi al suo inizio. Individuarla in pg_stat_activity (xact_start più vecchio) e chiuderla. Runbook: docs/runbooks/audit_worm.md."
+      - alert: AuditOrizzonteNonVerificabile
+        expr: max(verumdoc_catena_audit_orizzonte_non_verificabile) == 1
+        for: 15m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Export dell'audit sospeso: inizio di transazioni non visibile"
+          description: "Il proprietario di vd_transazioni_aperte non vede pg_stat_activity di tutte le sessioni (pg_read_all_stats): l'export resta fermo (fail-closed). Runbook: docs/runbooks/audit_worm.md."
+  # Revisione 2 di R05 (S3): scarto con cancellazione incompleta e lavoro bloccato
+  - name: verumdoc-ciclo-vita
+    rules:
+      - alert: ScartoEliminazioneIncompleta
+        expr: max(verumdoc_ciclo_vita_pda_eliminazione_incompleta) > 0
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "PdA con cancellazione dello scarto iniziata e non completata"
+          description: "Una pratica di scarto è ESEGUITA_CON_ECCEZIONI: PdA parzialmente cancellati (legal hold arrivato durante lo scarto, retention, errore persistente dello storage). Verbale e tombstone dei PdA completi sono stati prodotti. Runbook: docs/runbooks/scarto_incompleto.md."
+      # Revisione 4 di R05 (U2): il lavoratore ha rifiutato di eseguire uno scarto
+      # perché la catena delle autorizzazioni non regge (possibile API compromessa)
+      - alert: ScartoAutorizzazioniNonVerificate
+        expr: max(verumdoc_ciclo_vita_scarti_autorizzazioni_non_verificate) > 0
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Scarto bloccato: autorizzazioni non verificate dal lavoratore"
+          description: "Una pratica di scarto ESEGUIBILE non ha superato la verifica indipendente del lavoratore (cronologia, nulla osta, allegati nel WORM, piano approvato): nessuna cancellazione è avvenuta. Anomalia di sicurezza (possibile pratica fabbricata dal pod API): vedere ultimo_errore.difetti e l'audit ciclo_vita.scarto.autorizzazioni_non_verificate. Runbook: docs/runbooks/scarto_incompleto.md (§ autorizzazioni non verificate)."
+      - alert: PraticaLavoroInErrore
+        expr: max(verumdoc_ciclo_vita_pratiche_lavoro_in_errore) > 0
+        for: 30m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Pratiche del ciclo di vita con il lavoro che fallisce ripetutamente"
+          description: "Il lavoratore ritenta con attesa crescente (LAVORATORE_RITARDI_SECONDI) ma un servizio (registro, gateway, distribution) rifiuta: vedere ultimo_errore della pratica. Runbook: docs/runbooks/scarto_incompleto.md (§ lavoro in errore)."

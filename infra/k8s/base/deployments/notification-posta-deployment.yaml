@@ -1,0 +1,105 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-posta
+  namespace: verumdoc
+  labels:
+    app: notification-posta
+    app.kubernetes.io/name: notification-posta
+    app.kubernetes.io/part-of: verumdoc
+    app.kubernetes.io/component: posta
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notification-posta
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: notification-posta
+        app.kubernetes.io/name: notification-posta
+        app.kubernetes.io/component: posta
+      annotations:
+        prometheus.io/scrape: 'false'
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      serviceAccountName: notification
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: notification
+        image: verumdoc-notification
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - -m
+        - app.lavoratore_posta
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        envFrom:
+        - configMapRef:
+            name: notification-config
+        - secretRef:
+            name: notification-posta-secrets
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POSTA_INVIO_ATTIVO
+          value: 'true'
+        - name: PEC_ATTIVO
+          value: 'true'
+        - name: PEC_INTERVALLO_SECONDI
+          value: '15'
+        - name: PEC_RITARDI_SECONDI
+          value: '[60, 300, 900, 3600, 14400]'
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: notification-posta-secrets
+              key: DATABASE_URL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 1Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: notification-posta
+              topologyKey: kubernetes.io/hostname

@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: onboarding-config
+  namespace: verumdoc
+  labels:
+    app: onboarding
+    app.kubernetes.io/name: onboarding
+    app.kubernetes.io/part-of: verumdoc
+data:
+  ENV: production
+  LOG_LEVEL: INFO
+  KAFKA_BOOTSTRAP: DA_TERRAFORM:kafka_bootstrap
+  KAFKA_AUTENTICAZIONE: iam
+  KAFKA_REGIONE: eu-south-1
+  JWT_ISSUER: verumdoc.it
+  JWT_AUDIENCE: verumdoc-api
+  ADMIN_EMAIL: admin@verumdoc.it
+  BASE_URL_CONSOLE: https://app.verumdoc.it
+  SFTP_HOST_PUBBLICO: sftp.verumdoc.it
+  SFTP_PORTA_PUBBLICA: '22'
+  SFTP_RSA_BIT_MINIMI: '3072'
+  SIGNATURE_URL: http://signature:8000

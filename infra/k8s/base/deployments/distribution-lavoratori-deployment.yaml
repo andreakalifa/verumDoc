@@ -1,0 +1,92 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: distribution-lavoratori
+  namespace: verumdoc
+  labels:
+    app: distribution-lavoratori
+    app.kubernetes.io/name: distribution-lavoratori
+    app.kubernetes.io/part-of: verumdoc
+    app.kubernetes.io/component: lavoratori
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: distribution-lavoratori
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: distribution-lavoratori
+        app.kubernetes.io/name: distribution-lavoratori
+        app.kubernetes.io/component: lavoratori
+      annotations:
+        prometheus.io/scrape: 'false'
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      serviceAccountName: distribution
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: distribution
+        image: verumdoc-distribution
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - -m
+        - app.services.lavoratori
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        envFrom:
+        - configMapRef:
+            name: distribution-config
+        - secretRef:
+            name: distribution-secrets
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 1Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: distribution-lavoratori
+              topologyKey: kubernetes.io/hostname

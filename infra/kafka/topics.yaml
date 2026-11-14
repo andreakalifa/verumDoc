@@ -1,0 +1,233 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# VerumDoc — UNICA fonte dei topic Kafka (VD-C-035)
+#
+# Usata da:
+#   - infra/scripts/kafka_create_topics.sh   (Linux/macOS, CI, MSK)
+#   - CREA_TOPIC_KAFKA.ps1                   (Windows, sviluppo locale)
+#   - infra/kafka/verifica_topic.py          (confronto con i nomi usati nel codice)
+#
+# Ogni topic elencato qui è usato da almeno un servizio (verificato con grep su
+# services/*/app/config.py e sui produttori/consumatori). Aggiungere o togliere
+# un topic SOLO qui, poi rieseguire verifica_topic.py.
+#
+# Formato volutamente piatto (una chiave per riga) perché gli script lo leggono
+# senza librerie YAML: name / partitions / retention_ms sono obbligatori.
+# retention_ms = -1 significa conservazione senza scadenza.
+# producers / consumers: servizi che scrivono / leggono. R04 correzioni (rev4
+# rilievo 7): sono anche la fonte dei PERMESSI Kafka (IAM di MSK, modulo
+# Terraform iam_servizi): un servizio scrive solo i topic di cui è producer e
+# legge solo quelli di cui è consumer; infra/k8s/verifica_manifest.py controlla la
+# coerenza con il blocco «iam» dei values. key: chiave dei messaggi (documentazione).
+#
+# Partizioni (R03 i2, obiettivo 1 milione di documenti al giorno):
+#   1M/giorno = ~11,6 messaggi/s in media; con picchi 10× nelle ore d'ufficio
+#   ~120/s. La partizione è l'unità di parallelismo di un gruppo di consumer:
+#   aip-builder elabora un messaggio per partizione alla volta (copia WORM,
+#   IPdA) e ha fino a 10 repliche; validation ne elabora fino a CONCORRENZA_PDV
+#   per replica anche nella stessa partizione. Con ~1 s per PdA servono decine
+#   di consumer contemporanei: i topic della pipeline passano a 48 partizioni
+#   (fino a 48 consumer per gruppo; 48 = 16 leader per broker con 3 broker MSK,
+#   divisibile per 2, 3, 4, 6, 8, 12, 16, 24 repliche). Si sovradimensiona
+#   ora perché aumentare le partizioni dopo cambia la partizione delle chiavi
+#   esistenti (ordine per chiave non garantito durante il passaggio).
+#   Topic a basso volume (errori, eventi rari): 6-12. Code di scarto: 3.
+#   Totale: 249 partizioni (R04: −hashchain.seal, +catena.checkpoint,
+#   +integrita.anomalia, +versamento.staging_scaduto; R05: +24 dei cinque topic del
+#   ciclo di vita; R07: +6 dei due avvisi automatici; ×3 repliche = 747 repliche di
+#   partizione, ~249 per broker: entro i limiti consigliati per kafka.m5.large).
+# Chiave: oggi il codice usa l'id della risorsa (pdv_id, caricamento_id,
+# pdd_id), che distribuisce in modo uniforme. Una chiave per ente darebbe
+# l'ordine per ente ma concentrerebbe un ente grande su UNA partizione (e su un
+# solo consumer di aip-builder): decisione da confermare, vedi rapporto R03 i2.
+# Lo script di creazione AUMENTA le partizioni dei topic già esistenti con
+# meno partizioni (mai le riduce) e allinea retention.ms.
+
+topics:
+  - name: pdv.received
+    partitions: 48                 # pipeline (R03: era 12)
+    retention_ms: 259200000        # 72 h
+    producers: [gateway, dashboard-api]   # dashboard-api: «Rielabora» (code di scarto)
+    consumers: [validation, notification]
+    key: pdv_id
+
+  - name: pdv.validated
+    partitions: 48                 # pipeline (R03: era 12)
+    retention_ms: 259200000        # 72 h
+    producers: [validation, dashboard-api]   # dashboard-api: «Rielabora» (code di scarto)
+    consumers: [aip-builder, notification]
+    key: pdv_id
+
+  - name: pdv.received.dlq         # scarto di validation dopo i ritentativi
+    partitions: 3
+    retention_ms: 2592000000       # 30 giorni
+    producers: [validation]
+    consumers: [dashboard-api]     # R04: code di scarto (tabella scarti)
+
+  - name: pdv.invalid
+    partitions: 12                 # R03: era 6 (un rifiuto per PdV nei lotti errati)
+    retention_ms: 604800000        # 7 giorni
+    producers: [validation, dashboard-api]   # dashboard-api: «Rielabora» (code di scarto)
+    consumers: [notification]
+    key: pdv_id
+
+  - name: pdv.validated.dlq        # scarto di aip-builder dopo i ritentativi
+    partitions: 3
+    retention_ms: 2592000000       # 30 giorni
+    producers: [aip-builder]
+    consumers: [dashboard-api]     # R04: code di scarto
+
+  - name: aip.conserved
+    partitions: 48                 # pipeline (R03: era 12)
+    retention_ms: 604800000        # 7 giorni
+    # R04 (VD-C-097): lo pubblica la hashchain quando il PdA è nel registro e
+    # coperto da un checkpoint; la hashchain non lo consuma più (coda catena_coda)
+    producers: [hashchain]
+    consumers: [notification]
+    key: aip_id
+
+  - name: aip.error
+    partitions: 6
+    retention_ms: 604800000        # 7 giorni
+    producers: [aip-builder, dashboard-api]   # dashboard-api: «Rielabora» (code di scarto)
+    consumers: []
+
+  # R04: hashchain.seal TOLTO (la catena a lotti è sostituita dal registro a due
+  # livelli: i checkpoint escono su catena.checkpoint). Lo script di creazione
+  # non elimina i topic esistenti: sul cluster va tolto a mano dopo il rilascio.
+
+  - name: lifecycle.event
+    partitions: 6
+    retention_ms: 2592000000       # 30 giorni
+    producers: [onboarding, distribution, aip-builder]
+    consumers: []
+
+  - name: notification.send
+    partitions: 6
+    retention_ms: 259200000        # 72 h
+    # dashboard-api: «Rielabora» (code di scarto); onboarding: inviti e avvisi delle
+    # modifiche programmate (outbox, R10); gateway: avviso delle modifiche alle proprie
+    # credenziali (outbox, R12b VD-C-156). R12b: onboarding mancava (permesso IAM).
+    producers: [dashboard-api, onboarding, gateway]
+    consumers: [notification]
+
+  - name: notification.dlq
+    partitions: 3
+    retention_ms: 2592000000       # 30 giorni
+    producers: [notification]
+    consumers: [dashboard-api]     # R04: code di scarto
+
+  # ── R03: eventi per i clienti (notification, gruppo notification-eventi-cliente) ──
+  # Nome del topic = tipo dell'evento (EVENTI_TOPIC di notification).
+
+  - name: caricamento.completato   # sessione di caricamento verificata (b1, outbox)
+    partitions: 12
+    retention_ms: 259200000        # 72 h: l'elenco eventi è in eventi_cliente
+    producers: [gateway, dashboard-api]   # dashboard-api: «Rielabora» (code di scarto)
+    consumers: [notification]
+    key: caricamento_id
+
+  - name: caricamento.errore       # sessione rifiutata dalla verifica (b1, outbox)
+    partitions: 6
+    retention_ms: 259200000        # 72 h
+    producers: [gateway, dashboard-api]   # dashboard-api: «Rielabora» (code di scarto)
+    consumers: [notification]
+    key: caricamento_id
+
+  - name: pdd.pronto               # PdD ZIP pronto (b4, outbox; solo consegna ZIP)
+    partitions: 6
+    retention_ms: 604800000        # 7 giorni
+    producers: [distribution, dashboard-api]   # dashboard-api: «Rielabora» (code di scarto)
+    consumers: [notification]
+    key: pdd_id
+
+  # ── R04 ──
+  - name: catena.checkpoint        # checkpoint del registro (K1/K2, hashchain via outbox)
+    partitions: 3                  # uno al minuto al più: volume minimo
+    retention_ms: 2592000000       # 30 giorni (il registro e il WORM restano la fonte)
+    producers: [hashchain]
+    consumers: [notification]      # evento cliente catena.checkpoint per ogni ente
+    key: dimensione
+
+  - name: integrita.anomalia       # anomalia della verifica continua (r04-verifiche, outbox)
+    partitions: 3
+    retention_ms: 7776000000       # 90 giorni: un'anomalia si indaga, non si perde
+    producers: [hashchain]
+    consumers: [notification]      # evento cliente integrita.anomalia + avviso e-mail al conservatore
+    key: aip_id                    # id del PdA (chiave dell'outbox nel lavoratore)
+
+  - name: versamento.staging_scaduto  # preavviso: copie di transito dei PdV rifiutati in scadenza (VD-C-104)
+    partitions: 6
+    retention_ms: 604800000        # 7 giorni
+    producers: [gateway, dashboard-api]   # dashboard-api: «Rielabora» (code di scarto)
+    consumers: [notification]
+    key: pdv_id
+
+  # ── R07: avvisi automatici agli enti (libs.shared.avvisi, outbox) ──
+  - name: quota.soglia_raggiunta             # D13: quota giornaliera all'80% e al 100%
+    partitions: 3
+    retention_ms: 604800000        # 7 giorni
+    producers: [gateway]
+    consumers: [notification]      # evento cliente + e-mail al referente
+    key: ente_e_chiave             # "<tenant_id>:<giorno>:PDV:<soglia>"
+
+  - name: idempotenza.chiave_omessa  # D17: versamenti senza Idempotency-Key nella settimana
+    partitions: 3
+    retention_ms: 604800000        # 7 giorni
+    producers: [onboarding]
+    consumers: [notification]      # evento cliente + e-mail al referente
+    key: ente_e_chiave             # "<tenant_id>:<settimana ISO>"
+
+  # ── R09: avvisi del ciclo di vita (D20, D21, D23), sottotipo nel payload ──
+  - name: ciclo_vita.avviso        # proposta di scarto in bozza, ripresa automatica, annullamento da approvare
+    partitions: 3
+    retention_ms: 604800000        # 7 giorni
+    producers: [ciclo-vita]
+    consumers: [notification]      # evento cliente + e-mail al referente
+    key: ente_e_chiave             # "<tenant_id>:<sottotipo>:<pratica>"
+
+  # Esibizione: NESSUN topic proprio. Un'esibizione è un PdD di tipo ESIBIZIONE:
+  # come ZIP arriva con pdd.pronto (tipo «ESIBIZIONE»), come LINK è pronta già
+  # nella risposta (R03 i1 ha tolto esibizione.pronta dalla mappa di notification).
+
+  # Indicizzazione OpenSearch (b4): NESSUN topic, la coda è la tabella
+  # indicizzazione_aip scritta nella transazione del PdA (non si perde fra
+  # commit e pubblicazione).
+
+  # ── R05: ciclo di vita (servizio ciclo-vita, outbox con origine «ciclo-vita») ──
+  # Eventi per i clienti del contratto Q2; nome del topic = tipo dell'evento.
+  # Consumati da notification (EVENTI_TOPIC e TIPI_EVENTO, integrazione R05).
+  - name: pratica.cambio_stato     # ogni transizione di una pratica
+    partitions: 6
+    retention_ms: 259200000        # 72 h: l'elenco eventi è in eventi_cliente
+    producers: [ciclo-vita]
+    consumers: [notification]
+    key: pratica_id
+
+  - name: versamento.annullato     # annullamento logico di un PdV
+    partitions: 6
+    retention_ms: 259200000        # 72 h
+    producers: [ciclo-vita]
+    consumers: [notification]
+    key: pdv_id
+
+  - name: versamento.rettificato   # PdV di rettifica conservato (originale invariato)
+    partitions: 6
+    retention_ms: 259200000        # 72 h
+    producers: [ciclo-vita]
+    consumers: [notification]
+    key: pdv_id
+
+  - name: scarto.eseguito          # esecuzione dello scarto conclusa (verbale nel WORM)
+    partitions: 3
+    retention_ms: 259200000        # 72 h
+    producers: [ciclo-vita]
+    consumers: [notification]
+    key: pratica_id
+
+  - name: riversamento.pronto      # PdD MIGRAZIONE pronti con manifesto
+    partitions: 3
+    retention_ms: 259200000        # 72 h
+    producers: [ciclo-vita]
+    consumers: [notification]
+    key: pratica_id

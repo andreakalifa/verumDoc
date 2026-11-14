@@ -1,0 +1,4 @@
+# Chiave host SSH generata in sviluppo (mai nel repository, REGOLE §19.3)
+.chiave_host_sviluppo
+# Aree SFTP locali di sviluppo
+dati_sftp/

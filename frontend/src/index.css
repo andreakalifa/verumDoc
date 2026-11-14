@@ -1,0 +1,951 @@
+/*
+ * VerumDoc — sistema grafico «Partenze» (VD-DR-01, 20/10/2026).
+ * Font serviti dal progetto: nessuna chiamata a servizi esterni.
+ * Unico foglio di stile del portale: tutte le classi sono `vd-*` e usano solo
+ * i token qui sotto (descritti in frontend/DESIGN.md). Le pagine aggiungono
+ * stile inline solo per la disposizione.
+ */
+@import "@fontsource-variable/archivo/wdth.css";
+
+:root {
+  color-scheme: light;
+  /* Materiali */
+  --vd-grafite:      #1D1F22;
+  --vd-grafite-2:    #2A2D31;
+  --vd-giallo:       #FFC20E;
+  --vd-giallo-velato:#FFF6D6;
+  --vd-carta:        #FFFFFF;
+  --vd-binario:      #F2F3F4;
+
+  /* Inchiostri */
+  --vd-testo:        #16181B;
+  --vd-testo-2:      #575C63;
+  --vd-su-grafite:   #D7D9DC;
+  --vd-filetto:      #E1E3E6;
+  --vd-bordo-campo:  #767B82;
+  --vd-bordo-su-grafite: #8A9097;
+  --vd-inchiostro-pieno: #000000;
+  --vd-segnaposto-su-grafite: #B5B9BE;
+  /* VD-DR-05: inchiostri «sopra» un fondo pieno, uguali o invertiti nel tema scuro */
+  --vd-su-testo:     #FFFFFF;   /* testo del bottone primario (fondo inchiostro) */
+  --vd-su-giallo:    #16181B;   /* testo su giallo: sempre grafite, in ogni tema */
+  --vd-su-grafite-forte: #FFFFFF; /* voce attiva e comandi in testata */
+  --vd-fondo-critico:#B42318;   /* fondo della fascia critica: testo bianco in ogni tema */
+  --vd-velo:         rgba(29, 31, 34, 0.62);
+
+  /* Stati: parole colorate, mai pillole */
+  --vd-ok:           #0E7A46;
+  --vd-rischio:      #A63D00;
+  --vd-critico:      #B42318;
+  --vd-info:         #1F5FAD;
+
+  --vd-font:  "Archivo Variable", "Helvetica Neue", Arial, sans-serif;
+  --vd-mono:  ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  /* R12c: una sola colonna e un solo margine per testata, regole e contenuto */
+  --vd-pagina: 1360px;
+  --vd-gutter: 32px;
+  --vd-testata-h: 56px;
+  --vd-sotto-h: 48px;
+  --vd-sezione: 40px;
+  --vd-corpo-alto: 28px;
+  --vd-corpo-basso: 56px;
+}
+@media (max-width: 1023px) { :root { --vd-gutter: 24px; } }
+@media (max-width: 640px)  { :root { --vd-gutter: 16px; --vd-sezione: 32px; --vd-corpo-alto: 20px; } }
+
+/* ── Tema scuro (VD-DR-05): la stessa segnaletica di notte. Testata grafite e
+ *    giallo invariati; carta → notte, inchiostri chiari, stati schiariti per
+ *    restare oltre 7:1 sul fondo. Automatico con il sistema operativo, oppure
+ *    scelto in testata (data-tema="scuro" | "chiaro" su <html>). ─────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="chiaro"]) {
+    color-scheme: dark;
+    --vd-giallo-velato:#3A3112;
+    --vd-carta:        #121417;
+    --vd-binario:      #1D2024;
+    --vd-testo:        #ECEDEF;
+    --vd-testo-2:      #A8ADB4;
+    --vd-filetto:      #2E3237;
+    --vd-bordo-campo:  #8A9097;
+    --vd-inchiostro-pieno: #FFFFFF;
+    --vd-su-testo:     #121417;
+    --vd-velo:         rgba(0, 0, 0, 0.72);
+    --vd-ok:           #5CC995;
+    --vd-rischio:      #F29A55;
+    --vd-critico:      #FF8A7E;
+    --vd-info:         #86B6F5;
+  }
+}
+:root[data-tema="scuro"] {
+  color-scheme: dark;
+  --vd-giallo-velato:#3A3112;
+  --vd-carta:        #121417;
+  --vd-binario:      #1D2024;
+  --vd-testo:        #ECEDEF;
+  --vd-testo-2:      #A8ADB4;
+  --vd-filetto:      #2E3237;
+  --vd-bordo-campo:  #8A9097;
+  --vd-inchiostro-pieno: #FFFFFF;
+  --vd-su-testo:     #121417;
+  --vd-velo:         rgba(0, 0, 0, 0.72);
+  --vd-ok:           #5CC995;
+  --vd-rischio:      #F29A55;
+  --vd-critico:      #FF8A7E;
+  --vd-info:         #86B6F5;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--vd-font);
+  font-stretch: 100%;
+  background: var(--vd-carta);
+  color: var(--vd-testo);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  line-height: 1.45;
+}
+
+::selection { background: var(--vd-giallo); color: var(--vd-su-giallo); }
+
+a { color: var(--vd-testo); }
+a:hover { color: var(--vd-inchiostro-pieno); }
+
+:focus-visible { outline: 3px solid var(--vd-testo); outline-offset: 2px; box-shadow: 0 0 0 7px var(--vd-giallo); }
+header :focus-visible { outline-color: var(--vd-giallo); box-shadow: none; }
+.vd-su-giallo :focus-visible { outline-color: var(--vd-su-giallo); box-shadow: 0 0 0 7px #FFFFFF; }
+
+.vd-sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.vd-pagina {
+  max-width: var(--vd-pagina);
+  margin: 0 auto;
+  padding-inline: var(--vd-gutter);
+}
+/* max-width comprende il margine: il contenuto è largo al più --vd-pagina meno due margini,
+   uguale per testata, sotto-navigazione, fascia e corpo della pagina */
+.vd-pagina { box-sizing: border-box; }
+.vd-corpo-pagina { padding-block: var(--vd-corpo-alto) var(--vd-corpo-basso); }
+
+/* ── Titoli di sezione: etichetta piena o bordata ─────────────────── */
+.vd-etichetta {
+  display: inline-block;
+  font-size: 22px; font-weight: 800; font-stretch: 85%; line-height: 1.25;
+  padding: 2px 10px;
+  background: var(--vd-giallo); color: var(--vd-su-giallo);
+}
+.vd-etichetta--bordata { background: transparent; color: var(--vd-testo); border: 2px solid var(--vd-testo); padding: 0 8px; }
+
+.vd-sezione-testa {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 4px 12px; margin-bottom: 10px;
+}
+.vd-nota { font-size: 14px; color: var(--vd-testo-2); }
+
+/* ── Tabellone ────────────────────────────────────────────────────── */
+.vd-scorri { overflow-x: auto; }
+.vd-tabellone { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.vd-tabellone th {
+  font-stretch: 75%; text-align: left; font-weight: 700; font-size: 13px;
+  padding: 8px 14px; border-bottom: 2px solid var(--vd-testo); white-space: nowrap;
+}
+.vd-tabellone td {
+  padding: 12px 14px; border-bottom: 1px solid var(--vd-filetto);
+  font-size: 15px; vertical-align: baseline;
+}
+.vd-tabellone td.vd-ora { font-stretch: 75%; font-weight: 700; font-size: 20px; white-space: nowrap; }
+.vd-tabellone .vd-sotto { display: block; font-size: 13px; color: var(--vd-testo-2); }
+.vd-tabellone tbody tr:hover { background: var(--vd-binario); }
+
+.vd-stato { font-weight: 700; font-size: 14px; white-space: nowrap; }
+.vd-stato--ok { color: var(--vd-ok); }
+.vd-stato--rischio { color: var(--vd-rischio); }
+.vd-stato--critico { color: var(--vd-critico); }
+.vd-stato--info { color: var(--vd-info); }
+.vd-stato--neutro { color: var(--vd-testo-2); }
+
+.vd-mono { font-family: var(--vd-mono); font-size: 13px; }
+
+/* ── Comandi ──────────────────────────────────────────────────────── */
+.vd-bottone {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 20px;
+  font: inherit; font-size: 16px; font-weight: 700;
+  background: var(--vd-testo); color: var(--vd-su-testo);
+  border: 2px solid var(--vd-testo); border-radius: 2px; cursor: pointer;
+}
+.vd-bottone:hover { background: var(--vd-inchiostro-pieno); border-color: var(--vd-inchiostro-pieno); }
+.vd-bottone:disabled { background: var(--vd-filetto); border-color: var(--vd-filetto); color: var(--vd-testo-2); cursor: not-allowed; }
+.vd-bottone--secondario { background: transparent; color: var(--vd-testo); }
+.vd-bottone--secondario:hover { background: var(--vd-binario); }
+
+.vd-campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.vd-campo label, .vd-campo-etichetta { font-size: 14px; font-weight: 600; }
+.vd-campo .vd-aiuto { font-size: 13px; color: var(--vd-testo-2); }
+.vd-input {
+  width: 100%; min-height: 44px; padding: 0 12px;
+  font: inherit; font-size: 16px; color: var(--vd-testo);
+  background: var(--vd-carta); border: 1px solid var(--vd-bordo-campo); border-radius: 2px;
+}
+.vd-input:focus { border-color: var(--vd-testo); }
+.vd-input[aria-invalid="true"] { border-color: var(--vd-critico); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+}
+
+/* Tabellone su telefono: ogni riga diventa un blocco ora + dettagli */
+.vd-tabellone th.vd-riga { font-stretch: 100%; font-size: 15px; font-weight: 600; border-bottom: 1px solid var(--vd-filetto); vertical-align: baseline; }
+@media (max-width: 640px) {
+  .vd-impila thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .vd-impila tr { display: grid; grid-template-columns: minmax(84px, auto) 1fr; column-gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--vd-filetto); }
+  .vd-impila td, .vd-impila th.vd-riga { border: 0; padding: 2px 4px; }
+  .vd-impila td:first-child, .vd-impila th.vd-riga { grid-row: span 3; }
+  .vd-impila td:not(:first-child) { grid-column: 2; }
+  .vd-impila td[style*="right"] { text-align: left !important; }
+}
+
+.vd-tabellone .vd-sotto.vd-stato--ok { color: var(--vd-ok); }
+.vd-tabellone .vd-sotto.vd-stato--critico { color: var(--vd-critico); }
+.vd-tabellone .vd-sotto.vd-stato--info { color: var(--vd-info); }
+.vd-tabellone .vd-sotto.vd-stato--rischio { color: var(--vd-rischio); }
+.vd-tabellone .vd-sotto.vd-stato--neutro { color: var(--vd-testo-2); }
+.vd-tabellone td.vd-num { text-align: right; font-stretch: 75%; font-weight: 700; font-size: 20px; white-space: nowrap; }
+.vd-riga-link { color: var(--vd-testo); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.vd-riga-link:hover { text-decoration-thickness: 3px; text-decoration-color: var(--vd-giallo); }
+@media (max-width: 640px) {
+  /* Prima colonna larga quanto serve (almeno 7,5rem): data e conto dei giorni vanno a capo, non sotto la colonna accanto */
+  /* revisione R17 (R17-03): mai oltre il 40% della riga, la seconda colonna non collassa */
+  .vd-impila tr { grid-template-columns: minmax(7.5rem, 40%) minmax(0, 1fr); }
+  .vd-impila td.vd-ora { max-width: 10rem; white-space: normal; }
+  .vd-impila td.vd-ora .vd-sotto { white-space: normal; overflow-wrap: anywhere; }
+  /* Ogni valore impilato porta la sua etichetta (data-label = intestazione della colonna) */
+  .vd-impila td[data-label]::before {
+    content: attr(data-label); display: block;
+    font-size: 13px; font-weight: 600; font-stretch: 100%; line-height: 1.3; letter-spacing: 0.01em;
+    color: var(--vd-testo-2); white-space: normal; text-align: left;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * Componenti delle pagine interne (promossi dal primo giro, VD-DR-01).
+ * Un nome per componente: niente doppioni per area.
+ * ════════════════════════════════════════════════════════════════════ */
+
+/* Pila delle sezioni di una pagina */
+.vd-pila { display: flex; flex-direction: column; gap: var(--vd-sezione); }
+/* R13b: una pila che segue un'altra sezione della pagina (console delle impostazioni) */
+.vd-pila--dopo { margin-top: var(--vd-sezione); }
+
+/* ── Fascia di stato dentro la colonna (stesse tonalità della home) ───── */
+.vd-fascia {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px;
+  padding: 18px 24px; margin-bottom: 40px;
+}
+.vd-fascia--giallo  { background: var(--vd-giallo);  color: var(--vd-su-giallo); }
+.vd-fascia--critico { background: var(--vd-fondo-critico); color: #FFFFFF; }
+.vd-fascia--neutro  { background: var(--vd-filetto); color: var(--vd-testo); }
+.vd-fascia h2 { font-size: 28px; font-weight: 800; font-stretch: 85%; letter-spacing: -0.01em; line-height: 1.2; }
+.vd-fascia .vd-fascia-riga { font-size: 16px; font-weight: 500; max-width: 72ch; }
+.vd-fascia .vd-fascia-comandi { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.vd-fascia--critico :focus-visible { outline-color: #FFFFFF; box-shadow: 0 0 0 7px var(--vd-grafite); }
+.vd-fascia--giallo :focus-visible { outline-color: var(--vd-su-giallo); box-shadow: 0 0 0 7px #FFFFFF; }
+.vd-fascia .vd-bottone--secondario { color: inherit; border-color: currentColor; }
+.vd-fascia .vd-bottone--secondario:hover { background: transparent; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 640px) {
+  .vd-fascia { padding: 16px; }
+  .vd-fascia h2 { font-size: 22px; }
+  .vd-fascia .vd-fascia-comandi { margin-left: 0; }
+}
+
+/* ── Esito o avviso importante: filetto superiore di 4px nel colore di stato ── */
+.vd-esito {
+  border-top: 4px solid var(--vd-testo-2); padding-top: 10px; max-width: 820px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.vd-esito--ok      { border-top-color: var(--vd-ok); }
+.vd-esito--critico { border-top-color: var(--vd-critico); }
+.vd-esito--rischio { border-top-color: var(--vd-rischio); }
+.vd-esito--info    { border-top-color: var(--vd-info); }
+.vd-esito-titolo { font-size: 17px; font-weight: 700; }
+.vd-esito--ok .vd-esito-titolo      { color: var(--vd-ok); }
+.vd-esito--critico .vd-esito-titolo { color: var(--vd-critico); }
+.vd-esito--rischio .vd-esito-titolo { color: var(--vd-rischio); }
+.vd-esito--info .vd-esito-titolo    { color: var(--vd-info); }
+
+/* Avviso permanente sul limite di una funzione: filetto arancio di 2px, non card */
+.vd-avviso { max-width: 820px; font-size: 15px; border-top: 2px solid var(--vd-rischio); padding-top: 8px; }
+.vd-avviso--neutro { border-top-color: var(--vd-testo-2); }
+/* Revisione R17 (R17-07): pacchetto scelto e risultati da cui sceglierlo */
+.vd-scelto { border-left: 4px solid var(--vd-testo); padding: 4px 0 4px 12px; display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+.vd-elenco-scelte { list-style: none; margin: 4px 0 0; padding: 0; border-top: 1px solid var(--vd-filetto); }
+.vd-elenco-scelte li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--vd-filetto); }
+
+/* ── Comandi minori ───────────────────────────────────────────────── */
+/* Azione minore: link sottolineato in grassetto 15px, anche quando è un <button>; 44px */
+.vd-comando-testo {
+  display: inline-flex; align-items: center;
+  background: none; border: 0; padding: 10px 0; min-height: 44px;
+  font: inherit; font-size: 15px; font-weight: 700; color: var(--vd-testo); text-align: left;
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.vd-comando-testo:hover { text-decoration-thickness: 3px; text-decoration-color: var(--vd-giallo); }
+.vd-comando-testo:disabled { color: var(--vd-testo-2); cursor: not-allowed; text-decoration: none; }
+
+/* Bottone che apre qualcosa dentro un testo o una cella (es. segnatura → dettaglio) */
+.vd-link-bottone {
+  background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; color: var(--vd-testo); text-align: left; cursor: pointer;
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+  /* revisione R17 (R17-22): bersaglio di almeno 24 px (WCAG 2.5.8) senza cambiare il passo delle righe */
+  min-height: 24px; padding-block: 2px;
+}
+.vd-link-bottone.vd-mono { font-family: var(--vd-mono); }
+/* Revisione R17 (R17-04): documento da firmare mostrato nel dialogo (cornice isolata) */
+.vd-anteprima-documento { width: 100%; height: min(60vh, 640px); border: 1px solid var(--vd-filetto); background: #FFFFFF; }
+.vd-link-bottone:hover { text-decoration-thickness: 3px; text-decoration-color: var(--vd-giallo); }
+
+/* Selettore a bottoni (es. periodo): il premuto è pieno, gli altri secondari, aria-pressed */
+.vd-selettore { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.vd-selettore .vd-bottone { padding: 0 14px; font-size: 15px; }
+
+/* Riga di comandi sotto un modulo o dentro una cella */
+.vd-comandi { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.vd-comandi-cella { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+
+/* ── Filtri sopra un tabellone ────────────────────────────────────── */
+.vd-filtri { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 20px; margin-bottom: 28px; }
+.vd-filtri > .vd-campo { flex: 0 1 280px; }
+
+/* Paginazione sotto un tabellone */
+.vd-paginazione {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 12px 20px; margin-top: 16px;
+}
+.vd-paginazione > span { font-size: 14px; color: var(--vd-testo-2); font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .vd-paginazione > span { order: -1; flex-basis: 100%; } }
+
+/* ── Moduli ───────────────────────────────────────────────────────── */
+/* Modulo aperto sopra un tabellone, chiuso in alto da un filetto d'inchiostro */
+.vd-modulo {
+  border-top: 2px solid var(--vd-testo); padding-top: 18px;
+  display: flex; flex-direction: column; gap: 20px; max-width: 1040px;
+}
+.vd-modulo h2 { font-size: 22px; font-weight: 800; font-stretch: 85%; line-height: 1.25; }
+.vd-griglia { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 16px 20px; }
+.vd-textarea { min-height: 88px; padding: 10px 12px; resize: vertical; }
+
+/* Scelta esclusiva: radio nativi in fieldset, righe alte almeno 44px */
+.vd-scelte { border: 0; min-width: 0; display: flex; flex-direction: column; }
+.vd-scelte legend { font-size: 14px; font-weight: 600; margin-bottom: 6px; padding: 0; }
+.vd-scelta {
+  display: grid; grid-template-columns: 22px 1fr; column-gap: 10px; align-items: baseline;
+  min-height: 44px; padding: 10px 0; border-bottom: 1px solid var(--vd-filetto); cursor: pointer;
+}
+.vd-scelta:hover { background: var(--vd-binario); }
+.vd-scelta input { width: 18px; height: 18px; accent-color: var(--vd-testo); align-self: center; }
+.vd-scelta strong { font-size: 16px; font-weight: 700; }
+.vd-scelta span { grid-column: 2; font-size: 13px; color: var(--vd-testo-2); }
+
+/* Scelta multipla: caselle vere in fieldset, 44px di area cliccabile */
+.vd-caselle { border: 0; min-width: 0; }
+.vd-caselle legend { font-size: 14px; font-weight: 600; margin-bottom: 6px; padding: 0; }
+.vd-caselle-elenco { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 0 20px; }
+.vd-casella { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; cursor: pointer; }
+.vd-casella input { width: 20px; height: 20px; accent-color: var(--vd-testo); flex: none; }
+
+/* Chiave mostrata una volta sola: riquadro d'inchiostro, selezionabile con un clic */
+.vd-chiave {
+  display: block; padding: 12px 14px; border: 2px solid var(--vd-testo); background: var(--vd-carta);
+  font-family: var(--vd-mono); font-size: 15px; overflow-wrap: anywhere; user-select: all;
+}
+
+/* ── Dati ─────────────────────────────────────────────────────────── */
+/* Scheda termine–valore su righe a filetto; i numeri in cifre condensate */
+.vd-dati {
+  display: grid; grid-template-columns: minmax(128px, min(36%, 240px)) minmax(0, 1fr);
+  max-width: 820px; font-variant-numeric: tabular-nums;
+}
+.vd-dati dt, .vd-dati dd { padding: 10px 14px 10px 0; border-bottom: 1px solid var(--vd-filetto); }
+.vd-dati dt { font-size: 14px; font-weight: 600; }
+.vd-dati dd { font-size: 15px; min-width: 0; overflow-wrap: anywhere; }
+.vd-dati .vd-numero { font-size: 20px; font-weight: 700; font-stretch: 75%; }
+@media (max-width: 640px) {
+  .vd-dati { grid-template-columns: minmax(0, 1fr); }
+  .vd-dati dt { border-bottom: 0; padding-bottom: 0; }
+  .vd-dati dd { padding-top: 2px; }
+}
+
+/* Identificativi e testi lunghi: vanno a capo dentro la loro cella */
+.vd-a-capo { overflow-wrap: anywhere; }
+
+/* Elenco semplice a filetti (etichetta a sinistra, valore a destra) */
+.vd-elenco { list-style: none; }
+.vd-elenco li {
+  padding: 6px 0; border-bottom: 1px solid var(--vd-filetto); font-size: 15px;
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px;
+}
+
+/* Riga di dettaglio aperta sotto una riga del tabellone (bottone con aria-expanded) */
+.vd-tabellone tr.vd-dettaglio:hover { background: none; }
+.vd-tabellone tr.vd-dettaglio > td { padding: 4px 14px 20px; border-bottom: 2px solid var(--vd-testo); }
+.vd-dettaglio-griglia { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 16px 36px; }
+.vd-dettaglio-griglia h3 {
+  font-size: 15px; font-weight: 700; padding-bottom: 4px; margin-bottom: 4px;
+  border-bottom: 1px solid var(--vd-filetto);
+}
+
+/* ── Dialogo laterale (dettaglio): <dialog> nativo aperto con showModal() ── */
+.vd-dialogo {
+  position: fixed; inset: 0 0 0 auto; margin: 0;
+  width: min(580px, 100vw); max-width: 100vw;
+  height: 100vh; height: 100dvh; max-height: none;
+  border: 0; border-left: 2px solid var(--vd-testo); padding: 0;
+  background: var(--vd-carta); color: var(--vd-testo);
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.vd-dialogo::backdrop { background: var(--vd-velo); }
+body:has(.vd-dialogo[open]) { overflow: hidden; }
+.vd-dialogo-testa {
+  position: sticky; top: 0; z-index: 1; background: var(--vd-carta);
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 20px 24px 14px; border-bottom: 2px solid var(--vd-testo);
+}
+.vd-dialogo-corpo { padding: 20px 24px 40px; display: flex; flex-direction: column; gap: 32px; }
+.vd-dialogo h3 { font-size: 17px; font-weight: 800; font-stretch: 85%; padding-bottom: 6px; border-bottom: 2px solid var(--vd-testo); }
+@media (max-width: 640px) {
+  .vd-dialogo-testa { padding: 16px 16px 12px; }
+  .vd-dialogo-corpo { padding: 16px 16px 32px; }
+}
+
+/* ── Sezioni apribili: <details> nativo, una riga per sezione ─────── */
+.vd-voci { border-top: 2px solid var(--vd-testo); }
+.vd-voce { border-bottom: 1px solid var(--vd-filetto); }
+.vd-voce > summary {
+  list-style: none; cursor: pointer; min-height: 52px; padding: 12px 14px;
+  display: grid; grid-template-columns: 3ch 1fr auto 1.5ch; gap: 4px 14px; align-items: baseline;
+}
+.vd-voce > summary::-webkit-details-marker { display: none; }
+.vd-voce > summary:hover { background: var(--vd-binario); }
+.vd-voce > summary::after { content: "+"; font-weight: 700; font-size: 20px; line-height: 1; text-align: right; }
+.vd-voce[open] > summary::after { content: "\2212"; }
+.vd-voce-num { font-stretch: 75%; font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; }
+.vd-voce-titolo { font-size: 16px; font-weight: 700; }
+.vd-voce-corpo { padding: 4px 14px 20px calc(3ch + 28px); max-width: calc(72ch + 3ch + 28px); font-size: 16px; }
+.vd-voce-corpo ul { padding-left: 20px; }
+.vd-voce-corpo li + li { margin-top: 4px; }
+.vd-voce-corpo dl { display: grid; grid-template-columns: minmax(120px, max-content) 1fr; gap: 6px 16px; }
+.vd-voce-corpo dt { font-weight: 700; font-size: 15px; }
+.vd-voce-corpo dd { min-width: 0; overflow-wrap: anywhere; }
+.vd-voce-corpo > * + * { margin-top: 12px; }
+
+@media (max-width: 640px) {
+  /* Sezioni apribili: lo stato va sotto il titolo */
+  .vd-voce > summary { grid-template-columns: 3ch 1fr 1.5ch; }
+  .vd-voce > summary .vd-stato { grid-column: 2; grid-row: 2; white-space: normal; }
+  .vd-voce > summary::after { grid-column: 3; grid-row: 1; }
+  .vd-voce-corpo { padding-left: 14px; }
+  .vd-voce-corpo dl { grid-template-columns: 1fr; gap: 2px; }
+  .vd-voce-corpo dd { margin-bottom: 8px; }
+
+  /* Tabelle termine–valore: l'intestazione di riga sta sopra il valore */
+  .vd-impila.vd-coppie tr { grid-template-columns: 1fr; row-gap: 2px; }
+  .vd-impila.vd-coppie th.vd-riga { grid-row: auto; font-size: 14px; color: var(--vd-testo-2); white-space: normal; }
+  .vd-impila.vd-coppie td:not(:first-child) { grid-column: 1; }
+  .vd-impila.vd-coppie td.vd-num { text-align: left; }
+
+  /* Riga di dettaglio: tutta la larghezza, senza colonna dell'orario */
+  .vd-impila tr.vd-dettaglio { display: block; padding: 0 0 12px; }
+  .vd-impila tr.vd-dettaglio > td { display: block; padding: 4px 4px 12px; }
+}
+
+/* ── Schede della testata: una riga sola; se non ci stanno scorrono e il bordo
+ *    che nasconde altre aree sfuma (Layout.tsx imposta data-oltre) ──────── */
+.vd-schede ul { scrollbar-width: none; }
+.vd-schede ul::-webkit-scrollbar { display: none; }
+.vd-schede[data-oltre="destra"] ul { mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); }
+.vd-schede[data-oltre="sinistra"] ul { mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); }
+.vd-schede[data-oltre="entrambi"] ul { mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
+
+/* ── R04: code di scarto, elenchi a cursore ───────────────────────── */
+/* Titolo dentro la testa di un dialogo laterale (headline 22px) */
+.vd-dialogo-titolo { font-size: 22px; font-weight: 800; font-stretch: 85%; line-height: 1.25; overflow-wrap: anywhere; }
+/* Colonna delle caselle di selezione di un tabellone: 44px di area cliccabile */
+.vd-tabellone .vd-cella-scelta { width: 44px; padding-right: 0; }
+.vd-tabellone .vd-cella-scelta input { width: 20px; height: 20px; accent-color: var(--vd-testo); margin: 12px 0; cursor: pointer; }
+/* Sottoriga a larghezza e peso normali (data sotto l'orario condensato) */
+.vd-tabellone .vd-sotto.vd-sotto-normale { font-stretch: 100%; font-weight: 500; }
+/* Testo in evidenza in una cella (nome della coda) */
+.vd-forte { font-weight: 700; }
+/* Cella di testo lungo (motivo): va a capo, larga al più 520px */
+.vd-tabellone td.vd-cella-larga { font-size: 14px; max-width: 520px; }
+/* Comandi sopra un tabellone (azioni in blocco) */
+.vd-comandi-elenco { margin-bottom: 16px; }
+/* Conferma in riga con motivo: domanda, testo, comandi, impilati nella cella */
+.vd-conferma-riga { display: flex; flex-direction: column; gap: 6px; min-width: min(280px, 100%); }
+@media (max-width: 640px) {
+  /* Su telefono la casella va in alto a destra e l'orario resta la prima colonna */
+  .vd-impila tr > td.vd-cella-scelta { width: auto; grid-column: 2; grid-row: auto; }
+  .vd-impila tr > td.vd-cella-scelta + td { grid-column: 1; grid-row: 1 / span 4; }
+  .vd-impila tr > td.vd-cella-scelta input { margin: 0 0 4px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * R05 — VD-DR-05: tema scuro, console di configurazione e ciclo di vita.
+ * Nessun colore nuovo: solo token già in palette (giallo velato promosso).
+ * ════════════════════════════════════════════════════════════════════ */
+
+/* Su un fondo giallo o critico l'inchiostro resta quello del giorno, in ogni tema */
+.vd-fascia--giallo, .vd-su-giallo {
+  --vd-testo: var(--vd-su-giallo); --vd-testo-2: #3A3D42;
+  --vd-su-testo: #FFFFFF; --vd-inchiostro-pieno: #000000; --vd-binario: transparent;
+}
+.vd-fascia--critico { --vd-testo: #FFFFFF; --vd-testo-2: #FFFFFF; }
+
+/* Riga «in corso» di un tabellone (tappa attuale della corsa, pratica in lavorazione) */
+.vd-tabellone tbody tr.vd-riga-in-corso, .vd-tabellone tbody tr.vd-riga-in-corso:hover { background: var(--vd-giallo-velato); }
+/* Orario non ancora raggiunto: inchiostro attenuato */
+.vd-tabellone td.vd-ora.vd-ora--attesa { color: var(--vd-testo-2); }
+
+/* Tappa di un modulo: numero in rettangolo giallo, titolo condensato, nota */
+.vd-tappa { border: 0; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.vd-tappa > legend { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 14px; padding: 0; }
+.vd-tappa-n { font-size: 22px; font-weight: 800; font-stretch: 75%; background: var(--vd-giallo); color: var(--vd-su-giallo); padding: 0 8px; font-variant-numeric: tabular-nums; }
+.vd-tappa-titolo { font-size: 22px; font-weight: 800; font-stretch: 85%; }
+.vd-tappa > legend .vd-nota { flex: 1 1 220px; }
+
+/* Area di caricamento di un file: tratteggio vuota, filetto pieno con il file, giallo velato al passaggio */
+.vd-area-file {
+  border: 2px dashed var(--vd-bordo-campo); background: var(--vd-carta);
+  padding: 18px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
+}
+.vd-area-file--scelto { border-style: solid; border-color: var(--vd-testo); }
+.vd-area-file--sopra { border-color: var(--vd-testo); background: var(--vd-giallo-velato); }
+.vd-area-file-nome { font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
+
+/* Valore prima → dopo nel piano di una modifica: il «prima» attenuato, il «dopo» in grassetto */
+.vd-prima { color: var(--vd-testo-2); }
+.vd-dopo { font-weight: 700; }
+
+/* Valore non modificabile: parola neutra con il riferimento normativo sotto */
+.vd-tabellone td.vd-cella-valore { max-width: 360px; overflow-wrap: anywhere; }
+
+/* Modifica in riga: campo e comandi impilati nella cella (come la conferma in riga) */
+.vd-modifica-riga { display: flex; flex-direction: column; gap: 8px; min-width: min(260px, 100%); }
+
+
+/* Tabellone senza colonna d'orario (voce · valore · chi decide): su telefono ogni cella
+ * va su una riga sola, a tutta larghezza, invece di stringere la seconda colonna */
+@media (max-width: 640px) {
+  .vd-impila.vd-impila--pieno tr { grid-template-columns: minmax(0, 1fr); }
+  .vd-impila.vd-impila--pieno td, .vd-impila.vd-impila--pieno th.vd-riga { grid-column: 1; grid-row: auto; }
+  .vd-impila.vd-impila--pieno td.vd-cella-valore { max-width: none; }
+}
+/* R07 (D31): densità compatta delle tabelle (preferenza personale) */
+html[data-densita="compatta"] .vd-tabellone th { padding: 5px 10px; }
+html[data-densita="compatta"] .vd-tabellone td { padding: 6px 10px; font-size: 14px; }
+html[data-densita="compatta"] .vd-tabellone td.vd-ora { font-size: 17px; }
+
+/* R07 (D31): scelta delle colonne visibili di una tabella */
+.vd-colonne { border: 1px solid var(--vd-filetto); padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.vd-colonne legend { font-size: 13px; font-weight: 700; padding: 0 4px; }
+
+/* R10 (D32): campanella «da fare per te» in testata */
+.vd-campanella { position: relative; }
+.vd-campanella-pannello {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 2;
+  width: min(420px, calc(100vw - 32px)); max-height: 70vh; overflow-y: auto;
+  background: var(--vd-carta); color: var(--vd-testo); border: 2px solid var(--vd-testo);
+  padding: 16px; display: flex; flex-direction: column; gap: 12px; font-size: 15px; text-align: left;
+}
+.vd-campanella-pannello:focus { outline: 2px solid var(--vd-giallo); outline-offset: 2px; }
+.vd-campanella-voce { flex-direction: column; align-items: stretch; }
+.vd-campanella-nuovo { font-weight: 800; }
+/* R10 (D30): permessi di un ruolo personalizzato */
+.vd-permessi { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--vd-filetto); padding: 8px 12px; }
+.vd-permessi legend { font-size: 13px; font-weight: 700; padding: 0 4px; }
+
+/* ════════════════════════════════════════════════════════════════════
+ * R12c — revisione grafica della console.
+ * Testata responsive con menu a scomparsa, sotto-navigazione con l'ente,
+ * testa di pagina a griglia, fascia della home, stati vuoti, accesso a due
+ * colonne. Nessun colore nuovo: solo token già in palette.
+ * ════════════════════════════════════════════════════════════════════ */
+
+.vd-console { min-height: 100vh; background: var(--vd-carta); }
+.vd-principale { outline: none; }
+
+/* Collegamento «Vai al contenuto»: invisibile finché non riceve il fuoco */
+.vd-salta {
+  position: absolute; left: 16px; top: -100px; z-index: 100;
+  background: var(--vd-giallo); color: var(--vd-su-giallo); font-weight: 700;
+  padding: 10px 16px; text-decoration: none;
+}
+.vd-salta:focus { top: 8px; }
+
+/* ── Testata grafite ─────────────────────────────────────────────── */
+.vd-testata-fondo { background: var(--vd-grafite); color: var(--vd-su-grafite); position: relative; z-index: 20; }
+.vd-testata {
+  display: grid; align-items: center; column-gap: 24px;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "marchio aree cerca azioni";
+  min-height: var(--vd-testata-h);
+}
+.vd-testata-marchio {
+  grid-area: marchio; display: flex; align-items: center; height: var(--vd-testata-h);
+  font-weight: 800; font-size: 20px; font-stretch: 112%; letter-spacing: -0.01em;
+  color: var(--vd-su-grafite-forte); text-decoration: none; white-space: nowrap;
+}
+.vd-testata-marchio:hover { color: var(--vd-su-grafite-forte); }
+.vd-testata-aree { grid-area: aree; min-width: 0; align-self: stretch; }
+.vd-testata-aree ul { list-style: none; display: flex; gap: 20px; overflow-x: auto; height: 100%; }
+.vd-scheda-area {
+  display: flex; align-items: center; height: 100%; min-height: 48px; white-space: nowrap;
+  padding-top: 4px; border-bottom: 4px solid transparent;
+  font-size: 15px; font-weight: 500; color: var(--vd-su-grafite); text-decoration: none;
+}
+.vd-scheda-area:hover { color: var(--vd-su-grafite-forte); border-bottom-color: var(--vd-bordo-su-grafite); }
+.vd-scheda-area[aria-current] { font-weight: 700; color: var(--vd-su-grafite-forte); border-bottom-color: var(--vd-giallo); }
+.vd-testata-cerca { grid-area: cerca; display: flex; min-width: 0; justify-self: end; }
+.vd-cerca {
+  width: clamp(200px, 17vw, 280px); max-width: 100%; height: 40px; padding: 0 12px;
+  border-radius: 2px; border: 1px solid var(--vd-bordo-su-grafite);
+  background: var(--vd-grafite-2); color: var(--vd-su-grafite-forte); font: inherit; font-size: 15px;
+}
+.vd-cerca::placeholder { color: var(--vd-segnaposto-su-grafite); opacity: 1; }
+.vd-cerca:hover { border-color: var(--vd-su-grafite); }
+.vd-testata-azioni { grid-area: azioni; display: flex; align-items: center; gap: 4px; }
+
+/* Due righe: le aree non entrano accanto al resto (misurato in Layout.tsx) */
+.vd-testata-fondo[data-righe="2"] .vd-testata {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "marchio cerca azioni" "aree aree aree";
+}
+.vd-testata-fondo[data-righe="2"] .vd-testata-aree { border-top: 1px solid var(--vd-grafite-2); }
+
+/* Comandi della testata: testo su grafite, nessun riquadro; il fondo si accende al passaggio */
+.vd-comando-testata {
+  display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px;
+  background: transparent; border: 0; border-radius: 2px; cursor: pointer; white-space: nowrap;
+  font: inherit; font-size: 15px; font-weight: 600; color: var(--vd-su-grafite-forte); text-decoration: none;
+}
+.vd-comando-testata:hover, .vd-comando-testata[aria-expanded="true"] { background: var(--vd-grafite-2); color: var(--vd-su-grafite-forte); }
+.vd-comando-testata[aria-expanded="true"] .vd-freccia { transform: rotate(180deg); }
+.vd-conta {
+  display: inline-block; min-width: 22px; padding: 0 6px; margin-left: 2px;
+  background: var(--vd-giallo); color: var(--vd-su-giallo);
+  font-weight: 800; font-stretch: 75%; font-size: 15px; line-height: 22px; text-align: center; font-variant-numeric: tabular-nums;
+}
+.vd-menu-ruolo { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.vd-menu-parola, .vd-menu-icona-grande { display: none; }
+.vd-menu-icona-piccola { display: inline-flex; }
+
+/* Pannelli che scendono dalla testata (menu della persona, «Da fare»): carta con filetto d'inchiostro */
+.vd-menu { position: relative; }
+.vd-menu-pannello {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30;
+  width: 320px; max-height: calc(100dvh - 80px); overflow-y: auto;
+  background: var(--vd-carta); color: var(--vd-testo);
+  border: 2px solid var(--vd-testo); padding: 8px 0;
+  display: flex; flex-direction: column;
+}
+.vd-menu-pannello :focus-visible, .vd-campanella-pannello :focus-visible {
+  outline: 3px solid var(--vd-testo); outline-offset: 2px; box-shadow: 0 0 0 7px var(--vd-giallo);
+}
+.vd-menu-cerca, .vd-menu-aree { display: none; }
+.vd-menu-persona { display: flex; flex-direction: column; }
+.vd-menu-chi { display: flex; flex-direction: column; padding: 8px 16px 12px; border-bottom: 1px solid var(--vd-filetto); }
+.vd-menu-chi strong { font-size: 16px; }
+.vd-menu-chi span { font-size: 14px; color: var(--vd-testo-2); overflow-wrap: anywhere; }
+.vd-menu-comandi { list-style: none; border-top: 1px solid var(--vd-filetto); }
+.vd-menu-voce {
+  display: flex; align-items: center; width: 100%; min-height: 44px; padding: 0 16px;
+  background: none; border: 0; text-align: left; cursor: pointer;
+  font: inherit; font-size: 15px; font-weight: 500; color: var(--vd-testo); text-decoration: none;
+}
+.vd-menu-voce:hover { background: var(--vd-binario); color: var(--vd-testo); }
+.vd-menu-voce[aria-current="page"] { font-weight: 700; text-decoration: underline; text-decoration-color: var(--vd-giallo); text-decoration-thickness: 3px; text-underline-offset: 5px; }
+.vd-menu-voce--spenta { color: var(--vd-testo-2); cursor: default; }
+.vd-menu-voce--spenta span { margin-left: 6px; font-size: 13px; }
+.vd-campanella-pannello { top: calc(100% + 6px); z-index: 30; }
+
+/* Tema: tre bottoni affiancati, il premuto è pieno */
+.vd-scelta-tema { display: flex; align-items: center; gap: 6px; padding: 12px 16px; flex-wrap: wrap; }
+.vd-scelta-tema-nome { font-size: 14px; font-weight: 600; margin-right: auto; }
+.vd-scelta-tema button {
+  min-height: 36px; padding: 0 10px; border: 1px solid var(--vd-bordo-campo); border-radius: 2px;
+  background: transparent; color: var(--vd-testo); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.vd-scelta-tema button:hover { background: var(--vd-binario); }
+.vd-scelta-tema button[aria-pressed="true"] { background: var(--vd-testo); border-color: var(--vd-testo); color: var(--vd-su-testo); }
+
+/* Sotto 1024 px: le aree escono dalla barra ed entrano nel menu a scomparsa */
+@media (max-width: 1023px) {
+  .vd-testata, .vd-testata-fondo[data-righe="2"] .vd-testata {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "marchio cerca azioni";
+  }
+  .vd-testata-aree { display: none; }
+  .vd-menu { position: static; }
+  .vd-menu-ruolo, .vd-menu-icona-piccola { display: none; }
+  .vd-menu-parola, .vd-menu-icona-grande { display: inline-flex; }
+  .vd-menu-pannello {
+    left: 0; right: 0; top: 100%; width: auto; border-width: 0 0 2px; padding: 8px 0 16px;
+    max-height: calc(100dvh - var(--vd-testata-h));
+  }
+  .vd-menu-aree { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 4px 16px; padding: 0 var(--vd-gutter) 8px; }
+  .vd-menu-area ul { list-style: none; }
+  .vd-menu-area-nome { font-size: 13px; font-weight: 700; font-stretch: 75%; color: var(--vd-testo-2); padding: 12px 0 2px; border-bottom: 2px solid var(--vd-testo); }
+  .vd-menu-area .vd-menu-voce { padding: 0 8px; border-bottom: 1px solid var(--vd-filetto); }
+  .vd-menu-persona { border-top: 2px solid var(--vd-testo); margin: 8px var(--vd-gutter) 0; }
+  .vd-menu-chi, .vd-scelta-tema { padding-inline: 0; }
+  .vd-menu-comandi .vd-menu-voce { padding-inline: 0; }
+}
+@media (max-width: 640px) {
+  .vd-testata, .vd-testata-fondo[data-righe="2"] .vd-testata {
+    column-gap: 8px; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "marchio . azioni";
+  }
+  .vd-testata-cerca { display: none; }
+  .vd-menu-cerca { display: block; padding: 4px var(--vd-gutter) 8px; }
+  .vd-comando-testata { padding: 0 10px; }
+}
+
+/* ── Sotto-navigazione: pagine dell'area attiva e ente su cui si lavora ── */
+.vd-sotto-testata { border-bottom: 1px solid var(--vd-filetto); background: var(--vd-carta); }
+.vd-sotto-testata-corpo { display: flex; align-items: center; justify-content: space-between; gap: 8px 24px; min-height: var(--vd-sotto-h); }
+.vd-sotto-schede { min-width: 0; flex: 1 1 auto; align-self: stretch; }
+.vd-sotto-schede ul { list-style: none; display: flex; gap: 24px; overflow-x: auto; height: 100%; }
+.vd-scheda-pagina {
+  display: flex; align-items: center; height: 100%; min-height: var(--vd-sotto-h); white-space: nowrap;
+  padding-top: 3px; border-bottom: 3px solid transparent;
+  font-size: 15px; font-weight: 500; color: var(--vd-testo); text-decoration: none;
+}
+.vd-scheda-pagina:hover { border-bottom-color: var(--vd-filetto); color: var(--vd-testo); }
+.vd-scheda-pagina[aria-current="page"] { font-weight: 700; border-bottom-color: var(--vd-testo); }
+.vd-scheda-pagina--spenta { color: var(--vd-testo-2); }
+.vd-scheda-pagina--spenta span { margin-left: 6px; font-size: 13px; }
+.vd-sotto-titolo { font-size: 15px; font-weight: 700; }
+/* Revisione R17 (R17-09): da 1024 px le pagine dell'area vanno a capo invece di
+ * scorrere nascoste dietro la sfumatura; sotto scorrono come prima */
+@media (min-width: 1024px) {
+  .vd-sotto-schede ul { flex-wrap: wrap; column-gap: 24px; row-gap: 0; overflow: visible; height: auto; }
+  .vd-sotto-schede[data-oltre] ul { mask-image: none; }
+  .vd-sotto-schede .vd-scheda-pagina { height: auto; min-height: 44px; }
+}
+/* Revisione R17 (R17-10): fuoco DENTRO la scheda (contorno interno e sottolineatura
+ * gialla di 4 px): l'elenco che scorre non lo taglia */
+.vd-scheda-pagina:focus-visible, .vd-scheda-area:focus-visible {
+  outline: 3px solid var(--vd-testo); outline-offset: -3px; box-shadow: inset 0 -4px 0 var(--vd-giallo);
+}
+header .vd-scheda-area:focus-visible { outline-color: var(--vd-giallo); }
+.vd-testata-ente { display: flex; align-items: center; gap: 10px; flex: none; padding-block: 6px; }
+.vd-testata-ente label { font-size: 13px; font-weight: 600; color: var(--vd-testo-2); white-space: nowrap; }
+.vd-testata-ente select.vd-input { min-height: 36px; width: 260px; font-size: 15px; text-overflow: ellipsis; }
+@media (max-width: 760px) {
+  .vd-sotto-testata-corpo { flex-wrap: wrap; }
+  .vd-sotto-schede { flex-basis: 100%; }
+  .vd-testata-ente { width: 100%; padding-block: 0 10px; }
+  .vd-testata-ente select.vd-input { width: auto; flex: 1 1 auto; min-width: 0; }
+}
+
+/* ── Testa di pagina: titolo, una riga di spiegazione sotto, comandi a destra;
+ *    chiusa da 2px d'inchiostro dentro la colonna ─────────────────────── */
+.vd-testa-pagina {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 32px; row-gap: 6px; align-items: end;
+  padding-bottom: 16px; margin-bottom: var(--vd-corpo-alto);
+  border-bottom: 2px solid var(--vd-testo);
+}
+.vd-testa-pagina > * { grid-column: 1; min-width: 0; }
+.vd-testa-pagina h1 {
+  font-size: 32px; font-weight: 800; font-stretch: 85%;
+  letter-spacing: -0.01em; line-height: 1.15; text-wrap: balance;
+}
+.vd-testa-pagina > p, .vd-testa-pagina > .vd-nota { max-width: 72ch; font-size: 15px; color: var(--vd-testo-2); }
+.vd-testa-pagina > .vd-testa-comandi {
+  grid-column: 2; grid-row: 1 / span 2; align-self: end;
+  display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: flex-end; gap: 12px 16px;
+}
+@media (max-width: 760px) {
+  .vd-testa-pagina { grid-template-columns: minmax(0, 1fr); }
+  .vd-testa-pagina h1 { font-size: 28px; }
+  .vd-testa-pagina > .vd-testa-comandi { grid-column: 1; grid-row: auto; justify-content: flex-start; margin-top: 6px; }
+}
+
+/* Titolo di una sezione senza etichetta gialla (headline 22px) */
+.vd-titolo-sezione { font-size: 22px; font-weight: 800; font-stretch: 85%; line-height: 1.25; }
+.vd-dopo-tabellone { margin-top: 10px; }
+.vd-in-lettura { padding-block: 12px; }
+
+/* ── Modulo e tabellone affiancati (versamento, home), che vanno a capo ── */
+.vd-affianca { display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; }
+.vd-affianca--home { gap: 36px; }
+.vd-affianca-principale { flex: 2 1 620px; min-width: 0; }
+.vd-affianca-laterale { flex: 1 1 340px; min-width: 0; }
+@media (max-width: 640px) { .vd-affianca, .vd-affianca--home { gap: var(--vd-sezione); } }
+
+/* ── Fascia di stato della home: banda a tutta larghezza, contenuto nella colonna ── */
+.vd-banda--giallo  { background: var(--vd-giallo); color: var(--vd-su-giallo); }
+.vd-banda--critico { background: var(--vd-fondo-critico); color: #FFFFFF; --vd-testo: #FFFFFF; --vd-testo-2: #FFFFFF; }
+.vd-banda--neutro  { background: var(--vd-filetto); color: var(--vd-testo); }
+.vd-banda-corpo {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 32px;
+  padding-block: 20px;
+}
+.vd-banda-testo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.vd-banda h1 { font-size: 28px; font-weight: 800; font-stretch: 85%; letter-spacing: -0.01em; line-height: 1.15; }
+.vd-banda p { font-size: 16px; font-weight: 500; max-width: 80ch; }
+.vd-banda-comandi { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.vd-banda .vd-comando-testo { color: inherit; }
+.vd-banda--critico :focus-visible { outline-color: #FFFFFF; box-shadow: 0 0 0 7px var(--vd-grafite); }
+.vd-banda--giallo :focus-visible { outline-color: var(--vd-su-giallo); box-shadow: 0 0 0 7px #FFFFFF; }
+@media (max-width: 760px) {
+  .vd-banda-corpo { grid-template-columns: minmax(0, 1fr); padding-block: 16px; }
+  .vd-banda h1 { font-size: 22px; }
+}
+
+/* Avviso dei dati dimostrativi (solo sviluppo, ?dimostrativi=1): fascia tratteggiata dichiarata */
+.vd-avviso-sviluppo { margin-top: 16px; padding-block: 10px; font-size: 15px; border-block: 2px dashed var(--vd-bordo-campo); }
+
+/* ── Stato vuoto: filetto d'inchiostro come un'intestazione, che cosa significa, che cosa fare ── */
+.vd-vuoto {
+  border-top: 2px solid var(--vd-testo); padding: 16px 0 4px;
+  display: flex; flex-direction: column; gap: 10px; max-width: 640px;
+}
+.vd-vuoto-titolo { font-size: 17px; font-weight: 700; }
+.vd-vuoto-testo { font-size: 15px; color: var(--vd-testo-2); display: flex; flex-direction: column; gap: 12px; }
+.vd-vuoto-testo .vd-campo { color: var(--vd-testo); max-width: 360px; }
+.vd-vuoto .vd-bottone { text-decoration: none; }
+
+/* ── Pagina di accesso: identità a sinistra (grafite), accesso a destra ── */
+.vd-accesso-pagina {
+  min-height: 100vh; background: var(--vd-carta);
+  display: grid; grid-template-columns: minmax(360px, 5fr) 7fr;
+}
+.vd-accesso-identita {
+  background: var(--vd-grafite); color: var(--vd-su-grafite);
+  display: flex; flex-direction: column; gap: 40px;
+  padding: 40px clamp(32px, 4vw, 64px) 32px;
+  position: sticky; top: 0; height: 100vh; overflow: hidden;
+}
+.vd-accesso-identita .vd-marchio { color: var(--vd-su-grafite-forte); }
+.vd-accesso-fascia { display: inline-block; align-self: flex-start; background: var(--vd-giallo); color: var(--vd-su-giallo); font-size: 15px; font-weight: 800; font-stretch: 85%; padding: 2px 10px; }
+.vd-accesso-motto {
+  font-size: clamp(34px, 3.4vw, 52px); font-weight: 800; font-stretch: 85%; line-height: 1.05; letter-spacing: -0.015em;
+  color: var(--vd-su-grafite-forte); max-width: 14ch; text-wrap: balance;
+}
+.vd-accesso-orario { list-style: none; border-top: 2px solid var(--vd-su-grafite-forte); max-width: 460px; }
+.vd-accesso-orario li {
+  display: grid; grid-template-columns: 7.5rem 1fr; gap: 16px; align-items: baseline;
+  padding: 12px 0; border-bottom: 1px solid var(--vd-grafite-2);
+}
+.vd-accesso-orario strong { font-size: 20px; font-weight: 700; font-stretch: 75%; color: var(--vd-su-grafite-forte); }
+.vd-accesso-orario span { font-size: 15px; }
+.vd-accesso-piede { margin-top: auto; font-size: 14px; color: var(--vd-su-grafite); }
+.vd-accesso-corpo { display: flex; justify-content: center; padding: 56px clamp(24px, 5vw, 80px) 64px; }
+.vd-accesso { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 36px; }
+.vd-accesso-testa { border-bottom: 2px solid var(--vd-testo); padding-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+.vd-accesso-testa h1 { font-size: 32px; font-weight: 800; font-stretch: 85%; letter-spacing: -0.01em; line-height: 1.15; }
+.vd-marchio { font-weight: 800; font-size: 20px; font-stretch: 112%; letter-spacing: -0.01em; }
+/* Profili di sviluppo: area separata e dichiarata (tratteggio, mai nel prodotto) */
+.vd-accesso-sviluppo { border: 2px dashed var(--vd-bordo-campo); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.vd-profili { list-style: none; border-top: 2px solid var(--vd-testo); }
+.vd-profili li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 16px; padding: 10px 0; border-bottom: 1px solid var(--vd-filetto); }
+.vd-profili strong { font-size: 15px; display: block; }
+.vd-profili .vd-sotto { font-size: 13px; color: var(--vd-testo-2); display: block; }
+.vd-profili .vd-bottone { min-height: 40px; padding: 0 14px; font-size: 15px; }
+@media (max-width: 1023px) {
+  .vd-accesso-pagina { grid-template-columns: minmax(0, 1fr); }
+  .vd-accesso-identita { position: static; height: auto; gap: 16px; padding: 20px var(--vd-gutter); }
+  .vd-accesso-motto { font-size: 28px; max-width: none; }
+  .vd-accesso-orario, .vd-accesso-piede { display: none; }
+  .vd-accesso-corpo { padding: 32px var(--vd-gutter) 48px; }
+  .vd-accesso-testa h1 { font-size: 28px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * R12c — motivi ferroviari, con misura (DESIGN.md «Motivi ferroviari»).
+ * Solo tre usi: il binario che separa le sezioni maggiori, il passaggio a
+ * livello sopra le fasce di attenzione, la linea con le fermate della corsa.
+ * I filetti delle righe dei tabelloni restano filetti.
+ * ════════════════════════════════════════════════════════════════════ */
+:root {
+  /* Binario orizzontale (12px): due rotaie d'inchiostro da 2px e traversine ogni 14px */
+  --vd-binario-sfondo:
+    linear-gradient(var(--vd-testo), var(--vd-testo)) 0 2px / 100% 2px no-repeat,
+    linear-gradient(var(--vd-testo), var(--vd-testo)) 0 8px / 100% 2px no-repeat,
+    repeating-linear-gradient(to right, var(--vd-bordo-campo) 0 3px, transparent 3px 14px) 0 0 / 100% 12px no-repeat;
+  /* Passaggio a livello: strisce diagonali giallo/grafite */
+  --vd-passaggio: repeating-linear-gradient(-45deg, var(--vd-giallo) 0 8px, var(--vd-grafite) 8px 16px);
+}
+/* I token d'inchiostro si risolvono su :root: nel tema scuro le rotaie seguono da sole. */
+
+/* Divisore fra le sezioni maggiori di una pagina (<hr class="vd-binario" aria-hidden="true">) */
+.vd-binario { display: block; height: 12px; border: 0; margin: 0; background: var(--vd-binario-sfondo); }
+
+/* La testa di pagina chiude sul binario invece che sul filetto da 2px */
+.vd-testa-pagina { border-bottom: 0; padding-bottom: 0; }
+.vd-testa-pagina::after { content: ""; grid-column: 1 / -1; height: 12px; margin-top: 12px; background: var(--vd-binario-sfondo); }
+.vd-accesso-testa { border-bottom: 0; padding-bottom: 0; }
+.vd-accesso-testa::after { content: ""; display: block; height: 12px; margin-top: 8px; background: var(--vd-binario-sfondo); }
+
+/* Passaggio a livello: 7px di strisce sul bordo superiore delle fasce di attenzione
+   (mai verificata, in lettura, critica, avviso di sviluppo). La fascia «integro» resta gialla piena. */
+.vd-banda--neutro, .vd-banda--critico, .vd-fascia--neutro, .vd-fascia--critico, .vd-avviso-sviluppo { position: relative; }
+.vd-banda--neutro::before, .vd-banda--critico::before, .vd-fascia--neutro::before,
+.vd-fascia--critico::before, .vd-avviso-sviluppo::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 7px; background: var(--vd-passaggio);
+}
+.vd-banda--neutro .vd-banda-corpo, .vd-banda--critico .vd-banda-corpo { padding-top: 27px; }
+.vd-fascia--neutro, .vd-fascia--critico { padding-top: 25px; }
+.vd-avviso-sviluppo { border-top: 0; padding-top: 19px; }
+@media (max-width: 760px) {
+  .vd-banda--neutro .vd-banda-corpo, .vd-banda--critico .vd-banda-corpo { padding-top: 23px; }
+}
+
+/* ── Linea della corsa: binario verticale con le fermate ───────────────
+ *  pieno = raggiunta, giallo = in corso, vuoto = in attesa, rosso = interrotta.
+ *  La parola di stato accanto resta: il pallino non porta lo stato da solo. */
+.vd-linea { list-style: none; border-top: 2px solid var(--vd-testo); padding-top: 6px; font-variant-numeric: tabular-nums; }
+.vd-fermata {
+  --vd-rotaia: var(--vd-testo);
+  display: grid; grid-template-columns: 4rem 24px minmax(0, 1fr); column-gap: 12px;
+}
+.vd-fermata--attesa, .vd-fermata--attuale { --vd-rotaia: var(--vd-bordo-campo); }
+.vd-fermata-ora {
+  padding: 12px 0; text-align: right; white-space: nowrap;
+  font-size: 20px; font-weight: 700; font-stretch: 75%; line-height: 1.2;
+}
+.vd-fermata-binario { position: relative; }
+.vd-fermata-binario::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 5px; width: 14px;
+  background:
+    linear-gradient(var(--vd-rotaia), var(--vd-rotaia)) 2px 0 / 2px 100% no-repeat,
+    linear-gradient(var(--vd-rotaia), var(--vd-rotaia)) 10px 0 / 2px 100% no-repeat,
+    repeating-linear-gradient(to bottom, var(--vd-rotaia) 0 2px, transparent 2px 9px) 0 0 / 14px 100% no-repeat;
+}
+.vd-fermata:first-child .vd-fermata-binario::before { top: 24px; }
+.vd-fermata:last-child .vd-fermata-binario::before { bottom: calc(100% - 24px); }
+.vd-fermata-punto {
+  position: absolute; left: 3px; top: 15px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--vd-carta); border: 3px solid var(--vd-bordo-campo);
+}
+.vd-fermata--fatta .vd-fermata-punto { background: var(--vd-testo); border-color: var(--vd-testo); }
+.vd-fermata--attuale .vd-fermata-punto { background: var(--vd-giallo); border-color: var(--vd-testo); }
+.vd-fermata--fallita .vd-fermata-punto { background: var(--vd-critico); border-color: var(--vd-critico); }
+.vd-fermata--attuale .vd-fermata-nome { background: var(--vd-giallo-velato); }
+.vd-fermata-nome { padding: 12px 8px; border-bottom: 1px solid var(--vd-filetto); font-size: 15px; min-width: 0; }
+.vd-fermata-nome .vd-sotto { display: block; font-size: 13px; margin-top: 2px; }
+.vd-fermata--attesa .vd-fermata-nome { color: var(--vd-testo-2); }
+
+/* R15 (VD-C-177): documentazione del servizio — sezioni cambiate di una versione */
+.vd-elenco-sezioni { margin: 0; padding-left: 18px; }
+.vd-elenco-sezioni li { overflow-wrap: anywhere; }
+.vd-da-compilare { display: flex; flex-direction: column; gap: 20px; }
+.vd-da-compilare h3 { font-size: 16px; font-weight: 700; margin: 0 0 4px; overflow-wrap: anywhere; }
+.vd-da-compilare ul { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--vd-testo); }
+.vd-da-compilare li { padding: 10px 0; border-bottom: 1px solid var(--vd-filetto); overflow-wrap: anywhere; }
+.vd-da-compilare .vd-sotto { display: block; font-size: 14px; color: var(--vd-testo-2); margin-top: 2px; }

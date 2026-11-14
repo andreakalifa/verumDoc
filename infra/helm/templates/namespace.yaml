@@ -1,0 +1,13 @@
+{{- /*
+SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+SPDX-License-Identifier: EUPL-1.2
+*/ -}}
+{{- /* Di norma il namespace si crea con «helm install --create-namespace». */ -}}
+{{- if .Values.createNamespace }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Release.Namespace }}
+  labels:
+    {{- include "verumdoc.labels" . | nindent 4 }}
+{{- end }}

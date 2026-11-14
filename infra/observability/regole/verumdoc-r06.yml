@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Allarmi R06 (VD-C-130): verifica giornaliera dell'audit nel WORM.
+# Il CronJob hashchain-verifica-audit (infra/helm/values.yaml, cronJobs della
+# hashchain) esegue `python -m app.registro.operatore verifica-audit`: codice
+# d'uscita 0 = audit_global uguale ai segmenti nel WORM, 1 = differenze (o
+# errore). Un Job fallito o una verifica che non arriva sono allarmi.
+# Metriche di kube-state-metrics (kube_job_*, kube_cronjob_*): requisito del
+# cluster (stack di monitoraggio), non registrate dal codice dei servizi.
+# Revisione R06 (V3): l'allarme guarda l'esito DEFINITIVO del Job più recente
+# (condizione Failed, kube_job_failed{condition="true"}), non i pod falliti
+# (kube_job_status_failed contava anche un tentativo intermedio seguito da un
+# successo); con backoffLimit 0 l'uscita 1 (DIFFERENZE) non si ripete. Scatta se
+# l'ultimo Job fallito è partito DOPO l'ultima verifica riuscita e si chiude da
+# solo con la verifica riuscita successiva.
+# Gravità come in verumdoc-r04.yml (pagina = subito; avviso = in orario).
+groups:
+  - name: verumdoc-verifica-audit
+    rules:
+      - alert: VerificaAuditFallita
+        expr: |
+          max(kube_job_status_start_time{job_name=~"hashchain-verifica-audit-.*"}
+              * on(namespace, job_name)
+              (kube_job_failed{job_name=~"hashchain-verifica-audit-.*", condition="true"} == 1))
+          > (max(kube_cronjob_status_last_successful_time{cronjob="hashchain-verifica-audit"}) or vector(0))
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "La verifica giornaliera dell'audit nel WORM è fallita (codice d'uscita diverso da 0)"
+          description: "audit_global non corrisponde ai segmenti nel WORM, oppure la verifica non è riuscita. Leggere il log del Job (righe ESITO e DIFFERENZE) e indagare con verifica-audit. Runbook: docs/architettura/catena.md §11."
+      - alert: VerificaAuditNonEseguita
+        expr: time() - max(kube_cronjob_status_last_successful_time{cronjob="hashchain-verifica-audit"}) > 93600
+        for: 30m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Nessuna verifica dell'audit riuscita da oltre 26 ore"
+          description: "Il CronJob hashchain-verifica-audit non è partito o non è terminato con successo: la manomissione dell'audit da parte di un superutente resterebbe scoperta."
+  # Revisione R06 (V2): il lavoratore di ciclo-vita ha rifiutato di scrivere il
+  # fatto di un annullamento o di una rettifica (catena della richiesta non
+  # verificata: possibile pratica fabbricata dal pod API)
+  - name: verumdoc-ciclo-vita-puntuali
+    rules:
+      - alert: PuntualeAutorizzazioniNonVerificate
+        expr: max(verumdoc_ciclo_vita_puntuali_autorizzazioni_non_verificate) > 0
+        for: 0m
+        labels: {severity: pagina}
+        annotations:
+          summary: "Annullamento o rettifica bloccati: richiesta non verificata dal lavoratore"
+          description: "Una pratica di annullamento o rettifica non ha superato la verifica indipendente del lavoratore (richiedente attivo dell'ente, ruolo ammesso, cronologia, audit della richiesta, PdV e PdA della pratica): nessun atto, fatto né foglia. Anomalia di sicurezza (possibile pratica fabbricata dal pod API): vedere ultimo_errore.difetti e l'audit ciclo_vita.<tipo>.autorizzazioni_non_verificate. Runbook: docs/runbooks/scarto_incompleto.md (§ autorizzazioni non verificate)."

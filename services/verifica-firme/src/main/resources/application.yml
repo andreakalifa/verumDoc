@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# services/verifica-firme — configurazione (valori dalle variabili d'ambiente:
+# ConfigMap e Secret generati dai values di Helm; vedi README.md)
+server:
+  port: 8080
+  max-http-request-header-size: 16KB
+  # Revisione R08 (X8): verifiche contemporanee limitate (memoria: corpo JSON,
+  # base64 decodificato e documento DSS per richiesta); il corpo è limitato dal
+  # filtro LimiteCorpo PRIMA della lettura (in Spring MVC codec.max-in-memory-size
+  # non vale)
+  tomcat:
+    threads:
+      max: ${VERIFICA_RICHIESTE_CONTEMPORANEE:8}
+    max-swallow-size: 1MB
+spring:
+  application:
+    name: verifica-firme
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health
+verifica:
+  modo: ${VERIFICA_MODO:trusted-list}
+  lotl-url: ${VERIFICA_LOTL_URL:https://ec.europa.eu/tools/lotl/eu-lotl.xml}
+  oj-url: ${VERIFICA_OJ_URL:https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.C_.2019.276.01.0001.01.ENG}
+  lotl-keystore: ${VERIFICA_LOTL_KEYSTORE:/opt/verifica-firme/lotl-keystore.p12}
+  lotl-keystore-password: ${VERIFICA_LOTL_KEYSTORE_PASSWORD:}
+  cache-dir: ${VERIFICA_CACHE_DIR:/var/cache/verifica-firme}
+  aggiornamento-ms: ${VERIFICA_AGGIORNAMENTO_MS:21600000}
+  radici-pem: ${VERIFICA_RADICI_PEM:}
+  revoche-in-rete: ${VERIFICA_REVOCHE_IN_RETE:true}
+  jwt-chiave-pubblica: ${JWT_PUBLIC_KEY:}
+  jwt-audience: ${JWT_AUDIENCE_SERVIZIO:verumdoc-verifica-firme}
+  jwt-scope: ${JWT_SCOPE_SERVIZIO:firme:verifica}
+  dimensione-massima: ${VERIFICA_DIMENSIONE_MASSIMA:62914560}
+  # Revisione R08 (X10): download AIA/CRL/OCSP protetti (allow-list dei domini,
+  # vuota = qualunque host pubblico; tempo e dimensione massimi)
+  rete-domini: ${VERIFICA_RETE_DOMINI:}
+  rete-tempo-ms: ${VERIFICA_RETE_TEMPO_MS:10000}
+  rete-risposta-max: ${VERIFICA_RETE_RISPOSTA_MAX:67108864}

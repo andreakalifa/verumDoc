@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SCHEMA DI PROVA NON UFFICIALE — scritto per i test di VerumDoc (R11, D03).
+  NON è lo schema UNI 11386:2020, non deriva da esso né da documenti di altri
+  conservatori. Descrive soltanto la struttura PROVVISORIA dell'IPdA di VerumDoc
+  (services/aip-builder/app/services/sincro_builder.py), namespace provvisorio
+  compreso. Si registra sempre con ufficiale=false: con questo schema l'esito
+  non è mai «conforme».
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:p="https://schemi.verumdoc.it/ipda/provvisorio/1"
+           targetNamespace="https://schemi.verumdoc.it/ipda/provvisorio/1"
+           elementFormDefault="qualified">
+  <xs:simpleType name="TipologiaProva">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="DI"/>
+      <xs:enumeration value="DAI"/>
+      <xs:enumeration value="AGG"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="SInCRO">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Intestazione">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="IdentificativoAIP" type="xs:string"/>
+              <xs:element name="IdentificativoPdV" type="xs:string"/>
+              <xs:element name="TipologiaOggetto" type="xs:string"/>
+              <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:any processContents="skip" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="versione" type="xs:string" use="required"/>
+      <xs:attribute name="tipo" type="p:TipologiaProva" use="required"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

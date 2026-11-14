@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+name: Proposta di miglioramento
+description: Una funzione nuova o un cambiamento di comportamento.
+labels: ["proposta", "da valutare"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Le proposte che interpretano la norma o cambiano permessi, schema del database o formati di scambio
+        diventano decisioni del registro (`docs/registro/decisioni.md`): descrivi bene il motivo.
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema o esigenza
+      description: Chi ne ha bisogno (conservatore, ente produttore, auditor, sviluppatore) e perché.
+    validations:
+      required: true
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Proposta
+    validations:
+      required: true
+  - type: textarea
+    id: norma
+    attributes:
+      label: Riferimenti normativi
+      description: Articolo, paragrafo o allegato delle Linee guida AgID, del Regolamento o di altre norme, se pertinenti (fonti ufficiali).
+  - type: textarea
+    id: alternative
+    attributes:
+      label: Alternative considerate
+  - type: checkboxes
+    id: controlli
+    attributes:
+      label: Controlli
+      options:
+        - label: Ho cercato fra le issue e nel registro delle criticità (`docs/registro/criticita.md`) senza trovare la stessa proposta.
+          required: true

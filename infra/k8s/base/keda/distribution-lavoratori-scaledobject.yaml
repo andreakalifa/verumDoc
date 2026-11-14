@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: distribution-lavoratori-keda
+  namespace: verumdoc
+  labels:
+    app: distribution-lavoratori
+    app.kubernetes.io/name: distribution-lavoratori
+    app.kubernetes.io/part-of: verumdoc
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: distribution-lavoratori
+  minReplicaCount: 2
+  maxReplicaCount: 8
+  pollingInterval: 15
+  cooldownPeriod: 300
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: distribution-lavoratori-hpa
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 60
+          policies:
+          - type: Pods
+            value: 2
+            periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+          - type: Pods
+            value: 1
+            periodSeconds: 60
+  triggers:
+  - type: postgresql
+    metadata:
+      query: SELECT count(*) FROM (SELECT 1 FROM public.indicizzazione_aip WHERE stato = 'IN_CODA' AND prossimo_tentativo
+        <= now() LIMIT 20000) AS coda
+      targetQueryValue: '1000'
+      activationTargetQueryValue: '0'
+    authenticationRef:
+      name: keda-postgres
+  - type: cpu
+    metricType: Utilization
+    metadata:
+      value: '70'

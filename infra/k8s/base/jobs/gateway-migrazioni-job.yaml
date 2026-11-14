@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+# Job una tantum PRIMA dei servizi (Argo CD: hook PreSync; a mano: kubectl delete job
+# e poi apply, perché un Job terminato non si aggiorna).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gateway-migrazioni
+  namespace: verumdoc
+  labels:
+    app: gateway-migrazioni
+    app.kubernetes.io/name: gateway-migrazioni
+    app.kubernetes.io/part-of: verumdoc
+    app.kubernetes.io/component: migrazioni
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 3600
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: gateway-migrazioni
+        app.kubernetes.io/name: gateway-migrazioni
+        app.kubernetes.io/component: migrazioni
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      serviceAccountName: default
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: gateway
+        image: verumdoc-gateway
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - -m
+        - alembic
+        - upgrade
+        - head
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: gateway-migrazioni
+              key: DATABASE_URL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 2Gi
+      restartPolicy: Never

@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-notification-webhook
+  namespace: verumdoc
+  labels:
+    app: notification-webhook
+    app.kubernetes.io/name: notification-webhook
+    app.kubernetes.io/part-of: verumdoc
+spec:
+  podSelector:
+    matchLabels:
+      app: notification-webhook
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring
+    ports:
+    - port: 8000
+      protocol: TCP
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: pgbouncer
+    ports:
+    - port: 6432
+      protocol: TCP
+  - to:
+    - ipBlock:
+        cidr: 10.0.96.0/20
+    - ipBlock:
+        cidr: 10.0.112.0/20
+    - ipBlock:
+        cidr: 10.0.128.0/20
+    ports:
+    - port: 6379
+      protocol: TCP
+  - to:
+    - ipBlock:
+        cidr: 10.0.96.0/20
+    - ipBlock:
+        cidr: 10.0.112.0/20
+    - ipBlock:
+        cidr: 10.0.128.0/20
+    ports:
+    - port: 9092
+      protocol: TCP
+    - port: 9094
+      protocol: TCP
+    - port: 9098
+      protocol: TCP
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+        - 100.64.0.0/10
+        - 169.254.0.0/16
+        - 127.0.0.0/8
+    ports:
+    - port: 443
+      protocol: TCP

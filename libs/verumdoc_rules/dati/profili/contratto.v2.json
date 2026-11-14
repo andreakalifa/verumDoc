@@ -1,0 +1,104 @@
+{
+ "formato": "verumdoc-profilo-tipologia-2",
+ "codice": "contratto",
+ "nome": "Contratto",
+ "versione": 2,
+ "valido_dal": "2026-11-03",
+ "valido_al": null,
+ "norm_ref": "Profilo di servizio (l'Allegato 5 non ha un profilo dedicato ai contratti); D.Lgs. 36/2023 per i contratti pubblici — profilo proprio del conservatore",
+ "estende": "documento_informatico",
+ "estende_versione": 2,
+ "adozione": "esplicita",
+ "origine": "conservatore",
+ "nota": "Profilo PROPRIO del conservatore: l'Allegato 5 disciplina solo documento informatico, documento amministrativo informatico e aggregazioni. Eredita i campi riscontrati di documento_informatico v2; i campi propri sono scelte del servizio (fonti in norm_ref, non riscontrate in R11). Adozione esplicita per classe (PROFILO_TIPOLOGIA_VERSIONE).",
+ "campi": [
+  {
+   "nome": "numero_repertorio",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Numero di repertorio del contratto",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "data_stipula",
+   "tipo": "data",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Data di stipula",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "parti_contraenti",
+   "tipo": "elenco",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Denominazioni delle parti",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "sensibile": true,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "forma_contratto",
+   "tipo": "enum",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Forma del contratto",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "valori_ammessi": [
+    "forma pubblica amministrativa",
+    "scrittura privata",
+    "scrittura privata autenticata",
+    "atto pubblico notarile",
+    "altro"
+   ],
+   "origine": "conservatore"
+  },
+  {
+   "nome": "importo",
+   "tipo": "decimale",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Importo del contratto",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "cig",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Codice identificativo di gara (contratti pubblici)",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "cup",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Codice unico di progetto",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "data_scadenza",
+   "tipo": "data",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Data di scadenza del contratto",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  }
+ ]
+}

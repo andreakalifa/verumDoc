@@ -1,0 +1,92 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard-api-scarti
+  namespace: verumdoc
+  labels:
+    app: dashboard-api-scarti
+    app.kubernetes.io/name: dashboard-api-scarti
+    app.kubernetes.io/part-of: verumdoc
+    app.kubernetes.io/component: scarti
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard-api-scarti
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: dashboard-api-scarti
+        app.kubernetes.io/name: dashboard-api-scarti
+        app.kubernetes.io/component: scarti
+      annotations:
+        prometheus.io/scrape: 'false'
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      serviceAccountName: dashboard-api
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: dashboard-api
+        image: verumdoc-dashboard-api
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - -m
+        - app.services.consumer_scarti
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        envFrom:
+        - configMapRef:
+            name: dashboard-api-config
+        - secretRef:
+            name: dashboard-api-secrets
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 1Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: dashboard-api-scarti
+              topologyKey: kubernetes.io/hostname

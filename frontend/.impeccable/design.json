@@ -1,0 +1,659 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-20T22:30:00+02:00",
+  "title": "Design System: VerumDoc",
+  "extensions": {
+    "colorMeta": {
+      "grafite": {
+        "role": "neutral",
+        "displayName": "Grafite pensilina",
+        "canonical": "#1D1F22",
+        "oklch": "oklch(23.8% 0.006 258.4)",
+        "tonalRamp": [
+          "oklch(15% 0.006 258.4)",
+          "oklch(27% 0.006 258.4)",
+          "oklch(39% 0.006 258.4)",
+          "oklch(51% 0.006 258.4)",
+          "oklch(63% 0.006 258.4)",
+          "oklch(75% 0.006 258.4)",
+          "oklch(85% 0.006 258.4)",
+          "oklch(95% 0.006 258.4)"
+        ]
+      },
+      "grafite-2": {
+        "role": "neutral",
+        "displayName": "Grafite rialzata",
+        "canonical": "#2A2D31",
+        "oklch": "oklch(29.6% 0.008 255.6)",
+        "tonalRamp": [
+          "oklch(15% 0.008 255.6)",
+          "oklch(27% 0.008 255.6)",
+          "oklch(39% 0.008 255.6)",
+          "oklch(51% 0.008 255.6)",
+          "oklch(63% 0.008 255.6)",
+          "oklch(75% 0.008 255.6)",
+          "oklch(85% 0.008 255.6)",
+          "oklch(95% 0.008 255.6)"
+        ]
+      },
+      "giallo": {
+        "role": "primary",
+        "displayName": "Giallo segnaletico",
+        "canonical": "#FFC20E",
+        "oklch": "oklch(84.6% 0.172 85.3)",
+        "tonalRamp": [
+          "oklch(15% 0.172 85.3)",
+          "oklch(27% 0.172 85.3)",
+          "oklch(39% 0.172 85.3)",
+          "oklch(51% 0.172 85.3)",
+          "oklch(63% 0.172 85.3)",
+          "oklch(75% 0.172 85.3)",
+          "oklch(85% 0.172 85.3)",
+          "oklch(95% 0.172 85.3)"
+        ]
+      },
+      "giallo-velato": {
+        "role": "primary",
+        "displayName": "Giallo velato",
+        "canonical": "#FFF6D6",
+        "oklch": "oklch(97.2% 0.043 94.1)",
+        "tonalRamp": [
+          "oklch(15% 0.043 94.1)",
+          "oklch(27% 0.043 94.1)",
+          "oklch(39% 0.043 94.1)",
+          "oklch(51% 0.043 94.1)",
+          "oklch(63% 0.043 94.1)",
+          "oklch(75% 0.043 94.1)",
+          "oklch(85% 0.043 94.1)",
+          "oklch(95% 0.043 94.1)"
+        ]
+      },
+      "carta": {
+        "role": "neutral",
+        "displayName": "Carta",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(27% 0.000 89.9)",
+          "oklch(39% 0.000 89.9)",
+          "oklch(51% 0.000 89.9)",
+          "oklch(63% 0.000 89.9)",
+          "oklch(75% 0.000 89.9)",
+          "oklch(85% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "binario": {
+        "role": "neutral",
+        "displayName": "Binario",
+        "canonical": "#F2F3F4",
+        "oklch": "oklch(96.4% 0.002 247.8)",
+        "tonalRamp": [
+          "oklch(15% 0.002 247.8)",
+          "oklch(27% 0.002 247.8)",
+          "oklch(39% 0.002 247.8)",
+          "oklch(51% 0.002 247.8)",
+          "oklch(63% 0.002 247.8)",
+          "oklch(75% 0.002 247.8)",
+          "oklch(85% 0.002 247.8)",
+          "oklch(95% 0.002 247.8)"
+        ]
+      },
+      "testo": {
+        "role": "neutral",
+        "displayName": "Inchiostro",
+        "canonical": "#16181B",
+        "oklch": "oklch(20.8% 0.007 258.4)",
+        "tonalRamp": [
+          "oklch(15% 0.007 258.4)",
+          "oklch(27% 0.007 258.4)",
+          "oklch(39% 0.007 258.4)",
+          "oklch(51% 0.007 258.4)",
+          "oklch(63% 0.007 258.4)",
+          "oklch(75% 0.007 258.4)",
+          "oklch(85% 0.007 258.4)",
+          "oklch(95% 0.007 258.4)"
+        ]
+      },
+      "testo-2": {
+        "role": "neutral",
+        "displayName": "Inchiostro attenuato",
+        "canonical": "#575C63",
+        "oklch": "oklch(47.3% 0.013 256.7)",
+        "tonalRamp": [
+          "oklch(15% 0.013 256.7)",
+          "oklch(27% 0.013 256.7)",
+          "oklch(39% 0.013 256.7)",
+          "oklch(51% 0.013 256.7)",
+          "oklch(63% 0.013 256.7)",
+          "oklch(75% 0.013 256.7)",
+          "oklch(85% 0.013 256.7)",
+          "oklch(95% 0.013 256.7)"
+        ]
+      },
+      "su-grafite": {
+        "role": "neutral",
+        "displayName": "Testo su grafite",
+        "canonical": "#D7D9DC",
+        "oklch": "oklch(88.5% 0.005 258.3)",
+        "tonalRamp": [
+          "oklch(15% 0.005 258.3)",
+          "oklch(27% 0.005 258.3)",
+          "oklch(39% 0.005 258.3)",
+          "oklch(51% 0.005 258.3)",
+          "oklch(63% 0.005 258.3)",
+          "oklch(75% 0.005 258.3)",
+          "oklch(85% 0.005 258.3)",
+          "oklch(95% 0.005 258.3)"
+        ]
+      },
+      "filetto": {
+        "role": "neutral",
+        "displayName": "Filetto",
+        "canonical": "#E1E3E6",
+        "oklch": "oklch(91.5% 0.005 258.3)",
+        "tonalRamp": [
+          "oklch(15% 0.005 258.3)",
+          "oklch(27% 0.005 258.3)",
+          "oklch(39% 0.005 258.3)",
+          "oklch(51% 0.005 258.3)",
+          "oklch(63% 0.005 258.3)",
+          "oklch(75% 0.005 258.3)",
+          "oklch(85% 0.005 258.3)",
+          "oklch(95% 0.005 258.3)"
+        ]
+      },
+      "bordo-campo": {
+        "role": "neutral",
+        "displayName": "Bordo campo",
+        "canonical": "#767B82",
+        "oklch": "oklch(58.1% 0.012 256.7)",
+        "tonalRamp": [
+          "oklch(15% 0.012 256.7)",
+          "oklch(27% 0.012 256.7)",
+          "oklch(39% 0.012 256.7)",
+          "oklch(51% 0.012 256.7)",
+          "oklch(63% 0.012 256.7)",
+          "oklch(75% 0.012 256.7)",
+          "oklch(85% 0.012 256.7)",
+          "oklch(95% 0.012 256.7)"
+        ]
+      },
+      "bordo-su-grafite": {
+        "role": "neutral",
+        "displayName": "Bordo su grafite",
+        "canonical": "#8A9097",
+        "oklch": "oklch(65.1% 0.013 252.1)",
+        "tonalRamp": [
+          "oklch(15% 0.013 252.1)",
+          "oklch(27% 0.013 252.1)",
+          "oklch(39% 0.013 252.1)",
+          "oklch(51% 0.013 252.1)",
+          "oklch(63% 0.013 252.1)",
+          "oklch(75% 0.013 252.1)",
+          "oklch(85% 0.013 252.1)",
+          "oklch(95% 0.013 252.1)"
+        ]
+      },
+      "ok": {
+        "role": "status",
+        "displayName": "Verde in orario",
+        "canonical": "#0E7A46",
+        "oklch": "oklch(51.1% 0.122 155.0)",
+        "tonalRamp": [
+          "oklch(15% 0.122 155.0)",
+          "oklch(27% 0.122 155.0)",
+          "oklch(39% 0.122 155.0)",
+          "oklch(51% 0.122 155.0)",
+          "oklch(63% 0.122 155.0)",
+          "oklch(75% 0.122 155.0)",
+          "oklch(85% 0.122 155.0)",
+          "oklch(95% 0.122 155.0)"
+        ]
+      },
+      "rischio": {
+        "role": "status",
+        "displayName": "Arancio rischio",
+        "canonical": "#A63D00",
+        "oklch": "oklch(50.1% 0.150 42.3)",
+        "tonalRamp": [
+          "oklch(15% 0.150 42.3)",
+          "oklch(27% 0.150 42.3)",
+          "oklch(39% 0.150 42.3)",
+          "oklch(51% 0.150 42.3)",
+          "oklch(63% 0.150 42.3)",
+          "oklch(75% 0.150 42.3)",
+          "oklch(85% 0.150 42.3)",
+          "oklch(95% 0.150 42.3)"
+        ]
+      },
+      "critico": {
+        "role": "status",
+        "displayName": "Rosso critico",
+        "canonical": "#B42318",
+        "oklch": "oklch(50.0% 0.182 29.5)",
+        "tonalRamp": [
+          "oklch(15% 0.182 29.5)",
+          "oklch(27% 0.182 29.5)",
+          "oklch(39% 0.182 29.5)",
+          "oklch(51% 0.182 29.5)",
+          "oklch(63% 0.182 29.5)",
+          "oklch(75% 0.182 29.5)",
+          "oklch(85% 0.182 29.5)",
+          "oklch(95% 0.182 29.5)"
+        ]
+      },
+      "info": {
+        "role": "status",
+        "displayName": "Blu informazione",
+        "canonical": "#1F5FAD",
+        "oklch": "oklch(48.9% 0.140 255.8)",
+        "tonalRamp": [
+          "oklch(15% 0.140 255.8)",
+          "oklch(27% 0.140 255.8)",
+          "oklch(39% 0.140 255.8)",
+          "oklch(51% 0.140 255.8)",
+          "oklch(63% 0.140 255.8)",
+          "oklch(75% 0.140 255.8)",
+          "oklch(85% 0.140 255.8)",
+          "oklch(95% 0.140 255.8)"
+        ]
+      },
+      "inchiostro-pieno": {
+        "role": "neutral",
+        "displayName": "Inchiostro pieno",
+        "canonical": "#000000",
+        "oklch": "oklch(0% 0 0)",
+        "purpose": "Solo passaggio del puntatore su bottone primario e link.",
+        "tonalRamp": []
+      },
+      "segnaposto-su-grafite": {
+        "role": "neutral",
+        "displayName": "Segnaposto su grafite",
+        "canonical": "#B5B9BE",
+        "oklch": "oklch(77.6% 0.008 247.9)",
+        "purpose": "Solo testo segnaposto della ricerca in testata.",
+        "tonalRamp": []
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Titolo della fascia di stato (28px; 22px su telefono)."
+      },
+      "headline": {
+        "displayName": "Titolo di sezione",
+        "purpose": "Etichette gialle di sezione, titoli delle tappe, titoli di sezione senza etichetta."
+      },
+      "orario": {
+        "displayName": "Orario",
+        "purpose": "Prima colonna dei tabelloni e numeri della situazione dell'archivio."
+      },
+      "marchio": {
+        "displayName": "Marchio",
+        "purpose": "Solo la parola VerumDoc in testata; unico uso espanso dell'asse wdth."
+      },
+      "body": {
+        "displayName": "Testo",
+        "purpose": "Celle dei tabelloni e navigazione."
+      },
+      "body-lg": {
+        "displayName": "Testo grande",
+        "purpose": "Campi, bottoni, riga della fascia."
+      },
+      "stato": {
+        "displayName": "Stato",
+        "purpose": "Parole di stato colorate, mai pillole."
+      },
+      "label": {
+        "displayName": "Intestazione di colonna",
+        "purpose": "Intestazioni dei tabelloni, condensate, mai in maiuscolo."
+      },
+      "nota": {
+        "displayName": "Nota",
+        "purpose": "Note, aiuti e sottorighe in inchiostro attenuato (13–14px)."
+      },
+      "mono": {
+        "displayName": "Monospazio",
+        "purpose": "Identificativi dei pacchetti, segnature, registro tecnico."
+      },
+      "titolo-pagina": {
+        "displayName": "Titolo di pagina",
+        "purpose": "h1 di ogni pagina interna (.vd-testa-pagina h1), 32px; 28px su telefono."
+      },
+      "esito": {
+        "displayName": "Esito",
+        "purpose": "Titolo di un esito o avviso (.vd-esito-titolo) e titoletti nel dialogo, 17px/700."
+      }
+    },
+    "fonts": [
+      {
+        "family": "Archivo Variable",
+        "source": "@fontsource-variable/archivo/wdth.css (self-hosted)",
+        "axes": {
+          "wdth": "62–125",
+          "wght": "100–900"
+        }
+      }
+    ],
+    "shadows": [
+      {
+        "name": "alone-focus",
+        "value": "outline: 3px solid #16181B; outline-offset: 2px; box-shadow: 0 0 0 7px #FFC20E",
+        "purpose": "Unico uso di box-shadow: anello giallo del focus. Bianco sulla fascia gialla; in testata contorno giallo senza anello."
+      },
+      {
+        "name": "velo-dialogo",
+        "value": "::backdrop rgba(29, 31, 34, 0.62)",
+        "purpose": "Separa il dialogo laterale dalla pagina."
+      }
+    ],
+    "borders": [
+      {
+        "name": "filetto-spesso",
+        "value": "2px solid #16181B",
+        "purpose": "Sotto le intestazioni di colonna e sopra la zona d'invio; sotto il titolo di pagina."
+      },
+      {
+        "name": "filetto-sottile",
+        "value": "1px solid #E1E3E6",
+        "purpose": "Tra le righe di uno stesso elenco; sotto la sotto-navigazione."
+      },
+      {
+        "name": "filetto-esito",
+        "value": "4px solid (ok | critico | rischio | info | testo-2)",
+        "purpose": "Sopra il blocco .vd-esito."
+      },
+      {
+        "name": "scheda-attiva",
+        "value": "4px solid #FFC20E (testata) / 3px solid #16181B (sotto-navigazione)",
+        "purpose": "Indicatore della voce di navigazione corrente."
+      },
+      {
+        "name": "filetto-avviso",
+        "value": "2px solid #A63D00 (neutro: #575C63)",
+        "purpose": "Sopra l'avviso di limite .vd-avviso."
+      },
+      {
+        "name": "sfumatura-schede",
+        "value": "mask-image linear-gradient 48px",
+        "purpose": "Bordo delle schede di testata che nasconde altre aree quando scorrono."
+      }
+    ],
+    "motion": [
+      {
+        "name": "nessuna",
+        "value": "none",
+        "purpose": "Il sistema non anima: cambi di stato istantanei; prefers-reduced-motion azzera comunque animazioni e transizioni."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "telefono",
+        "value": "640px",
+        "purpose": "Margine laterale da 32 a 16px; i tabelloni impilabili diventano blocchi orario + dettagli."
+      },
+      {
+        "name": "testata-a-capo",
+        "value": "900px",
+        "purpose": "La ricerca in testata torna a 280px: ricerca e ruolo vanno a capo."
+      }
+    ],
+    "removed": {
+      "description": "Eliminati il 20/10/2026 (g2-frontend): non reintrodurre.",
+      "items": [
+        "--bg-*",
+        "--text-*",
+        "--gold*",
+        "--green",
+        "--red",
+        "--amber",
+        "--blue",
+        "--accent",
+        ".card",
+        ".card-gold",
+        ".btn-gold",
+        ".btn-ghost",
+        ".input-dark",
+        ".tag-*",
+        ".font-serif",
+        ".font-mono",
+        ".table-row",
+        ".gold-line",
+        ".gradient-text",
+        ".pulse-dot",
+        ".fade-in*",
+        "@tailwind",
+        "src/styles/fe-archivio.css",
+        "src/styles/fe-conformita.css",
+        "src/styles/fe-integrita.css",
+        "src/styles/fe-enti.css"
+      ]
+    }
+  },
+  "components": [
+    {
+      "name": "Bottone primario",
+      "kind": "button",
+      "refersTo": "bottone-primario",
+      "description": "Il comando principale della vista; uno solo per schermata.",
+      "html": "<button class=\"ds-bottone\">Versa in conservazione</button>",
+      "css": ".ds-bottone { font-family: var(--vd-font); display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; font-size: 16px; font-weight: 700; background: var(--vd-testo); color: #FFFFFF; border: 2px solid var(--vd-testo); border-radius: 2px; cursor: pointer; } .ds-bottone:hover { background: #000; } .ds-bottone:focus-visible { outline: 3px solid var(--vd-testo); outline-offset: 2px; box-shadow: 0 0 0 7px var(--vd-giallo); } .ds-bottone:disabled { background: #E1E3E6; border-color: #E1E3E6; color: #575C63; cursor: not-allowed; }"
+    },
+    {
+      "name": "Bottone secondario",
+      "kind": "button",
+      "refersTo": "bottone-secondario",
+      "description": "Comando accessorio, per esempio «Scegli il file».",
+      "html": "<button class=\"ds-bottone-sec\">Scegli il file</button>",
+      "css": ".ds-bottone-sec { font-family: var(--vd-font); display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; font-size: 16px; font-weight: 700; background: transparent; color: var(--vd-testo); border: 2px solid var(--vd-testo); border-radius: 2px; cursor: pointer; } .ds-bottone-sec:hover { background: var(--vd-binario); } .ds-bottone-sec:focus-visible { outline: 3px solid var(--vd-testo); outline-offset: 2px; box-shadow: 0 0 0 7px var(--vd-giallo); }"
+    },
+    {
+      "name": "Campo",
+      "kind": "input",
+      "refersTo": "campo",
+      "description": "Campo con etichetta sopra e aiuto sotto; bordo critico quando non valido.",
+      "html": "<div class=\"ds-campo\"><label for=\"ds-id\">Identificativo del documento *</label><input id=\"ds-id\" class=\"ds-input\" /><span class=\"ds-aiuto\">Per esempio FT-2026-001</span></div>",
+      "css": ".ds-campo { font-family: var(--vd-font); display: flex; flex-direction: column; gap: 6px; color: var(--vd-testo); } .ds-campo label { font-size: 14px; font-weight: 600; } .ds-aiuto { font-size: 13px; color: var(--vd-testo-2); } .ds-input { font: inherit; min-height: 44px; padding: 0 12px; font-size: 16px; color: var(--vd-testo); background: #FFFFFF; border: 1px solid var(--vd-bordo-campo); border-radius: 2px; } .ds-input:focus { border-color: var(--vd-testo); } .ds-input:focus-visible { outline: 3px solid var(--vd-testo); outline-offset: 2px; box-shadow: 0 0 0 7px var(--vd-giallo); } .ds-input[aria-invalid=\"true\"] { border-color: var(--vd-critico); }"
+    },
+    {
+      "name": "Testata",
+      "kind": "nav",
+      "refersTo": "testata",
+      "description": "Testata grafite con schede orizzontali per area; la scheda attiva porta 4px di giallo.",
+      "html": "<nav class=\"ds-testata\"><span class=\"ds-marchio\">VerumDoc</span><a href=\"#\" aria-current=\"page\">Servizio</a><a href=\"#\">Versamento</a><a href=\"#\">Archivio</a><a href=\"#\">Integrità</a></nav>",
+      "css": ".ds-testata { font-family: var(--vd-font); display: flex; align-items: center; gap: 24px; padding: 0 32px; background: var(--vd-grafite); } .ds-marchio { font-weight: 800; font-size: 20px; font-stretch: 112%; letter-spacing: -0.01em; color: #FFFFFF; margin-right: 8px; } .ds-testata a { display: flex; align-items: center; height: 56px; padding-top: 4px; font-size: 15px; font-weight: 500; color: var(--vd-su-grafite); text-decoration: none; border-bottom: 4px solid transparent; } .ds-testata a:hover { color: #FFFFFF; } .ds-testata a[aria-current=\"page\"] { font-weight: 700; color: #FFFFFF; border-bottom-color: var(--vd-giallo); } .ds-testata a:focus-visible { outline: 3px solid var(--vd-giallo); outline-offset: 2px; }"
+    },
+    {
+      "name": "Fascia di stato",
+      "kind": "custom",
+      "refersTo": "fascia-stato",
+      "description": "Banda a tutta larghezza con lo stato dell'archivio; gialla solo se la verifica è riuscita.",
+      "html": "<section class=\"ds-fascia\"><h1>Archivio integro</h1><span>Verificati 4.817 blocchi, ultima verifica 20/10/2026 09:41</span><a href=\"#\">Dettaglio della verifica</a></section>",
+      "css": ".ds-fascia { font-family: var(--vd-font); display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; padding: 18px 32px; background: var(--vd-giallo); color: var(--vd-testo); } .ds-fascia h1 { margin: 0; font-size: 28px; font-weight: 800; font-stretch: 85%; letter-spacing: -0.01em; line-height: 1.2; } .ds-fascia span { font-size: 16px; font-weight: 500; } .ds-fascia a { margin-left: auto; font-size: 15px; font-weight: 700; color: inherit; } .ds-fascia a:focus-visible { outline: 3px solid var(--vd-testo); outline-offset: 2px; box-shadow: 0 0 0 7px #FFFFFF; }"
+    },
+    {
+      "name": "Fascia di stato critica",
+      "kind": "custom",
+      "refersTo": "fascia-stato-critica",
+      "description": "Stessa banda quando l'integrità è compromessa o lo stato non è leggibile.",
+      "html": "<section class=\"ds-fascia-critica\"><h1>Stato dell'archivio non disponibile</h1><span>Lo stato è sconosciuto, non integro per difetto.</span></section>",
+      "css": ".ds-fascia-critica { font-family: var(--vd-font); display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; padding: 18px 32px; background: var(--vd-critico); color: #FFFFFF; } .ds-fascia-critica h1 { margin: 0; font-size: 28px; font-weight: 800; font-stretch: 85%; line-height: 1.2; } .ds-fascia-critica span { font-size: 16px; font-weight: 500; }"
+    },
+    {
+      "name": "Tabellone",
+      "kind": "custom",
+      "refersTo": "riga-tabellone-hover",
+      "description": "Etichetta gialla, intestazione condensata con filetto nero da 2px, orari condensati, stati come parole.",
+      "html": "<section class=\"ds-tab\"><h2 class=\"ds-etichetta\">Arrivi</h2><table><thead><tr><th>Ora</th><th>Pacchetto</th><th>Esito</th></tr></thead><tbody><tr><td class=\"ds-ora\">11:59</td><td class=\"ds-mono\">ae5e5f2e</td><td class=\"ds-stato ds-ok\">Conservato</td></tr><tr><td class=\"ds-ora\">11:33</td><td class=\"ds-mono\">c4135de3</td><td class=\"ds-stato ds-info\">In verifica</td></tr><tr><td class=\"ds-ora\">10:07</td><td class=\"ds-mono\">ba87a6ce</td><td class=\"ds-stato ds-critico\">Rifiutato</td></tr></tbody></table></section>",
+      "css": ".ds-tab { font-family: var(--vd-font); color: var(--vd-testo); background: var(--vd-carta); } .ds-etichetta { display: inline-block; margin: 0 0 10px; font-size: 22px; font-weight: 800; font-stretch: 85%; line-height: 1.25; padding: 2px 10px; background: var(--vd-giallo); color: var(--vd-testo); } .ds-tab table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; } .ds-tab th { font-stretch: 75%; text-align: left; font-weight: 700; font-size: 13px; padding: 8px 14px; border-bottom: 2px solid var(--vd-testo); } .ds-tab td { padding: 12px 14px; border-bottom: 1px solid var(--vd-filetto); font-size: 15px; vertical-align: baseline; } .ds-tab tbody tr:hover { background: var(--vd-binario); } .ds-ora { font-stretch: 75%; font-weight: 700; font-size: 20px !important; } .ds-mono { font-family: var(--vd-mono); font-size: 13px !important; } .ds-stato { font-weight: 700; font-size: 14px !important; } .ds-ok { color: var(--vd-ok); } .ds-info { color: var(--vd-info); } .ds-critico { color: var(--vd-critico); }"
+    },
+    {
+      "name": "Link di riga",
+      "kind": "custom",
+      "refersTo": "riga-tabellone-hover",
+      "description": "Attività del tabellone: sottolineatura sottile che diventa gialla e spessa al passaggio.",
+      "html": "<a class=\"ds-riga-link\" href=\"#\">Rinnovo marche temporali, 214.803 pacchetti</a>",
+      "css": ".ds-riga-link { font-family: var(--vd-font); font-size: 15px; color: var(--vd-testo); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; } .ds-riga-link:hover { text-decoration-thickness: 3px; text-decoration-color: var(--vd-giallo); } .ds-riga-link:focus-visible { outline: 3px solid var(--vd-testo); outline-offset: 2px; box-shadow: 0 0 0 7px var(--vd-giallo); }"
+    },
+    {
+      "name": "Tappa del modulo",
+      "kind": "custom",
+      "refersTo": "etichetta-sezione",
+      "description": "Legenda di una tappa: numero in rettangolo giallo, titolo condensato, nota facoltativa.",
+      "html": "<div class=\"ds-tappa\"><span class=\"ds-n\">3</span><span class=\"ds-t\">Metadati del documento</span><span class=\"ds-nota\">Allegato 5 delle Linee guida, 7 obbligatori</span></div>",
+      "css": ".ds-tappa { font-family: var(--vd-font); display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; color: var(--vd-testo); } .ds-n { font-size: 22px; font-weight: 800; font-stretch: 75%; background: var(--vd-giallo); padding: 0 8px; } .ds-t { font-size: 22px; font-weight: 800; font-stretch: 85%; } .ds-nota { font-size: 14px; color: var(--vd-testo-2); }"
+    },
+    {
+      "name": "Testa di pagina",
+      "kind": "layout",
+      "refersTo": "testa-pagina",
+      "description": "h1 32px, una riga di spiegazione, comandi a destra; chiusa da 2px d'inchiostro.",
+      "html": "<div class=\"vd-testa-pagina\"><h1>Catena delle impronte</h1><p>Ogni blocco sigilla le impronte di un gruppo di pacchetti.</p><div class=\"vd-testa-comandi\"><button class=\"vd-bottone vd-bottone--secondario\">Aggiorna</button></div></div>",
+      "css": "/* classi vd-* di frontend/src/index.css */"
+    },
+    {
+      "name": "Esito",
+      "kind": "feedback",
+      "refersTo": "esito",
+      "description": "Filetto superiore 4px nel colore di stato, titolo 17px/700; per risultati, errori (motivo + riferimento + Riprova) e vuoti spiegati.",
+      "html": "<div class=\"vd-esito vd-esito--critico\" role=\"alert\"><p class=\"vd-esito-titolo\">Elenco degli enti non disponibile</p><p>Il servizio ha risposto con un errore (500); riferimento per la segnalazione 7c1e-42ab.</p><button class=\"vd-bottone vd-bottone--secondario\">Riprova</button></div>",
+      "css": "/* classi vd-* di frontend/src/index.css */"
+    },
+    {
+      "name": "Avviso di limite",
+      "kind": "feedback",
+      "refersTo": "avviso",
+      "description": "Dichiara in modo permanente il limite di una funzione, con il link alla pagina «da realizzare».",
+      "html": "<p class=\"vd-avviso\"><strong class=\"vd-stato--rischio\">Elenco dei fascicoli: funzione da realizzare.</strong> Il servizio non ha ancora un elenco. <a class=\"vd-riga-link\" href=\"/da-realizzare/fascicoli\">Che cosa manca</a></p>",
+      "css": "/* classi vd-* di frontend/src/index.css */"
+    },
+    {
+      "name": "Comando testuale",
+      "kind": "button",
+      "refersTo": "comando-testo",
+      "description": "Azione minore sottolineata in grassetto 15px, alta 44px.",
+      "html": "<button class=\"vd-comando-testo\">Utenti e classi</button>",
+      "css": "/* classi vd-* di frontend/src/index.css */"
+    },
+    {
+      "name": "Conferma in riga",
+      "kind": "pattern",
+      "refersTo": "comando-testo",
+      "description": "Disattiva/revoca: la cella dei comandi chiede conferma senza aprire finestre.",
+      "html": "<span class=\"vd-comandi-cella\"><span class=\"vd-stato vd-stato--critico\">Revocare la chiave?</span><button class=\"vd-bottone\">Revoca</button><button class=\"vd-comando-testo\">Annulla</button></span>",
+      "css": "/* classi vd-* di frontend/src/index.css */"
+    },
+    {
+      "name": "Dialogo laterale",
+      "kind": "dialog",
+      "refersTo": "dialogo",
+      "description": "<dialog> nativo con showModal(), 580px a destra, Esc e velo chiudono, focus restituito.",
+      "html": "<dialog class=\"vd-dialogo\" aria-labelledby=\"t\"><div class=\"vd-dialogo-testa\"><h2 id=\"t\">Pacchetto di archiviazione</h2><button class=\"vd-bottone vd-bottone--secondario\">Chiudi</button></div><div class=\"vd-dialogo-corpo\"><section><h3>Identificazione</h3><dl class=\"vd-dati\"><dt>Segnatura</dt><dd class=\"vd-mono\">urn:IT:c_c287:FATTURA:2026:000418</dd></dl></section></div></dialog>",
+      "css": "/* classi vd-* di frontend/src/index.css */"
+    },
+    {
+      "name": "Chiave mostrata una volta",
+      "kind": "pattern",
+      "refersTo": "chiave-una-volta",
+      "description": "Riquadro mono selezionabile con un clic; unico momento in cui la chiave è leggibile.",
+      "html": "<code class=\"vd-chiave\" tabindex=\"-1\">vd_5be81c0d_…</code>",
+      "css": "/* classi vd-* di frontend/src/index.css */"
+    },
+    {
+      "name": "Sezioni apribili",
+      "kind": "disclosure",
+      "refersTo": "voce-apribile",
+      "description": "<details> nativo, una riga per sezione con numero, titolo, stato e +/−.",
+      "html": "<div class=\"vd-voci\"><details class=\"vd-voce\"><summary><span class=\"vd-voce-num\">1</span><span class=\"vd-voce-titolo\">Presentazione</span><span class=\"vd-stato vd-stato--neutro\">Verifica non indicata</span></summary><div class=\"vd-voce-corpo\"><p>Testo della sezione.</p></div></details></div>",
+      "css": "/* classi vd-* di frontend/src/index.css */"
+    },
+    {
+      "name": "Scheda termine–valore",
+      "kind": "data",
+      "refersTo": "testa-pagina",
+      "description": "<dl class=\"vd-dati\">: termine 14px/600, valore 15px, righe a filetto; numeri vd-numero.",
+      "html": "<dl class=\"vd-dati\"><dt>Blocchi nella catena</dt><dd><span class=\"vd-numero\">4.817</span></dd></dl>",
+      "css": "/* classi vd-* di frontend/src/index.css */"
+    },
+    {
+      "name": "Scelta esclusiva",
+      "kind": "input",
+      "refersTo": "campo",
+      "description": "Radio nativi in fieldset, righe da 44px con spiegazione.",
+      "html": "<fieldset class=\"vd-scelte\"><legend>Che cosa preparare</legend><label class=\"vd-scelta\"><input type=\"radio\" name=\"t\" checked><strong>Esibizione</strong><span>Link a scadenza da consegnare.</span></label></fieldset>",
+      "css": "/* classi vd-* di frontend/src/index.css */"
+    },
+    {
+      "name": "Fascia di colonna",
+      "kind": "banner",
+      "refersTo": "fascia-stato",
+      "description": "La fascia di stato dentro la colonna di una pagina interna, stesse tonalità della home.",
+      "html": "<section class=\"vd-fascia vd-fascia--neutro\"><h2>Integrità mai verificata</h2><span class=\"vd-fascia-riga\">Il servizio non riporta l'esito di una verifica completa.</span></section>",
+      "css": "/* classi vd-* di frontend/src/index.css */"
+    }
+  ],
+  "narrative": {
+    "northStar": "Il tabellone delle partenze",
+    "overview": "**Creative North Star: \"Il tabellone delle partenze\"**\n\nIl servizio di conservazione si legge come un orario ferroviario. Il tempo e la puntualità sono il contenuto: le scadenze del servizio sono Partenze, i versamenti sono Arrivi, il percorso di un pacchetto è una Corsa. Ogni riga ha un orario, un'attività e uno stato, e lo stato è una parola, non un'icona. La testata è grafite come una pensilina, la fascia di stato è gialla come la segnaletica, i tabelloni sono carta bianca con filetti neri.\n\nLa densità è quella di un tabellone: molte righe, nessuna decorazione, gerarchia affidata alla larghezza del carattere (condensato e pesante per orari e titoli, normale per il testo) e a un unico colore segnaletico. Le superfici sono piatte, gli angoli vivi, la profondità non esiste: si separa con filetti, non con ombre. Rifiutato in modo esplicito dal committente: la home da kit (barra laterale, griglia di card metriche, grafico), le palette tenui e prudenti, la tipografia anonima, l'aspetto da servizio dello Stato (nessun Designers Italia / Bootstrap Italia).\n\nIl sistema dice sempre la verità sul proprio stato: la fascia cambia tono quando lo stato è sconosciuto o compromesso, e i dati dimostrativi lo dichiarano nella riga stessa.",
+    "keyCharacteristics": [
+      "Testata grafite a schede orizzontali, scheda attiva sottolineata da 4px di giallo.",
+      "Fascia di stato a tutta larghezza sotto la testata: gialla se l'archivio è integro, rossa se compromesso o illeggibile, grigia se mai verificato o in lettura.",
+      "Tabelloni su carta bianca: intestazione condensata con filetto nero da 2px, righe separate da filetti grigi da 1px, orari condensati in cifre tabellari.",
+      "Etichette di sezione come cartelli gialli pieni («Partenze», «Arrivi», «Corsa del pacchetto»).",
+      "Stati come parole colorate in grassetto, mai pillole né badge.",
+      "Un solo carattere, Archivo variabile (asse wdth 62–125), servito dal progetto."
+    ],
+    "rules": [
+      {
+        "name": "La regola del giallo unico",
+        "body": "Il giallo segnala, non decora: fascia di stato, etichette di sezione, scheda attiva, focus. Mai su grandi superfici oltre la fascia, mai come colore del testo, mai sfumato.",
+        "section": "colors"
+      },
+      {
+        "name": "La regola della verità di stato",
+        "body": "La fascia è gialla solo quando la verifica d'integrità è riuscita. Errore o integrità compromessa: fondo critico con testo bianco. In lettura o mai verificato: fondo filetto. Uno stato sconosciuto non si mostra mai come «tutto bene».",
+        "section": "colors"
+      },
+      {
+        "name": "La regola del foglio unico",
+        "body": "src/index.css è l'unico foglio di stile: token --vd-* e classi vd-*, un nome per componente. Il ponte (--bg-*, --text-*, --gold*, .card, .btn-gold, .tag-*, .fade-in*…) e le direttive Tailwind sono stati eliminati il 20/10/2026.",
+        "section": "colors"
+      },
+      {
+        "name": "La regola della larghezza che parla",
+        "body": "La gerarchia si fa con la larghezza dell'asse wdth prima che con la dimensione: 75% per orari e intestazioni, 85% per titoli, 100% per il testo, 112% solo per il marchio. Nessun maiuscoletto, nessuna spaziatura larga.",
+        "section": "typography"
+      },
+      {
+        "name": "La regola delle cifre in colonna",
+        "body": "Ogni tabellone usa cifre tabellari, così gli orari si allineano come su un pannello.",
+        "section": "typography"
+      },
+      {
+        "name": "La regola del filetto",
+        "body": "Si separa con una linea, mai con un'ombra o con una card. Filetto spesso (2px inchiostro) per chiudere un'intestazione o aprire la zona dei comandi; filetto sottile (1px) tra righe dello stesso elenco.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** dare a ogni riga un orario in prima colonna, condensato al 75% e in cifre tabellari.",
+      "**Do** scrivere gli stati come parole in grassetto 14px nei quattro inchiostri di stato (#0E7A46, #A63D00, #B42318, #1F5FAD) o in inchiostro attenuato per il neutro.",
+      "**Do** aprire ogni tabellone con un'etichetta gialla piena e chiudere l'intestazione di colonna con 2px di inchiostro.",
+      "**Do** cambiare il tono della fascia quando lo stato è sconosciuto, in lettura o compromesso.",
+      "**Do** dichiarare i dati dimostrativi nella sezione e nella riga stessa, non solo in una nota a piè di pagina.",
+      "**Do** usare i token `--vd-*` e le classi `vd-*` di `src/index.css` per ogni nuova schermata; errori con `src/api/errori.ts`, ruoli con `src/auth/ruoli.ts`.",
+      "**Do** mantenere comandi e campi alti almeno 44px e il focus con l'alone giallo."
+    ],
+    "donts": [
+      "**Don't** usare pillole, badge, puntini o icone come portatori di stato.",
+      "**Don't** usare ombre, card sollevate, sfumature o angoli arrotondati oltre i 2px dei controlli.",
+      "**Don't** costruire la home da kit: barra laterale, griglia di card metriche, grafici decorativi.",
+      "**Don't** usare il giallo come colore del testo o su superfici diverse da fascia, etichette, scheda attiva, numero di tappa e focus.",
+      "**Don't** introdurre un secondo carattere di titolazione o caricare caratteri da servizi esterni.",
+      "**Don't** reintrodurre le variabili e le classi del vecchio ponte (`--bg-*`, `--text-*`, `--gold*`, `.card`, `.btn-gold`, `.tag-*`…), fogli di stile per area o doppioni di una classe con un altro prefisso.",
+      "**Don't** riprendere navy e oro, Instrument Serif o lo stile Designers Italia: il sistema precedente è dismesso."
+    ]
+  }
+}

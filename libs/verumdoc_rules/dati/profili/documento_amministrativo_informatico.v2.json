@@ -1,0 +1,478 @@
+{
+ "formato": "verumdoc-profilo-tipologia-2",
+ "codice": "documento_amministrativo_informatico",
+ "nome": "Documento amministrativo informatico",
+ "versione": 2,
+ "valido_dal": "2026-11-03",
+ "valido_al": null,
+ "norm_ref": "Linee guida AgID sulla formazione, gestione e conservazione dei documenti informatici, Allegato 5 «I metadati» (edizione maggio 2021, pubblicata su agid.gov.it) — §3",
+ "estende": "documento_informatico",
+ "estende_versione": 2,
+ "adozione": "esplicita",
+ "origine": "allegato5",
+ "nota": "Versione R11 riscontrata sul testo ufficiale dell'Allegato 5 (docs/conformita/riscontro_allegato5.md). Adozione esplicita: la classe la sceglie con PROFILO_TIPOLOGIA_VERSIONE = 2 (bozza con anteprima); i PdV già versati restano con la versione fotografata.",
+ "campi": [
+  {
+   "nome": "tipo_registro",
+   "tipo": "enum",
+   "obbligatorio": true,
+   "allegato5": "DatiDiRegistrazione.TipoRegistro",
+   "descrizione": "Registro della registrazione (senza «Nessuno»)",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§3, p. 43",
+   "valori_ammessi": [
+    "Protocollo Ordinario/Protocollo Emergenza",
+    "Repertorio/Registro"
+   ]
+  },
+  {
+   "nome": "codice_registro",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "DatiDiRegistrazione.CodiceRegistro",
+   "descrizione": "Codice del registro o repertorio",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§3, p. 44"
+  },
+  {
+   "nome": "segnatura",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": "IdDoc.Segnatura",
+   "descrizione": "Segnatura di protocollo: obbligatoria per i documenti protocollati",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§3, p. 40",
+   "obbligatorio_se": [
+    {
+     "campo": "tipo_registro",
+     "in": [
+      "Protocollo Ordinario/Protocollo Emergenza"
+     ]
+    }
+   ]
+  },
+  {
+   "nome": "soggetti",
+   "tipo": "elenco_strutture",
+   "obbligatorio": true,
+   "allegato5": "Soggetti",
+   "descrizione": "Soggetti con ruolo e tipo; sempre l'amministrazione che effettua la registrazione e almeno un autore o un mittente",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§3, pp. 45-48",
+   "min_elementi": 1,
+   "sottocampi": [
+    {
+     "nome": "ruolo",
+     "tipo": "enum",
+     "obbligatorio": true,
+     "allegato5": "Ruolo.TipoRuolo",
+     "descrizione": "Ruolo del soggetto",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48",
+     "valori_ammessi": [
+      "Amministrazione Che Effettua La Registrazione",
+      "Assegnatario",
+      "Destinatario",
+      "Mittente",
+      "Autore",
+      "Operatore",
+      "Responsabile della Gestione Documentale",
+      "Responsabile del Servizio di Protocollo",
+      "Produttore",
+      "RUP"
+     ]
+    },
+    {
+     "nome": "tipo_soggetto",
+     "tipo": "enum",
+     "obbligatorio": true,
+     "allegato5": "TipoSoggetto",
+     "descrizione": "PF persona fisica, PG persona giuridica, PAI/PAE amministrazione italiana/estera, AS soggetto assegnatario, SW sistema software, RUP",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48",
+     "valori_ammessi": [
+      "PF",
+      "PG",
+      "PAI",
+      "PAE",
+      "AS",
+      "SW",
+      "RUP"
+     ],
+     "valori_ammessi_se": [
+      {
+       "campo": "ruolo",
+       "in": [
+        "Amministrazione Che Effettua La Registrazione"
+       ],
+       "valori": [
+        "PAI"
+       ]
+      },
+      {
+       "campo": "ruolo",
+       "in": [
+        "Autore",
+        "Mittente",
+        "Destinatario"
+       ],
+       "valori": [
+        "PF",
+        "PG",
+        "PAI",
+        "PAE"
+       ]
+      },
+      {
+       "campo": "ruolo",
+       "in": [
+        "Assegnatario"
+       ],
+       "valori": [
+        "AS"
+       ]
+      },
+      {
+       "campo": "ruolo",
+       "in": [
+        "Operatore",
+        "Responsabile della Gestione Documentale",
+        "Responsabile del Servizio di Protocollo"
+       ],
+       "valori": [
+        "PF"
+       ]
+      },
+      {
+       "campo": "ruolo",
+       "in": [
+        "Produttore"
+       ],
+       "valori": [
+        "SW"
+       ]
+      },
+      {
+       "campo": "ruolo",
+       "in": [
+        "RUP"
+       ],
+       "valori": [
+        "RUP"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "cognome",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "Cognome",
+     "descrizione": "Obbligatorio per PF e RUP",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "PF",
+        "RUP"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "nome",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "Nome",
+     "descrizione": "Obbligatorio per PF e RUP",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "PF",
+        "RUP"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "codice_fiscale",
+     "tipo": "codice_fiscale",
+     "obbligatorio": false,
+     "allegato5": "CodiceFiscale",
+     "descrizione": "Codice fiscale o partita IVA (facoltativo)",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48",
+     "sensibile": true
+    },
+    {
+     "nome": "denominazione",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneOrganizzazione / DenominazioneAmministrazione",
+     "descrizione": "Obbligatoria per PG, PAE e AS",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "PG",
+        "PAE",
+        "AS"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "codice_ipa",
+     "tipo": "codice_ipa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneAmministrazioneCodiceIPA",
+     "descrizione": "Codice IPA dell'amministrazione: obbligatorio per PAI e RUP",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "PAI",
+        "RUP"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "aoo",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneAmministrazioneAOO",
+     "descrizione": "Area organizzativa omogenea",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48"
+    },
+    {
+     "nome": "uor",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneUfficioUOR",
+     "descrizione": "Unità organizzativa responsabile: obbligatoria per RUP",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "RUP"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "denominazione_ufficio",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneUfficio",
+     "descrizione": "Obbligatoria per AS",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "AS"
+       ]
+      }
+     ]
+    },
+    {
+     "nome": "indirizzi_digitali",
+     "tipo": "elenco",
+     "obbligatorio": false,
+     "allegato5": "IndirizziDigitaliDiRiferimento",
+     "descrizione": "Indirizzi digitali di riferimento",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48"
+    },
+    {
+     "nome": "denominazione_sistema",
+     "tipo": "stringa",
+     "obbligatorio": false,
+     "allegato5": "DenominazioneSistema",
+     "descrizione": "Obbligatoria per SW",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, pp. 45-48",
+     "obbligatorio_se": [
+      {
+       "campo": "tipo_soggetto",
+       "in": [
+        "SW"
+       ]
+      }
+     ]
+    }
+   ],
+   "almeno_uno": [
+    {
+     "campo": "ruolo",
+     "in": [
+      "Amministrazione Che Effettua La Registrazione"
+     ]
+    },
+    {
+     "campo": "ruolo",
+     "in": [
+      "Autore",
+      "Mittente"
+     ]
+    }
+   ]
+  },
+  {
+   "nome": "classificazione",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "Classificazione.IndiceDiClassificazione",
+   "descrizione": "Indice di classificazione",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§3, p. 52"
+  },
+  {
+   "nome": "classificazione_descrizione",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "Classificazione.Descrizione",
+   "descrizione": "Descrizione per esteso della voce",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§3, p. 52"
+  },
+  {
+   "nome": "fascicolo_id",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": "Agg",
+   "descrizione": "Identificativo dell'aggregazione",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§3, p. 56"
+  },
+  {
+   "nome": "tracciature_modifiche",
+   "tipo": "elenco_strutture",
+   "obbligatorio": false,
+   "allegato5": "TracciatureModificheDocumento",
+   "descrizione": "Obbligatorie se la versione del documento non è «1» o se il documento è annullato (documento_annullato = true)",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "allegato5",
+   "rif": "§3, p. 58",
+   "obbligatorio_se": [
+    {
+     "campo": "versione_documento",
+     "non_in": [
+      "1"
+     ]
+    },
+    {
+     "campo": "documento_annullato",
+     "in": [
+      "true"
+     ]
+    }
+   ],
+   "sottocampi": [
+    {
+     "nome": "tipo_modifica",
+     "tipo": "enum",
+     "obbligatorio": true,
+     "allegato5": "TipoModifica",
+     "descrizione": "",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, p. 58",
+     "valori_ammessi": [
+      "Annullamento",
+      "Rettifica",
+      "Integrazione",
+      "Annotazione"
+     ]
+    },
+    {
+     "nome": "autore_modifica",
+     "tipo": "stringa",
+     "obbligatorio": true,
+     "allegato5": "SoggettoAutoreDellaModifica",
+     "descrizione": "Identificativo dell'operatore (indicato anche fra i Soggetti con ruolo Operatore)",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, p. 58"
+    },
+    {
+     "nome": "data_ora_modifica",
+     "tipo": "data_ora",
+     "obbligatorio": true,
+     "allegato5": "DataOraModifica",
+     "descrizione": "",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, p. 58"
+    },
+    {
+     "nome": "id_doc_versione_precedente",
+     "tipo": "stringa",
+     "obbligatorio": true,
+     "allegato5": "IdDocVersionePrecedente",
+     "descrizione": "",
+     "calcolato": false,
+     "da_riscontrare": false,
+     "origine": "allegato5",
+     "rif": "§3, p. 58"
+    }
+   ]
+  }
+ ]
+}

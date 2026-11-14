@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: signature-config
+  namespace: verumdoc
+  labels:
+    app: signature
+    app.kubernetes.io/name: signature
+    app.kubernetes.io/part-of: verumdoc
+data:
+  ENV: production
+  LOG_LEVEL: INFO
+  FIRMA_FORNITORE: non_configurato
+  MARCA_FORNITORE: non_configurato
+  CSC_URL_BASE: ''
+  CSC_URL_TOKEN: ''
+  CSC_CLIENT_ID: ''
+  CSC_CREDENTIAL_ID: ''
+  CSC_SIGN_ALGO_OID: ''
+  TSA_URL: ''
+  TSA_UTENTE: ''
+  TSA_POLICY_OID: ''
+  TSA_RADICI_PEM: ''
+  FIRMA_RADICI_PEM: ''
+  JWT_ISSUER: verumdoc.it
+  JWT_AUDIENCE: verumdoc-api
+  JWT_AUDIENCE_SERVIZIO: verumdoc-signature
+  PKCS11_LIBRERIE_AMMESSE: ''
+  FIRMA_CONFIGURAZIONE_CACHE_SECONDI: '30'
+  FIRMA_PROVE_PER_ORA: '20'
+  FIRMA_PERSONALE_TENTATIVI: '5'

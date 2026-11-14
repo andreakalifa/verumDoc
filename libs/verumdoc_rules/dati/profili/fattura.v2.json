@@ -1,0 +1,138 @@
+{
+ "formato": "verumdoc-profilo-tipologia-2",
+ "codice": "fattura",
+ "nome": "Fattura elettronica",
+ "versione": 2,
+ "valido_dal": "2026-11-03",
+ "valido_al": null,
+ "norm_ref": "DM MEF 17 giugno 2014, art. 3 (metadati dei documenti rilevanti ai fini tributari); specifiche tecniche FatturaPA — profilo proprio del conservatore",
+ "estende": "documento_informatico",
+ "estende_versione": 2,
+ "adozione": "esplicita",
+ "origine": "conservatore",
+ "nota": "Profilo PROPRIO del conservatore: l'Allegato 5 disciplina solo documento informatico, documento amministrativo informatico e aggregazioni. Eredita i campi riscontrati di documento_informatico v2; i campi propri sono scelte del servizio (fonti in norm_ref, non riscontrate in R11). Adozione esplicita per classe (PROFILO_TIPOLOGIA_VERSIONE).",
+ "campi": [
+  {
+   "nome": "numero_fattura",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Numero della fattura",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "data_fattura",
+   "tipo": "data",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Data della fattura",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "cedente_denominazione",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Denominazione o cognome e nome del cedente",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "cedente_partita_iva",
+   "tipo": "partita_iva",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Partita IVA del cedente",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "cedente_codice_fiscale",
+   "tipo": "codice_fiscale",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Codice fiscale del cedente",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "sensibile": true,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "cessionario_denominazione",
+   "tipo": "stringa",
+   "obbligatorio": true,
+   "allegato5": null,
+   "descrizione": "Denominazione o cognome e nome del cessionario",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "cessionario_codice_fiscale",
+   "tipo": "codice_fiscale",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Codice fiscale del cessionario",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "sensibile": true,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "cessionario_partita_iva",
+   "tipo": "partita_iva",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Partita IVA del cessionario",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "tipo_documento_fattura",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Tipo documento FatturaPA (es. TD01)",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "identificativo_sdi",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Identificativo attribuito dal Sistema di interscambio",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "importo_totale",
+   "tipo": "decimale",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Importo totale del documento",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  },
+  {
+   "nome": "valuta",
+   "tipo": "stringa",
+   "obbligatorio": false,
+   "allegato5": null,
+   "descrizione": "Valuta (ISO 4217)",
+   "calcolato": false,
+   "da_riscontrare": false,
+   "origine": "conservatore"
+  }
+ ]
+}

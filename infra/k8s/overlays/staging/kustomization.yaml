@@ -1,0 +1,559 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+# Overlay staging: differenze di infra/helm/values.staging.yaml rispetto a values.yaml.
+# La pipeline sostituisce i segnaposto DA_IMPOSTARE/DA_TERRAFORM (kustomize edit set image ...).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: verumdoc
+resources:
+- ../../base
+labels:
+- pairs:
+    environment: staging
+images:
+- name: verumdoc-gateway
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-gateway
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-validation
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-validation
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-signature
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-signature
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-verifica-firme
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-verifica-firme
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-aip-builder
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-aip-builder
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-hashchain
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-hashchain
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-distribution
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-distribution
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-notification
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-notification
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-onboarding
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-onboarding
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-dashboard-api
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-dashboard-api
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-sftp-ingest
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-sftp-ingest
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-ciclo-vita
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-ciclo-vita
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-frontend
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-frontend
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+- name: verumdoc-pgbouncer
+  newName: DA_IMPOSTARE:account_id.dkr.ecr.eu-south-1.amazonaws.com/verumdoc-pgbouncer
+  newTag: DA_IMPOSTARE_IN_PIPELINE
+patches:
+- target:
+    kind: Deployment
+    name: gateway
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: HorizontalPodAutoscaler
+    name: gateway-hpa
+  patch: "- op: replace\n  path: /spec/minReplicas\n  value: 1\n- op: replace\n  path: /spec/maxReplicas\n  value: 3\n"
+- target:
+    kind: Deployment
+    name: gateway-verifica-caricamenti
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: HorizontalPodAutoscaler
+    name: gateway-verifica-caricamenti-hpa
+  patch: "- op: replace\n  path: /spec/minReplicas\n  value: 1\n- op: replace\n  path: /spec/maxReplicas\n  value: 3\n"
+- target:
+    kind: Deployment
+    name: validation
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: ScaledObject
+    name: validation-keda
+  patch: "- op: replace\n  path: /spec/minReplicaCount\n  value: 1\n- op: replace\n  path: /spec/maxReplicaCount\n  value:\
+    \ 3\n"
+- target:
+    kind: Deployment
+    name: signature
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: HorizontalPodAutoscaler
+    name: signature-hpa
+  patch: "- op: replace\n  path: /spec/minReplicas\n  value: 1\n- op: replace\n  path: /spec/maxReplicas\n  value: 2\n"
+- target:
+    kind: Deployment
+    name: aip-builder
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: ScaledObject
+    name: aip-builder-keda
+  patch: "- op: replace\n  path: /spec/minReplicaCount\n  value: 1\n- op: replace\n  path: /spec/maxReplicaCount\n  value:\
+    \ 3\n"
+- target:
+    kind: Deployment
+    name: hashchain-verifica
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: Deployment
+    name: distribution
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: HorizontalPodAutoscaler
+    name: distribution-hpa
+  patch: "- op: replace\n  path: /spec/minReplicas\n  value: 1\n- op: replace\n  path: /spec/maxReplicas\n  value: 3\n"
+- target:
+    kind: Deployment
+    name: distribution-lavoratori
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: ScaledObject
+    name: distribution-lavoratori-keda
+  patch: "- op: replace\n  path: /spec/minReplicaCount\n  value: 1\n- op: replace\n  path: /spec/maxReplicaCount\n  value:\
+    \ 2\n"
+- target:
+    kind: Deployment
+    name: notification
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: ScaledObject
+    name: notification-keda
+  patch: "- op: replace\n  path: /spec/minReplicaCount\n  value: 1\n- op: replace\n  path: /spec/maxReplicaCount\n  value:\
+    \ 2\n"
+- target:
+    kind: Deployment
+    name: notification-posta
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: Deployment
+    name: notification-webhook
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: ScaledObject
+    name: notification-webhook-keda
+  patch: "- op: replace\n  path: /spec/minReplicaCount\n  value: 1\n- op: replace\n  path: /spec/maxReplicaCount\n  value:\
+    \ 2\n"
+- target:
+    kind: Deployment
+    name: onboarding
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: HorizontalPodAutoscaler
+    name: onboarding-hpa
+  patch: "- op: replace\n  path: /spec/minReplicas\n  value: 1\n- op: replace\n  path: /spec/maxReplicas\n  value: 2\n"
+- target:
+    kind: Deployment
+    name: dashboard-api
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: HorizontalPodAutoscaler
+    name: dashboard-api-hpa
+  patch: "- op: replace\n  path: /spec/minReplicas\n  value: 1\n- op: replace\n  path: /spec/maxReplicas\n  value: 3\n"
+- target:
+    kind: Deployment
+    name: sftp-ingest
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: HorizontalPodAutoscaler
+    name: sftp-ingest-hpa
+  patch: "- op: replace\n  path: /spec/minReplicas\n  value: 1\n- op: replace\n  path: /spec/maxReplicas\n  value: 2\n"
+- target:
+    kind: Deployment
+    name: sftp-ingest-lavoratore
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: HorizontalPodAutoscaler
+    name: sftp-ingest-lavoratore-hpa
+  patch: "- op: replace\n  path: /spec/minReplicas\n  value: 1\n- op: replace\n  path: /spec/maxReplicas\n  value: 2\n"
+- target:
+    kind: Deployment
+    name: ciclo-vita
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: HorizontalPodAutoscaler
+    name: ciclo-vita-hpa
+  patch: "- op: replace\n  path: /spec/minReplicas\n  value: 1\n- op: replace\n  path: /spec/maxReplicas\n  value: 2\n"
+- target:
+    kind: Deployment
+    name: ciclo-vita-lavoratore
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: Deployment
+    name: frontend
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: HorizontalPodAutoscaler
+    name: frontend-hpa
+  patch: "- op: replace\n  path: /spec/minReplicas\n  value: 1\n- op: replace\n  path: /spec/maxReplicas\n  value: 2\n"
+- target:
+    kind: ServiceAccount
+    name: gateway
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-gateway\n"
+- target:
+    kind: ServiceAccount
+    name: validation
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-validation\n"
+- target:
+    kind: ServiceAccount
+    name: aip-builder
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-aip-builder\n"
+- target:
+    kind: ServiceAccount
+    name: hashchain
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-hashchain\n"
+- target:
+    kind: ServiceAccount
+    name: hashchain-verifica
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-hashchain-verifica\n"
+- target:
+    kind: ServiceAccount
+    name: hashchain-verifica-audit
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-hashchain-verifica-audit\n"
+- target:
+    kind: ServiceAccount
+    name: distribution
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-distribution\n"
+- target:
+    kind: ServiceAccount
+    name: notification
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-notification\n"
+- target:
+    kind: ServiceAccount
+    name: onboarding
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-onboarding\n"
+- target:
+    kind: ServiceAccount
+    name: dashboard-api
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-dashboard-api\n"
+- target:
+    kind: ServiceAccount
+    name: ciclo-vita
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-ciclo-vita\n"
+- target:
+    kind: ServiceAccount
+    name: ciclo-vita-lavoratore
+  patch: "- op: replace\n  path: /metadata/annotations/eks.amazonaws.com~1role-arn\n  value: arn:aws:iam::DA_IMPOSTARE:role/verumdoc-staging-ciclo-vita-lavoratore\n"
+- target:
+    kind: ConfigMap
+    name: gateway-config
+  patch: "- op: replace\n  path: /data/BASE_URL\n  value: https://app.staging.verumdoc.it\n- op: replace\n  path: /data/BASE_URL_CONSOLE\n\
+    \  value: https://app.staging.verumdoc.it\n- op: replace\n  path: /data/CORS_ORIGINS\n  value: '[\"https://app.staging.verumdoc.it\"\
+    ]'\n- op: replace\n  path: /data/PDND_ISSUER\n  value: uat.interop.pagopa.it\n- op: replace\n  path: /data/PROXY_FIDATI\n\
+    \  value: '[\"10.1.0.0/20\", \"10.1.16.0/20\", \"10.1.32.0/20\"]'\n- op: replace\n  path: /data/SPID_ALLOWED_REDIRECTS\n\
+    \  value: '[\"https://app.staging.verumdoc.it/login\"]'\n"
+- target:
+    kind: ConfigMap
+    name: aip-builder-config
+  patch: "- op: replace\n  path: /data/S3_BUCKET_AIP\n  value: verumdoc-staging-aip-prod\n"
+- target:
+    kind: ConfigMap
+    name: hashchain-config
+  patch: "- op: replace\n  path: /data/S3_BUCKET_AIP\n  value: verumdoc-staging-aip-prod\n- op: replace\n  path: /data/TESTIMONE_URL\n\
+    \  value: https://testimone.staging.verumdoc.it\n"
+- target:
+    kind: ConfigMap
+    name: distribution-config
+  patch: "- op: replace\n  path: /data/S3_BUCKET_AIP\n  value: verumdoc-staging-aip-prod\n"
+- target:
+    kind: ConfigMap
+    name: onboarding-config
+  patch: "- op: replace\n  path: /data/SFTP_HOST_PUBBLICO\n  value: sftp.staging.verumdoc.it\n"
+- target:
+    kind: ConfigMap
+    name: dashboard-api-config
+  patch: "- op: replace\n  path: /data/CORS_ORIGINS\n  value: '[\"https://app.staging.verumdoc.it\"]'\n- op: replace\n  path:\
+    \ /data/S3_BUCKET_AIP\n  value: verumdoc-staging-aip-prod\n"
+- target:
+    kind: ConfigMap
+    name: sftp-ingest-config
+  patch: "- op: replace\n  path: /data/SFTP_PROXY_SORGENTI_FIDATE\n  value: 10.1.0.0/20,10.1.16.0/20,10.1.32.0/20\n- op: replace\n\
+    \  path: /data/URL_PUBBLICO_API\n  value: https://api.staging.verumdoc.it\n"
+- target:
+    kind: ConfigMap
+    name: ciclo-vita-config
+  patch: "- op: replace\n  path: /data/S3_BUCKET_AIP\n  value: verumdoc-staging-aip-prod\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-gateway
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 6432\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    - ports:\n      - port: 6379\n\
+    \        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n      - port: 9092\n        protocol: TCP\n      - port:\
+    \ 9094\n        protocol: TCP\n      - port: 9098\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr:\
+    \ 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n          cidr: 10.1.128.0/20\n   \
+    \ - ports:\n      - port: 443\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 0.0.0.0/0\n       \
+    \   except:\n          - 10.0.0.0/8\n          - 172.16.0.0/12\n          - 192.168.0.0/16\n          - 100.64.0.0/10\n\
+    \          - 169.254.0.0/16\n          - 127.0.0.0/8\n    ingress:\n    - from:\n      - ipBlock:\n          cidr: 10.1.0.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.16.0/20\n      - ipBlock:\n          cidr: 10.1.32.0/20\n      ports:\n      -\
+    \ port: 8000\n        protocol: TCP\n    - from:\n      - podSelector:\n          matchLabels:\n            app: dashboard-api\n\
+    \      ports:\n      - port: 8000\n        protocol: TCP\n    - from:\n      - podSelector:\n          matchLabels:\n\
+    \            app: sftp-ingest-lavoratore\n      ports:\n      - port: 8000\n        protocol: TCP\n    - from:\n     \
+    \ - podSelector:\n          matchLabels:\n            app: ciclo-vita-lavoratore\n      ports:\n      - port: 8000\n \
+    \       protocol: TCP\n    - from:\n      - namespaceSelector:\n          matchLabels:\n            kubernetes.io/metadata.name:\
+    \ monitoring\n      ports:\n      - port: 8000\n        protocol: TCP\n    podSelector:\n      matchLabels:\n        app:\
+    \ gateway\n    policyTypes:\n    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-validation
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 8080\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: verifica-firme\n    - ports:\n      - port:\
+    \ 6432\n        protocol: TCP\n      to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n \
+    \   - ports:\n      - port: 9092\n        protocol: TCP\n      - port: 9094\n        protocol: TCP\n      - port: 9098\n\
+    \        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n      - port: 443\n        protocol: TCP\n      to:\n\
+    \      - ipBlock:\n          cidr: 0.0.0.0/0\n          except:\n          - 10.0.0.0/8\n          - 172.16.0.0/12\n \
+    \         - 192.168.0.0/16\n          - 100.64.0.0/10\n          - 169.254.0.0/16\n          - 127.0.0.0/8\n    ingress:\n\
+    \    - from:\n      - namespaceSelector:\n          matchLabels:\n            kubernetes.io/metadata.name: monitoring\n\
+    \      ports:\n      - port: 8000\n        protocol: TCP\n    podSelector:\n      matchLabels:\n        app: validation\n\
+    \    policyTypes:\n    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-signature
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 6432\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    - ports:\n      - port: 6379\n\
+    \        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n      - port: 443\n        protocol: TCP\n      - port:\
+    \ 80\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 0.0.0.0/0\n          except:\n          - 10.0.0.0/8\n\
+    \          - 172.16.0.0/12\n          - 192.168.0.0/16\n          - 100.64.0.0/10\n          - 169.254.0.0/16\n      \
+    \    - 127.0.0.0/8\n    ingress:\n    - from:\n      - podSelector:\n          matchLabels:\n            app: hashchain\n\
+    \      ports:\n      - port: 8000\n        protocol: TCP\n    - from:\n      - podSelector:\n          matchLabels:\n\
+    \            app: onboarding\n      ports:\n      - port: 8000\n        protocol: TCP\n    - from:\n      - podSelector:\n\
+    \          matchLabels:\n            app: dashboard-api\n      ports:\n      - port: 8000\n        protocol: TCP\n   \
+    \ - from:\n      - namespaceSelector:\n          matchLabels:\n            kubernetes.io/metadata.name: monitoring\n \
+    \     ports:\n      - port: 8000\n        protocol: TCP\n    podSelector:\n      matchLabels:\n        app: signature\n\
+    \    policyTypes:\n    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-aip-builder
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 6432\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    - ports:\n      - port: 9092\n\
+    \        protocol: TCP\n      - port: 9094\n        protocol: TCP\n      - port: 9098\n        protocol: TCP\n      to:\n\
+    \      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n \
+    \         cidr: 10.1.128.0/20\n    - ports:\n      - port: 443\n        protocol: TCP\n      to:\n      - ipBlock:\n \
+    \         cidr: 0.0.0.0/0\n          except:\n          - 10.0.0.0/8\n          - 172.16.0.0/12\n          - 192.168.0.0/16\n\
+    \          - 100.64.0.0/10\n          - 169.254.0.0/16\n          - 127.0.0.0/8\n    ingress:\n    - from:\n      - namespaceSelector:\n\
+    \          matchLabels:\n            kubernetes.io/metadata.name: monitoring\n      ports:\n      - port: 8000\n     \
+    \   protocol: TCP\n    podSelector:\n      matchLabels:\n        app: aip-builder\n    policyTypes:\n    - Ingress\n \
+    \   - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-hashchain
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 8000\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: signature\n    - ports:\n      - port: 5432\n\
+    \        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n      - port: 9092\n        protocol: TCP\n      - port:\
+    \ 9094\n        protocol: TCP\n      - port: 9098\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr:\
+    \ 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n          cidr: 10.1.128.0/20\n   \
+    \ - ports:\n      - port: 443\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 0.0.0.0/0\n       \
+    \   except:\n          - 10.0.0.0/8\n          - 172.16.0.0/12\n          - 192.168.0.0/16\n          - 100.64.0.0/10\n\
+    \          - 169.254.0.0/16\n          - 127.0.0.0/8\n    ingress:\n    - from:\n      - ipBlock:\n          cidr: 10.1.0.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.16.0/20\n      - ipBlock:\n          cidr: 10.1.32.0/20\n      ports:\n      -\
+    \ port: 8000\n        protocol: TCP\n    - from:\n      - podSelector:\n          matchLabels:\n            app: dashboard-api\n\
+    \      ports:\n      - port: 8000\n        protocol: TCP\n    - from:\n      - podSelector:\n          matchLabels:\n\
+    \            app: ciclo-vita-lavoratore\n      ports:\n      - port: 8000\n        protocol: TCP\n    - from:\n      -\
+    \ namespaceSelector:\n          matchLabels:\n            kubernetes.io/metadata.name: monitoring\n      ports:\n    \
+    \  - port: 8000\n        protocol: TCP\n    podSelector:\n      matchLabels:\n        app: hashchain\n    policyTypes:\n\
+    \    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-distribution
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 6432\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    - ports:\n      - port: 6379\n\
+    \        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n      - port: 9092\n        protocol: TCP\n      - port:\
+    \ 9094\n        protocol: TCP\n      - port: 9098\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr:\
+    \ 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n          cidr: 10.1.128.0/20\n   \
+    \ - ports:\n      - port: 443\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n    \
+    \  - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n      - port:\
+    \ 443\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 0.0.0.0/0\n          except:\n          - 10.0.0.0/8\n\
+    \          - 172.16.0.0/12\n          - 192.168.0.0/16\n          - 100.64.0.0/10\n          - 169.254.0.0/16\n      \
+    \    - 127.0.0.0/8\n    ingress:\n    - from:\n      - ipBlock:\n          cidr: 10.1.0.0/20\n      - ipBlock:\n     \
+    \     cidr: 10.1.16.0/20\n      - ipBlock:\n          cidr: 10.1.32.0/20\n      ports:\n      - port: 8000\n        protocol:\
+    \ TCP\n    - from:\n      - podSelector:\n          matchLabels:\n            app: dashboard-api\n      ports:\n     \
+    \ - port: 8000\n        protocol: TCP\n    - from:\n      - podSelector:\n          matchLabels:\n            app: ciclo-vita-lavoratore\n\
+    \      ports:\n      - port: 8000\n        protocol: TCP\n    - from:\n      - namespaceSelector:\n          matchLabels:\n\
+    \            kubernetes.io/metadata.name: monitoring\n      ports:\n      - port: 8000\n        protocol: TCP\n    podSelector:\n\
+    \      matchLabels:\n        app: distribution\n    policyTypes:\n    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-distribution-lavoratori
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 6432\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    - ports:\n      - port: 443\n\
+    \        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n      - port: 443\n        protocol: TCP\n      to:\n\
+    \      - ipBlock:\n          cidr: 0.0.0.0/0\n          except:\n          - 10.0.0.0/8\n          - 172.16.0.0/12\n \
+    \         - 192.168.0.0/16\n          - 100.64.0.0/10\n          - 169.254.0.0/16\n          - 127.0.0.0/8\n    ingress:\
+    \ []\n    podSelector:\n      matchLabels:\n        app: distribution-lavoratori\n    policyTypes:\n    - Ingress\n  \
+    \  - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-notification
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 6432\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    - ports:\n      - port: 6379\n\
+    \        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n      - port: 9092\n        protocol: TCP\n      - port:\
+    \ 9094\n        protocol: TCP\n      - port: 9098\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr:\
+    \ 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n          cidr: 10.1.128.0/20\n   \
+    \ ingress:\n    - from:\n      - ipBlock:\n          cidr: 10.1.0.0/20\n      - ipBlock:\n          cidr: 10.1.16.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.32.0/20\n      ports:\n      - port: 8000\n        protocol: TCP\n    - from:\n\
+    \      - namespaceSelector:\n          matchLabels:\n            kubernetes.io/metadata.name: monitoring\n      ports:\n\
+    \      - port: 8000\n        protocol: TCP\n    podSelector:\n      matchLabels:\n        app: notification\n    policyTypes:\n\
+    \    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-notification-posta
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 6432\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    - ports:\n      - port: 9092\n\
+    \        protocol: TCP\n      - port: 9094\n        protocol: TCP\n      - port: 9098\n        protocol: TCP\n      to:\n\
+    \      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n \
+    \         cidr: 10.1.128.0/20\n    - ports:\n      - port: 587\n        protocol: TCP\n      - port: 465\n        protocol:\
+    \ TCP\n      - port: 993\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 0.0.0.0/0\n          except:\n\
+    \          - 10.0.0.0/8\n          - 172.16.0.0/12\n          - 192.168.0.0/16\n          - 100.64.0.0/10\n          -\
+    \ 169.254.0.0/16\n          - 127.0.0.0/8\n    ingress: []\n    podSelector:\n      matchLabels:\n        app: notification-posta\n\
+    \    policyTypes:\n    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-notification-webhook
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 6432\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    - ports:\n      - port: 6379\n\
+    \        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n      - port: 9092\n        protocol: TCP\n      - port:\
+    \ 9094\n        protocol: TCP\n      - port: 9098\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr:\
+    \ 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n          cidr: 10.1.128.0/20\n   \
+    \ - ports:\n      - port: 443\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 0.0.0.0/0\n       \
+    \   except:\n          - 10.0.0.0/8\n          - 172.16.0.0/12\n          - 192.168.0.0/16\n          - 100.64.0.0/10\n\
+    \          - 169.254.0.0/16\n          - 127.0.0.0/8\n    ingress:\n    - from:\n      - namespaceSelector:\n        \
+    \  matchLabels:\n            kubernetes.io/metadata.name: monitoring\n      ports:\n      - port: 8000\n        protocol:\
+    \ TCP\n    podSelector:\n      matchLabels:\n        app: notification-webhook\n    policyTypes:\n    - Ingress\n    -\
+    \ Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-onboarding
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 8000\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: signature\n    - ports:\n      - port: 6432\n\
+    \        protocol: TCP\n      to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    - ports:\n\
+    \      - port: 9092\n        protocol: TCP\n      - port: 9094\n        protocol: TCP\n      - port: 9098\n        protocol:\
+    \ TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n  \
+    \    - ipBlock:\n          cidr: 10.1.128.0/20\n    ingress:\n    - from:\n      - ipBlock:\n          cidr: 10.1.0.0/20\n\
+    \      - ipBlock:\n          cidr: 10.1.16.0/20\n      - ipBlock:\n          cidr: 10.1.32.0/20\n      ports:\n      -\
+    \ port: 8000\n        protocol: TCP\n    - from:\n      - podSelector:\n          matchLabels:\n            app: dashboard-api\n\
+    \      ports:\n      - port: 8000\n        protocol: TCP\n    - from:\n      - namespaceSelector:\n          matchLabels:\n\
+    \            kubernetes.io/metadata.name: monitoring\n      ports:\n      - port: 8000\n        protocol: TCP\n    podSelector:\n\
+    \      matchLabels:\n        app: onboarding\n    policyTypes:\n    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-dashboard-api
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 8000\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: gateway\n    - ports:\n      - port: 8000\n\
+    \        protocol: TCP\n      to:\n      - podSelector:\n          matchLabels:\n            app: onboarding\n    - ports:\n\
+    \      - port: 8000\n        protocol: TCP\n      to:\n      - podSelector:\n          matchLabels:\n            app:\
+    \ hashchain\n    - ports:\n      - port: 8000\n        protocol: TCP\n      to:\n      - podSelector:\n          matchLabels:\n\
+    \            app: distribution\n    - ports:\n      - port: 8000\n        protocol: TCP\n      to:\n      - podSelector:\n\
+    \          matchLabels:\n            app: signature\n    - ports:\n      - port: 6432\n        protocol: TCP\n      to:\n\
+    \      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    - ports:\n      - port: 6379\n        protocol:\
+    \ TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n  \
+    \    - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n      - port: 443\n        protocol: TCP\n      to:\n  \
+    \    - ipBlock:\n          cidr: 0.0.0.0/0\n          except:\n          - 10.0.0.0/8\n          - 172.16.0.0/12\n   \
+    \       - 192.168.0.0/16\n          - 100.64.0.0/10\n          - 169.254.0.0/16\n          - 127.0.0.0/8\n    ingress:\n\
+    \    - from:\n      - ipBlock:\n          cidr: 10.1.0.0/20\n      - ipBlock:\n          cidr: 10.1.16.0/20\n      - ipBlock:\n\
+    \          cidr: 10.1.32.0/20\n      ports:\n      - port: 8000\n        protocol: TCP\n    - from:\n      - namespaceSelector:\n\
+    \          matchLabels:\n            kubernetes.io/metadata.name: monitoring\n      ports:\n      - port: 8000\n     \
+    \   protocol: TCP\n    podSelector:\n      matchLabels:\n        app: dashboard-api\n    policyTypes:\n    - Ingress\n\
+    \    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-dashboard-api-scarti
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 6432\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    - ports:\n      - port: 9092\n\
+    \        protocol: TCP\n      - port: 9094\n        protocol: TCP\n      - port: 9098\n        protocol: TCP\n      to:\n\
+    \      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n \
+    \         cidr: 10.1.128.0/20\n    ingress: []\n    podSelector:\n      matchLabels:\n        app: dashboard-api-scarti\n\
+    \    policyTypes:\n    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-sftp-ingest
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 6432\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n    ingress:\n    - from:\n     \
+    \ - ipBlock:\n          cidr: 10.1.0.0/20\n      - ipBlock:\n          cidr: 10.1.16.0/20\n      - ipBlock:\n        \
+    \  cidr: 10.1.32.0/20\n      ports:\n      - port: 2222\n        protocol: TCP\n    - from:\n      - namespaceSelector:\n\
+    \          matchLabels:\n            kubernetes.io/metadata.name: monitoring\n      ports:\n      - port: 8000\n     \
+    \   protocol: TCP\n    podSelector:\n      matchLabels:\n        app: sftp-ingest\n    policyTypes:\n    - Ingress\n \
+    \   - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-ciclo-vita
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 8080\n        protocol: TCP\n \
+    \     to:\n      - podSelector:\n          matchLabels:\n            app: verifica-firme\n    - ports:\n      - port:\
+    \ 6432\n        protocol: TCP\n      to:\n      - podSelector:\n          matchLabels:\n            app: pgbouncer\n \
+    \   - ports:\n      - port: 6379\n        protocol: TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n \
+    \     - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n     \
+    \ - port: 9092\n        protocol: TCP\n      - port: 9094\n        protocol: TCP\n      - port: 9098\n        protocol:\
+    \ TCP\n      to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n  \
+    \    - ipBlock:\n          cidr: 10.1.128.0/20\n    - ports:\n      - port: 443\n        protocol: TCP\n      to:\n  \
+    \    - ipBlock:\n          cidr: 0.0.0.0/0\n          except:\n          - 10.0.0.0/8\n          - 172.16.0.0/12\n   \
+    \       - 192.168.0.0/16\n          - 100.64.0.0/10\n          - 169.254.0.0/16\n          - 127.0.0.0/8\n    ingress:\n\
+    \    - from:\n      - ipBlock:\n          cidr: 10.1.0.0/20\n      - ipBlock:\n          cidr: 10.1.16.0/20\n      - ipBlock:\n\
+    \          cidr: 10.1.32.0/20\n      ports:\n      - port: 8000\n        protocol: TCP\n    - from:\n      - namespaceSelector:\n\
+    \          matchLabels:\n            kubernetes.io/metadata.name: monitoring\n      ports:\n      - port: 8000\n     \
+    \   protocol: TCP\n    podSelector:\n      matchLabels:\n        app: ciclo-vita\n    policyTypes:\n    - Ingress\n  \
+    \  - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-frontend
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress: []\n    ingress:\n    - from:\n      - ipBlock:\n          cidr:\
+    \ 10.1.0.0/20\n      - ipBlock:\n          cidr: 10.1.16.0/20\n      - ipBlock:\n          cidr: 10.1.32.0/20\n      ports:\n\
+    \      - port: 8080\n        protocol: TCP\n    - from:\n      - namespaceSelector:\n          matchLabels:\n        \
+    \    kubernetes.io/metadata.name: monitoring\n      ports:\n      - port: 8080\n        protocol: TCP\n    podSelector:\n\
+    \      matchLabels:\n        app: frontend\n    policyTypes:\n    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-gateway-db-manutenzione
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 5432\n        protocol: TCP\n \
+    \     to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n\
+    \          cidr: 10.1.128.0/20\n    ingress: []\n    podSelector:\n      matchLabels:\n        app: gateway-db-manutenzione\n\
+    \    policyTypes:\n    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-gateway-migrazioni
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 5432\n        protocol: TCP\n \
+    \     to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n\
+    \          cidr: 10.1.128.0/20\n    ingress: []\n    podSelector:\n      matchLabels:\n        app: gateway-migrazioni\n\
+    \    policyTypes:\n    - Ingress\n    - Egress\n"
+- target:
+    kind: NetworkPolicy
+    name: allow-pgbouncer
+  patch: "- op: replace\n  path: /spec\n  value:\n    egress:\n    - ports:\n      - port: 5432\n        protocol: TCP\n \
+    \     to:\n      - ipBlock:\n          cidr: 10.1.96.0/20\n      - ipBlock:\n          cidr: 10.1.112.0/20\n      - ipBlock:\n\
+    \          cidr: 10.1.128.0/20\n    ingress:\n    - from:\n      - podSelector:\n          matchLabels:\n            app:\
+    \ gateway\n      - podSelector:\n          matchLabels:\n            app: gateway-verifica-caricamenti\n      - podSelector:\n\
+    \          matchLabels:\n            app: validation\n      - podSelector:\n          matchLabels:\n            app: signature\n\
+    \      - podSelector:\n          matchLabels:\n            app: aip-builder\n      - podSelector:\n          matchLabels:\n\
+    \            app: hashchain-verifica\n      - podSelector:\n          matchLabels:\n            app: distribution\n  \
+    \    - podSelector:\n          matchLabels:\n            app: distribution-lavoratori\n      - podSelector:\n        \
+    \  matchLabels:\n            app: notification\n      - podSelector:\n          matchLabels:\n            app: notification-posta\n\
+    \      - podSelector:\n          matchLabels:\n            app: notification-webhook\n      - podSelector:\n         \
+    \ matchLabels:\n            app: onboarding\n      - podSelector:\n          matchLabels:\n            app: dashboard-api\n\
+    \      - podSelector:\n          matchLabels:\n            app: dashboard-api-scarti\n      - podSelector:\n         \
+    \ matchLabels:\n            app: sftp-ingest\n      - podSelector:\n          matchLabels:\n            app: sftp-ingest-lavoratore\n\
+    \      - podSelector:\n          matchLabels:\n            app: ciclo-vita\n      - podSelector:\n          matchLabels:\n\
+    \            app: ciclo-vita-lavoratore\n      - podSelector:\n          matchLabels:\n            app: gateway-pulizia-orfani\n\
+    \      - podSelector:\n          matchLabels:\n            app: gateway-pulizia-staging\n      - podSelector:\n      \
+    \    matchLabels:\n            app: hashchain-verifica-audit\n      ports:\n      - port: 6432\n        protocol: TCP\n\
+    \    podSelector:\n      matchLabels:\n        app: pgbouncer\n    policyTypes:\n    - Ingress\n    - Egress\n"
+- target:
+    kind: Deployment
+    name: pgbouncer
+  patch: "- op: replace\n  path: /spec/replicas\n  value: 1\n"
+- target:
+    kind: Ingress
+    name: verumdoc
+  patch: "- op: replace\n  path: /spec/rules/0/host\n  value: api.staging.verumdoc.it\n- op: replace\n  path: /spec/rules/1/host\n\
+    \  value: app.staging.verumdoc.it\n"

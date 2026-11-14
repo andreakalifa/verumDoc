@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ciclo-vita
+  namespace: verumdoc
+  labels:
+    app: ciclo-vita
+    app.kubernetes.io/name: ciclo-vita
+    app.kubernetes.io/part-of: verumdoc
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /api/v1/health/ready
+spec:
+  type: ClusterIP
+  selector:
+    app: ciclo-vita
+  ports:
+  - name: http
+    port: 8000
+    targetPort: http
+    protocol: TCP

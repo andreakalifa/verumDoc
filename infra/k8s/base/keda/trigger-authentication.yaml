@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+# KEDA ≥ keda.versioneMinima (values.yaml): CRD keda.sh/v1alpha1 installate nel cluster.
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-msk-iam
+  namespace: verumdoc
+spec:
+  podIdentity:
+    provider: aws
+    identityOwner: keda
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-postgres
+  namespace: verumdoc
+spec:
+  secretTargetRef:
+  - parameter: connection
+    name: keda-postgres
+    key: connection

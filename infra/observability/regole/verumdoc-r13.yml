@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Allarmi R13a (VD-C-068, VD-C-124): documenti del conservatore senza sigillo
+# qualificato, conservazione ferma per l'IPdA non firmato (FIRMA_SENZA_FORNITORE=
+# BLOCCA), rimarcatura in errore o in ritardo, ancoraggio dei checkpoint vecchio,
+# oggetti nello storage con impronta diversa da quella registrata. Gravità come in
+# verumdoc-r04.yml (pagina = subito; avviso = in orario).
+# Documentazione: docs/architettura/firma_qualificata.md.
+groups:
+  - name: verumdoc-r13-firma-qualificata
+    rules:
+      - alert: DocumentiNonFirmati
+        expr: max(verumdoc_firme_documenti_non_firmati) > 0
+        for: 1h
+        labels: {severity: avviso}
+        annotations:
+          summary: "Documenti del conservatore dichiarati NON_FIRMATO"
+          description: "IPdA, RdV, manuale o piano senza sigillo qualificato (nessun fornitore qualificato attivo): si firmano da soli appena un fornitore è attivo. Console → «Fornitori di firma e marca»; per bloccare la conservazione impostare FIRMA_SENZA_FORNITORE=BLOCCA."
+      - alert: ConservazioneFermaPerFirma
+        expr: max(verumdoc_firme_conservazione_bloccata) > 0
+        for: 15m
+        labels: {severity: pagina}
+        annotations:
+          summary: "PdA fermi: IPdA non firmato con FIRMA_SENZA_FORNITORE=BLOCCA"
+          description: "La conservazione è ferma finché l'indice del pacchetto non ha il sigillo qualificato. Controllare il fornitore di firma (prova di connessione in console), il token di servizio verso signature e i log «documenti_non_sigillati»."
+      - alert: DocumentiDaFirmareInAccumulo
+        expr: max(verumdoc_firme_documenti_da_firmare) > 1000
+        for: 30m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Documenti in attesa di sigillo in accumulo"
+          description: "Il fornitore di firma è lento o restituisce errori transitori: vedere i log «firma_fornitore_scartato» del servizio signature e FIRMA_DOCUMENTI_LOTTO della hashchain."
+      - alert: FirmaOrigineDiversa
+        expr: increase(verumdoc_firme_documenti_origine_diversa_total[1h]) > 0
+        labels: {severity: pagina}
+        annotations:
+          summary: "Documento da sigillare con impronta diversa nello storage"
+          description: "L'oggetto nello storage (alla versione registrata) non ha l'impronta del documento da sigillare: non è stato firmato. Possibile manomissione o errore di scrittura: log «firma_documento_origine_diversa»."
+      - alert: DocumentiDaSigillareInErrore
+        expr: max(verumdoc_firme_documenti_in_errore) > 0
+        labels: {severity: pagina}
+        annotations:
+          summary: "Documenti del conservatore in ERRORE (sigillo non riuscito)"
+          description: "Dopo FIRMA_TENTATIVI_MASSIMI errori il documento non si riprova più (nessuna firma pagata a vuoto): log «firma_documento_in_errore» della hashchain; corretta la causa, rimetterlo DA_FIRMARE (docs/architettura/firma_qualificata.md §2.1)."
+      - alert: RimarcaturaInErrore
+        expr: max(verumdoc_firme_rinnovo_in_errore) > 0
+        for: 2h
+        labels: {severity: pagina}
+        annotations:
+          summary: "La rimarcatura dei documenti firmati non riesce"
+          description: "Documenti con certificato, marca o algoritmo in scadenza non rimarcati: log «rimarcatura_documento_fallita» della hashchain, stato della TSA in console."
+      - alert: DocumentiInScadenzaNonRimarcati
+        expr: max(verumdoc_firme_documenti_in_scadenza) > 0
+        for: 3d
+        labels: {severity: avviso}
+        annotations:
+          summary: "Documenti firmati entro il preavviso di scadenza dopo tre giorni"
+          description: "Restano documenti da rimarcare (FIRMA_RINNOVO_PREAVVISO_GIORNI): aumentare FIRMA_RINNOVO_LOTTO o indagare gli errori."
+      - alert: CheckpointNonMarcato
+        expr: max(verumdoc_catena_checkpoint_marca_eta_secondi) > 86400
+        for: 1h
+        labels: {severity: avviso}
+        annotations:
+          summary: "Nessuna marca temporale dei checkpoint da oltre un giorno"
+          description: "L'ancoraggio esterno della catena (marca RFC 3161 dell'ultimo checkpoint) è vecchio: TSA non configurata o non raggiungibile. Il valore -1 (mai marcato) non fa scattare l'allarme: vale DocumentiNonFirmati."

@@ -1,0 +1,23 @@
+{{- /*
+SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+SPDX-License-Identifier: EUPL-1.2
+*/ -}}
+{{/*
+Un Deployment per ogni servizio abilitato in values.services e uno per ogni suo
+lavoratore abilitato (services.<nome>.workers, Deployment <nome>-<lavoratore>,
+R03 i2). Probe sui percorsi reali (services.<nome>.health) solo per i carichi
+con HTTP; ConfigMap e Secret del servizio.
+*/}}
+{{- $root := . }}
+{{- range $name, $svc := .Values.services }}
+{{- if include "verumdoc.attivo" (dict "root" $root "svc" $svc) }}
+---
+{{ include "verumdoc.deployment" (dict "root" $root "nome" $name "servizio" $name "svc" $svc "w" (dict) "http" true "lavoratore" false "componente" "api") }}
+{{- range $wn, $w := $svc.workers }}
+{{- if ne (toString $w.enabled) "false" }}
+---
+{{ include "verumdoc.deployment" (dict "root" $root "nome" (printf "%s-%s" $name $wn) "servizio" $name "svc" $svc "w" $w "http" (ne (toString $w.http) "false") "lavoratore" true "componente" $wn) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

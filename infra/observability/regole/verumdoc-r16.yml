@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# Allarmi R16 (residui interni): firme personali del responsabile respinte dalla
+# riverifica della hashchain prima dell'archiviazione nel WORM (VD-C-166). Gravità come in
+# verumdoc-r04.yml (pagina = subito; avviso = in orario). Ogni allarme citato in un runbook
+# deve esistere qui o negli altri file (tests/integrity/test_runbook_allarmi.py).
+groups:
+  - name: verumdoc-r16-firme-responsabile
+    rules:
+      - alert: FirmeResponsabileRespinte
+        expr: max(verumdoc_firme_responsabile_respinte) > 0
+        for: 5m
+        labels: {severity: avviso}
+        annotations:
+          summary: "Firma personale del responsabile respinta prima del WORM"
+          description: "La hashchain ha respinto una busta firmata con l'OTP (impronta, contenuto, credenziale o verifica della firma che non tornano): il documento NON è archiviato. Leggere il motivo nella pagina «Firme del responsabile» e nei log «firma_responsabile_respinta», far firmare di nuovo il documento (richiesta nuova) e indagare se il motivo indica una manomissione (docs/architettura/firma_qualificata.md §8)."

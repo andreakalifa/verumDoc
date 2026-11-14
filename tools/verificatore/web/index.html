@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Verifica indipendente — VerumDoc</title>
+<!--
+  Verificatore pubblico VerumDoc (R04, PIANO §5). Pagina AUTOSUFFICIENTE:
+  nessun CDN, nessuna richiesta di rete (la Content-Security-Policy qui sopra
+  vieta ogni connessione: connect-src 'none'). File e prove si leggono e si
+  verificano in questo browser con WebCrypto (SHA-256, Ed25519).
+
+  Stessi controlli della CLI tools/verificatore/verifica_ricevuta.py, sugli
+  stessi formati: prova d'inclusione K1, checkpoint K2 (C2SP signed note +
+  tlog-checkpoint), prova di consistenza RFC 6962, rapporto di versamento
+  definitivo v2 (K5), foglie di formato 2 del ciclo di vita (R05, contratto Q3:
+  scarto, annullamento, rettifica; un contenuto scartato o annullato non risulta
+  mai «verificato»). Gli algoritmi RFC 6962 qui sono una trascrizione in JS di
+  libs/catena/rfc6962.py (RFC 9162 §2.1.3.2 e §2.1.4.2), provata con Playwright
+  sugli stessi dati della CLI.
+
+  Sistema grafico «Partenze» (frontend/DESIGN.md): token --vd-* copiati da
+  frontend/src/index.css. Il carattere Archivo non si carica (nessuna risorsa
+  esterna): si usa la stessa pila di ripiego del portale.
+-->
+<style>
+:root {
+  --vd-grafite: #1D1F22;
+  --vd-giallo: #FFC20E;
+  --vd-carta: #FFFFFF;
+  --vd-binario: #F2F3F4;
+  --vd-testo: #16181B;
+  --vd-testo-2: #575C63;
+  --vd-su-grafite: #D7D9DC;
+  --vd-filetto: #E1E3E6;
+  --vd-bordo-campo: #767B82;
+  --vd-ok: #0E7A46;
+  --vd-rischio: #A63D00;
+  --vd-critico: #B42318;
+  --vd-info: #1F5FAD;
+  --vd-font: "Archivo Variable", "Helvetica Neue", Arial, sans-serif;
+  --vd-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --vd-colonna: 960px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--vd-font); background: var(--vd-carta); color: var(--vd-testo); line-height: 1.45; min-height: 100vh; }
+::selection { background: var(--vd-giallo); color: var(--vd-testo); }
+a { color: var(--vd-testo); }
+a:hover { color: #000; }
+:focus-visible { outline: 3px solid var(--vd-testo); outline-offset: 2px; box-shadow: 0 0 0 7px var(--vd-giallo); }
+header :focus-visible { outline-color: var(--vd-giallo); box-shadow: none; }
+.vd-fascia--giallo :focus-visible { box-shadow: 0 0 0 7px #FFFFFF; }
+.vd-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.vd-salta { position: absolute; left: 16px; top: -60px; background: var(--vd-giallo); color: var(--vd-testo); padding: 10px 14px; font-weight: 700; z-index: 2; }
+.vd-salta:focus { top: 8px; }
+.vd-colonna { max-width: var(--vd-colonna); margin: 0 auto; padding-inline: 32px; }
+@media (max-width: 640px) { .vd-colonna { padding-inline: 16px; } }
+
+/* Testata grafite con il solo marchio */
+.vd-testata { background: var(--vd-grafite); color: var(--vd-su-grafite); }
+.vd-testata .vd-colonna { min-height: 56px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; }
+.vd-marchio { color: #FFFFFF; font-size: 20px; font-weight: 800; font-stretch: 112%; letter-spacing: -0.01em; }
+.vd-testata-nota { font-size: 15px; }
+
+/* Fascia di stato: gialla solo se tutto è verificato (regola della verità di stato) */
+.vd-fascia { padding: 18px 0; }
+.vd-fascia--giallo { background: var(--vd-giallo); color: var(--vd-testo); }
+.vd-fascia--critico { background: var(--vd-critico); color: #FFFFFF; }
+.vd-fascia--neutro { background: var(--vd-filetto); color: var(--vd-testo); }
+/* R05: ricevuta autentica ma documento scartato o annullato (mai giallo) */
+.vd-fascia--rischio { background: var(--vd-rischio); color: #FFFFFF; }
+.vd-fascia h2 { font-size: 28px; font-weight: 800; font-stretch: 85%; letter-spacing: -0.01em; line-height: 1.2; }
+.vd-fascia p { font-size: 16px; font-weight: 500; max-width: 72ch; margin-top: 4px; }
+@media (max-width: 640px) { .vd-fascia h2 { font-size: 22px; } }
+
+main { padding: 28px 0 48px; }
+.vd-pila { display: flex; flex-direction: column; gap: 40px; }
+.vd-testa-pagina { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 24px; padding-bottom: 16px; border-bottom: 2px solid var(--vd-testo); }
+.vd-testa-pagina h1 { font-size: 32px; font-weight: 800; font-stretch: 85%; letter-spacing: -0.01em; line-height: 1.2; }
+.vd-testa-pagina p { flex: 1 1 320px; max-width: 72ch; font-size: 15px; color: var(--vd-testo-2); }
+@media (max-width: 640px) { .vd-testa-pagina h1 { font-size: 28px; } }
+
+.vd-avviso { max-width: 820px; font-size: 15px; border-top: 2px solid var(--vd-rischio); padding-top: 8px; }
+.vd-avviso--neutro { border-top-color: var(--vd-testo-2); }
+.vd-avviso strong { display: block; }
+
+/* Tappe del modulo: numero in rettangolo giallo + titolo headline */
+fieldset.vd-tappa { border: 0; display: flex; flex-direction: column; gap: 16px; }
+fieldset.vd-tappa + fieldset.vd-tappa { margin-top: 36px; }
+.vd-tappa legend { display: flex; align-items: baseline; gap: 12px; font-size: 22px; font-weight: 800; font-stretch: 85%; line-height: 1.25; padding: 0; margin-bottom: 4px; }
+.vd-tappa-numero { display: inline-block; min-width: 32px; text-align: center; background: var(--vd-giallo); color: var(--vd-testo); font-stretch: 75%; padding: 0 6px; }
+.vd-tappa-nota { font-size: 14px; font-weight: 400; font-stretch: 100%; color: var(--vd-testo-2); }
+.vd-griglia { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px 20px; }
+.vd-campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.vd-campo label { font-size: 14px; font-weight: 600; }
+.vd-aiuto { font-size: 13px; color: var(--vd-testo-2); }
+.vd-input { width: 100%; min-height: 44px; padding: 0 12px; font: inherit; font-size: 16px; color: var(--vd-testo); background: #FFFFFF; border: 1px solid var(--vd-bordo-campo); border-radius: 2px; }
+.vd-input:focus { border-color: var(--vd-testo); }
+.vd-input[aria-invalid="true"] { border-color: var(--vd-critico); }
+.vd-input.vd-mono { font-family: var(--vd-mono); font-size: 13px; }
+input[type="file"].vd-input { padding: 9px 12px; }
+.vd-casella { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; }
+.vd-casella input { width: 20px; height: 20px; accent-color: var(--vd-testo); }
+
+.vd-comandi { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 36px; padding-top: 20px; border-top: 2px solid var(--vd-testo); }
+.vd-bottone { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; font: inherit; font-size: 16px; font-weight: 700; background: var(--vd-testo); color: #FFFFFF; border: 2px solid var(--vd-testo); border-radius: 2px; cursor: pointer; }
+.vd-bottone:hover { background: #000; }
+.vd-bottone:disabled { background: var(--vd-filetto); border-color: var(--vd-filetto); color: var(--vd-testo-2); cursor: not-allowed; }
+.vd-bottone--secondario { background: transparent; color: var(--vd-testo); }
+.vd-bottone--secondario:hover { background: var(--vd-binario); }
+.vd-errore-generale { font-weight: 700; font-size: 14px; color: var(--vd-critico); }
+
+/* Tabellone dei controlli */
+.vd-etichetta { display: inline-block; font-size: 22px; font-weight: 800; font-stretch: 85%; line-height: 1.25; padding: 2px 10px; background: var(--vd-giallo); color: var(--vd-testo); }
+.vd-sezione-testa { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 10px; }
+.vd-nota { font-size: 14px; color: var(--vd-testo-2); }
+.vd-scorri { overflow-x: auto; }
+.vd-tabellone { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.vd-tabellone caption { text-align: left; }
+.vd-tabellone th { font-stretch: 75%; text-align: left; font-weight: 700; font-size: 13px; padding: 8px 14px; border-bottom: 2px solid var(--vd-testo); white-space: nowrap; }
+.vd-tabellone td { padding: 12px 14px; border-bottom: 1px solid var(--vd-filetto); font-size: 15px; vertical-align: baseline; }
+.vd-tabellone td.vd-ora { font-stretch: 75%; font-weight: 700; font-size: 20px; white-space: nowrap; }
+.vd-tabellone tbody tr:hover { background: var(--vd-binario); }
+.vd-tabellone .vd-sotto { display: block; font-size: 13px; color: var(--vd-testo-2); overflow-wrap: anywhere; }
+.vd-stato { font-weight: 700; font-size: 14px; white-space: nowrap; }
+.vd-stato--ok { color: var(--vd-ok); }
+.vd-stato--critico { color: var(--vd-critico); }
+.vd-stato--rischio { color: var(--vd-rischio); }
+.vd-stato--neutro { color: var(--vd-testo-2); }
+@media (max-width: 640px) {
+  .vd-impila thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .vd-impila tr { display: grid; grid-template-columns: minmax(48px, auto) 1fr; column-gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--vd-filetto); }
+  .vd-impila td { border-bottom: 0; padding: 2px 0; }
+  .vd-impila td.vd-ora { grid-row: span 3; }
+}
+.vd-dati { display: grid; grid-template-columns: minmax(128px, 240px) 1fr; max-width: 820px; }
+.vd-dati dt, .vd-dati dd { padding: 10px 14px 10px 0; border-bottom: 1px solid var(--vd-filetto); }
+.vd-dati dt { font-size: 14px; font-weight: 600; }
+.vd-dati dd { font-size: 15px; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .vd-dati { grid-template-columns: 1fr; } .vd-dati dt { border-bottom: 0; padding-bottom: 0; } }
+footer { border-top: 1px solid var(--vd-filetto); padding: 20px 0 32px; font-size: 14px; color: var(--vd-testo-2); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<a class="vd-salta" href="#contenuto">Vai al contenuto</a>
+<header class="vd-testata">
+  <div class="vd-colonna">
+    <span class="vd-marchio">VerumDoc</span>
+    <span class="vd-testata-nota">Verifica indipendente delle ricevute</span>
+  </div>
+</header>
+
+<section id="fascia" class="vd-fascia vd-fascia--neutro" aria-live="polite" aria-labelledby="fascia-titolo">
+  <div class="vd-colonna">
+    <h2 id="fascia-titolo">Nessuna verifica eseguita</h2>
+    <p id="fascia-riga">Carica la prova e le chiavi pubbliche, poi premi «Verifica». Nulla lascia questo browser.</p>
+  </div>
+</section>
+
+<main id="contenuto" tabindex="-1">
+  <div class="vd-colonna vd-pila">
+    <div class="vd-testa-pagina">
+      <h1>Verifica di una ricevuta</h1>
+      <p>Controlla impronta del file, inclusione nella catena delle impronte, firme del registro e del testimone, consistenza fra due checkpoint. Senza contattare VerumDoc.</p>
+    </div>
+
+    <div id="avviso-ed25519" class="vd-avviso" hidden>
+      <strong>Questo browser non verifica le firme Ed25519.</strong>
+      Le firme del registro e del testimone non possono essere controllate qui: risulteranno «non eseguite» e la ricevuta non sarà dichiarata verificata. Usa un browser recente (Chrome 137, Firefox 129, Safari 17 o successivi) oppure la verifica da riga di comando <code>verifica_ricevuta.py</code>.
+    </div>
+
+    <form id="modulo" novalidate>
+      <fieldset class="vd-tappa">
+        <legend><span class="vd-tappa-numero">1</span> Ricevuta <span class="vd-tappa-nota">almeno una delle due</span></legend>
+        <div class="vd-griglia">
+          <div class="vd-campo">
+            <label for="prova">Prova d'inclusione (JSON)</label>
+            <input class="vd-input" type="file" id="prova" accept=".json,application/json" aria-describedby="prova-aiuto">
+            <span class="vd-aiuto" id="prova-aiuto">Scaricata dall'API «prova di inclusione» del conservatore.</span>
+          </div>
+          <div class="vd-campo">
+            <label for="rdv">Rapporto di versamento definitivo (XML)</label>
+            <input class="vd-input" type="file" id="rdv" accept=".xml,application/xml,text/xml" aria-describedby="rdv-aiuto">
+            <span class="vd-aiuto" id="rdv-aiuto">Versione 2: contiene le prove e il checkpoint firmato.</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="vd-tappa">
+        <legend><span class="vd-tappa-numero">2</span> Chiavi pubbliche</legend>
+        <div class="vd-griglia">
+          <div class="vd-campo">
+            <label for="chiave-registro">Chiave del registro <span aria-hidden="true">*</span><span class="vd-sr">(obbligatorio)</span></label>
+            <input class="vd-input vd-mono" type="text" id="chiave-registro" autocomplete="off" spellcheck="false" placeholder="verumdoc-registro+…+…" aria-describedby="chiave-registro-aiuto" required>
+            <span class="vd-aiuto" id="chiave-registro-aiuto">Pubblicata nel manuale di conservazione.</span>
+          </div>
+          <div class="vd-campo">
+            <label for="chiave-testimone">Chiave del testimone</label>
+            <input class="vd-input vd-mono" type="text" id="chiave-testimone" autocomplete="off" spellcheck="false" placeholder="verumdoc-testimone+…+…" aria-describedby="chiave-testimone-aiuto">
+            <span class="vd-aiuto" id="chiave-testimone-aiuto">Pubblicata dal testimone indipendente.</span>
+          </div>
+        </div>
+        <label class="vd-casella"><input type="checkbox" id="senza-testimone"> Non verificare la controfirma del testimone</label>
+        <div class="vd-campo">
+          <label for="origine">Origine attesa del registro</label>
+          <input class="vd-input vd-mono" type="text" id="origine" value="verumdoc.it/registro/v1" autocomplete="off" spellcheck="false" aria-describedby="origine-aiuto" required>
+          <span class="vd-aiuto" id="origine-aiuto">Prima riga del checkpoint. «verumdoc.it/registro/v1» è il registro di produzione; un checkpoint di prova o di sviluppo ha un'origine diversa e non vale come ricevuta di produzione.</span>
+        </div>
+      </fieldset>
+
+      <fieldset class="vd-tappa">
+        <legend><span class="vd-tappa-numero">3</span> File originale <span class="vd-tappa-nota">facoltativo</span></legend>
+        <div class="vd-campo">
+          <label for="documento">Documento conservato</label>
+          <input class="vd-input" type="file" id="documento" aria-describedby="documento-aiuto">
+          <span class="vd-aiuto" id="documento-aiuto">Se lo indichi, ne calcolo l'impronta SHA-256 qui e la confronto con la ricevuta.</span>
+        </div>
+      </fieldset>
+
+      <fieldset class="vd-tappa">
+        <legend><span class="vd-tappa-numero">4</span> Consistenza fra due checkpoint <span class="vd-tappa-nota">facoltativa</span></legend>
+        <div class="vd-griglia">
+          <div class="vd-campo">
+            <label for="cp-vecchio">Checkpoint conservato</label>
+            <input class="vd-input" type="file" id="cp-vecchio" accept=".txt,text/plain">
+          </div>
+          <div class="vd-campo">
+            <label for="cp-nuovo">Checkpoint più recente</label>
+            <input class="vd-input" type="file" id="cp-nuovo" accept=".txt,text/plain">
+          </div>
+          <div class="vd-campo">
+            <label for="prova-consistenza">Prova di consistenza (JSON)</label>
+            <input class="vd-input" type="file" id="prova-consistenza" accept=".json,application/json">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="vd-tappa">
+        <legend><span class="vd-tappa-numero">5</span> Stato attuale <span class="vd-tappa-nota">facoltativo</span></legend>
+        <div class="vd-campo">
+          <label for="cp-corrente">Ultimo checkpoint pubblicato</label>
+          <input class="vd-input" type="file" id="cp-corrente" accept=".txt,text/plain" aria-describedby="cp-corrente-aiuto">
+          <span class="vd-aiuto" id="cp-corrente-aiuto">La prova dice lo stato del documento al suo checkpoint e alla sua data. Se indichi l'ultimo checkpoint pubblicato dal registro e questo è più recente, lo stato attuale non risulta dimostrato: serve una prova aggiornata. Un checkpoint più vecchio della prova, o della stessa dimensione con radice diversa (registro biforcato), fa fallire la verifica.</span>
+        </div>
+        <div class="vd-campo">
+          <label for="consistenza-corrente">Prova di consistenza verso l'ultimo checkpoint (JSON)</label>
+          <input class="vd-input" type="file" id="consistenza-corrente" accept=".json,application/json" aria-describedby="consistenza-corrente-aiuto">
+          <span class="vd-aiuto" id="consistenza-corrente-aiuto">Facoltativa: dal checkpoint della prova all'ultimo checkpoint pubblicato. Dimostra che il registro non è stato riscritto nel frattempo (lo stato attuale resta comunque da chiedere con una prova aggiornata).</span>
+        </div>
+      </fieldset>
+
+      <div class="vd-comandi">
+        <button class="vd-bottone" type="submit" id="verifica">Verifica</button>
+        <button class="vd-bottone vd-bottone--secondario" type="reset" id="azzera">Azzera</button>
+        <span class="vd-errore-generale" id="errore-generale" role="alert"></span>
+      </div>
+    </form>
+
+    <section id="risultati" aria-labelledby="risultati-titolo" hidden>
+      <div class="vd-sezione-testa">
+        <h2 id="risultati-titolo" class="vd-etichetta">Controlli</h2>
+        <span class="vd-nota" id="risultati-nota"></span>
+      </div>
+      <div class="vd-scorri">
+        <table class="vd-tabellone vd-impila">
+          <caption class="vd-sr">Esito di ogni controllo</caption>
+          <thead><tr><th scope="col">N.</th><th scope="col">Controllo</th><th scope="col">Esito</th></tr></thead>
+          <tbody id="controlli"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="come-titolo">
+      <div class="vd-sezione-testa"><h2 id="come-titolo" class="vd-etichetta">Che cosa garantisce</h2></div>
+      <dl class="vd-dati">
+        <dt>Impronta</dt><dd>Il file che hai è identico, bit per bit, a quello conservato.</dd>
+        <dt>Inclusione</dt><dd>Il documento è nel pacchetto di archiviazione e il pacchetto è nel registro delle impronte coperto dal checkpoint.</dd>
+        <dt>Firme</dt><dd>Il checkpoint è stato emesso dal registro e confermato dal testimone indipendente, che non controfirma un registro riscritto.</dd>
+        <dt>Consistenza</dt><dd>Il registro di oggi contiene, senza modifiche, tutto ciò che conteneva quando hai salvato il checkpoint precedente.</dd>
+        <dt>Stato del documento</dt><dd>Scarti, annullamenti e rettifiche successivi sono anch'essi nel registro: se la prova ne riporta uno, è verificato con lo stesso checkpoint. Un documento scartato o annullato non risulta mai verificato.</dd>
+      </dl>
+    </section>
+  </div>
+</main>
+<footer><div class="vd-colonna">Verificatore pubblico VerumDoc · nessun dato viene inviato · formati: RFC 6962, C2SP signed note e tlog-checkpoint.</div></footer>
+
+<script>
+"use strict";
+(() => {
+  // ── Utilità di codifica ────────────────────────────────────────────
+  const enc = new TextEncoder();
+  const hex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  const daHex = (s) => {
+    if (typeof s !== "string" || !/^[0-9a-f]{64}$/.test(s)) throw new Errore("Hash non esadecimale minuscolo di 32 byte: " + String(s).slice(0, 20));
+    return Uint8Array.from(s.match(/../g), (x) => parseInt(x, 16));
+  };
+  const daBase64 = (s) => {
+    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(s) || s.length % 4 !== 0) throw new Errore("Base64 non valido");
+    const bin = atob(s);
+    return Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  };
+  const aBase64 = (b) => btoa(String.fromCharCode(...b));
+  const uguali = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
+  const unisci = (...parti) => {
+    const out = new Uint8Array(parti.reduce((n, p) => n + p.length, 0));
+    let o = 0; for (const p of parti) { out.set(p, o); o += p.length; }
+    return out;
+  };
+  class Errore extends Error {}
+
+  // ── SHA-256: WebCrypto per i dati piccoli, a blocchi per i file grandi ──
+  const sha256 = async (dati) => new Uint8Array(await crypto.subtle.digest("SHA-256", dati));
+  const K = new Uint32Array([
+    0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+  class Sha256Flusso {
+    constructor() {
+      this.h = new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);
+      this.w = new Uint32Array(64); this.buf = new Uint8Array(64); this.n = 0; this.totale = 0;
+    }
+    _blocco(b, o) {
+      const w = this.w, h = this.h;
+      for (let i = 0; i < 16; i++) w[i] = (b[o+4*i] << 24) | (b[o+4*i+1] << 16) | (b[o+4*i+2] << 8) | b[o+4*i+3];
+      for (let i = 16; i < 64; i++) {
+        const x = w[i-15], y = w[i-2];
+        const s0 = ((x >>> 7) | (x << 25)) ^ ((x >>> 18) | (x << 14)) ^ (x >>> 3);
+        const s1 = ((y >>> 17) | (y << 15)) ^ ((y >>> 19) | (y << 13)) ^ (y >>> 10);
+        w[i] = (w[i-16] + s0 + w[i-7] + s1) | 0;
+      }
+      let [a, bb, c, d, e, f, g, hh] = h;
+      for (let i = 0; i < 64; i++) {
+        const S1 = ((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7));
+        const t1 = (hh + S1 + ((e & f) ^ (~e & g)) + K[i] + w[i]) | 0;
+        const S0 = ((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10));
+        const t2 = (S0 + ((a & bb) ^ (a & c) ^ (bb & c))) | 0;
+        hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = bb; bb = a; a = (t1 + t2) | 0;
+      }
+      h[0] += a; h[1] += bb; h[2] += c; h[3] += d; h[4] += e; h[5] += f; h[6] += g; h[7] += hh;
+    }
+    aggiorna(dati) {
+      let i = 0; this.totale += dati.length;
+      if (this.n) {
+        while (i < dati.length && this.n < 64) this.buf[this.n++] = dati[i++];
+        if (this.n === 64) { this._blocco(this.buf, 0); this.n = 0; }
+      }
+      for (; i + 64 <= dati.length; i += 64) this._blocco(dati, i);
+      while (i < dati.length) this.buf[this.n++] = dati[i++];
+    }
+    fine() {
+      const bit = this.totale * 8;
+      const coda = new Uint8Array(((this.n + 9 + 63) >> 6) << 6);
+      coda.set(this.buf.subarray(0, this.n)); coda[this.n] = 0x80;
+      const v = new DataView(coda.buffer);
+      v.setUint32(coda.length - 8, Math.floor(bit / 0x100000000)); v.setUint32(coda.length - 4, bit >>> 0);
+      for (let o = 0; o < coda.length; o += 64) this._blocco(coda, o);
+      const out = new Uint8Array(32); const dv = new DataView(out.buffer);
+      this.h.forEach((x, i) => dv.setUint32(4 * i, x)); return out;
+    }
+  }
+  const BLOCCO = 4 << 20;
+  const config = { limiteDigestIntero: 64 << 20 };  // oltre: lettura a blocchi
+  async function impronteFile(file) {
+    if (file.size <= config.limiteDigestIntero) return hex(await sha256(await file.arrayBuffer()));
+    const s = new Sha256Flusso();
+    for (let o = 0; o < file.size; o += BLOCCO) s.aggiorna(new Uint8Array(await file.slice(o, o + BLOCCO).arrayBuffer()));
+    return hex(s.fine());
+  }
+
+  // ── RFC 6962 (trascrizione di libs/catena/rfc6962.py; indici in BigInt) ──
+  const hashFoglia = (dati) => sha256(unisci(new Uint8Array([0]), dati));
+  const hashNodo = (s, d) => sha256(unisci(new Uint8Array([1]), s, d));
+  const RADICE_VUOTA_HEX = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  async function radiceDaInclusione(foglia, indice, dimensione, percorso) {
+    if (dimensione < 1n || indice < 0n || indice >= dimensione) throw new Errore("Foglia fuori dall'albero");
+    let fn = indice, sn = dimensione - 1n, r = foglia;
+    for (const p of percorso) {
+      if (sn === 0n) throw new Errore("Percorso di inclusione troppo lungo");
+      if ((fn & 1n) === 1n || fn === sn) {
+        r = await hashNodo(p, r);
+        if ((fn & 1n) === 0n) while (fn !== 0n && (fn & 1n) === 0n) { fn >>= 1n; sn >>= 1n; }
+      } else r = await hashNodo(r, p);
+      fn >>= 1n; sn >>= 1n;
+    }
+    if (sn !== 0n) throw new Errore("Percorso di inclusione troppo corto");
+    return r;
+  }
+  async function verificaInclusione(foglia, indice, dimensione, percorso, radice) {
+    try { return uguali(await radiceDaInclusione(foglia, indice, dimensione, percorso), radice); }
+    catch (e) { if (e instanceof Errore) return false; throw e; }
+  }
+  async function verificaConsistenza(n1, n2, r1, r2, percorso) {
+    if (n1 < 0n || n1 > n2) return false;
+    if (n1 === n2) return percorso.length === 0 && uguali(r1, r2);
+    if (n1 === 0n) return percorso.length === 0 && hex(r1) === RADICE_VUOTA_HEX;
+    if (percorso.length === 0) return false;
+    const cammino = [...percorso];
+    if ((n1 & (n1 - 1n)) === 0n) cammino.unshift(r1);
+    let fn = n1 - 1n, sn = n2 - 1n;
+    while ((fn & 1n) === 1n) { fn >>= 1n; sn >>= 1n; }
+    let fr = cammino[0], sr = cammino[0];
+    for (const c of cammino.slice(1)) {
+      if (sn === 0n) return false;
+      if ((fn & 1n) === 1n || fn === sn) {
+        fr = await hashNodo(c, fr); sr = await hashNodo(c, sr);
+        if ((fn & 1n) === 0n) while (fn !== 0n && (fn & 1n) === 0n) { fn >>= 1n; sn >>= 1n; }
+      } else sr = await hashNodo(sr, c);
+      fn >>= 1n; sn >>= 1n;
+    }
+    return sn === 0n && uguali(fr, r1) && uguali(sr, r2);
+  }
+
+  // ── JSON canonico (chiavi ordinate, nessuno spazio, come libs/catena/canonico.py) ──
+  function canonico(v) {
+    if (v === null || typeof v === "boolean" || typeof v === "string") return JSON.stringify(v);
+    if (typeof v === "number") { if (!Number.isInteger(v)) throw new Errore("Numeri decimali non ammessi"); return String(v); }
+    if (Array.isArray(v)) return "[" + v.map(canonico).join(",") + "]";
+    const chiavi = Object.keys(v).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    return "{" + chiavi.map((k) => JSON.stringify(k) + ":" + canonico(v[k])).join(",") + "}";
+  }
+  function datiFoglia(valore, nome) {
+    let testo, ogg;
+    if (typeof valore === "string") {
+      testo = valore;
+      try { ogg = JSON.parse(valore); } catch { throw new Errore(nome + ": JSON non valido"); }
+    } else if (valore && typeof valore === "object") { ogg = valore; testo = canonico(valore); }
+    else throw new Errore(nome + ": atteso il JSON canonico della foglia");
+    if (!ogg || typeof ogg !== "object" || Array.isArray(ogg) || canonico(ogg) !== testo) throw new Errore(nome + ": la foglia non è in forma canonica");
+    return { dati: enc.encode(testo), ogg };
+  }
+
+  // ── Foglie del registro: formati 1 e 2 (come libs/catena/foglie.py) ────
+  const HEX64 = /^[0-9a-f]{64}$/, UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  const CHIAVE_RIF = /^[a-z_][a-z0-9_]{0,40}$/;
+  const TIPI_CICLO_VITA = ["scarto", "annullamento", "rettifica"];
+  const CAMPI_V2 = {
+    audit: ["impronta_precedente", "impronta_segmento", "periodo_a", "periodo_da", "radice_righe", "registrato_il", "righe", "segmento"],
+  };
+  for (const t of TIPI_CICLO_VITA) CAMPI_V2[t] = ["ente", "impronta_documento_pratica", "pda", "registrato_il", "riferimento"];
+  function controllaRiferimento(r) {
+    if (!r || typeof r !== "object" || Array.isArray(r)) throw new Errore("riferimento: atteso un oggetto");
+    const chiavi = Object.keys(r);
+    if (chiavi.length > 16) throw new Errore("riferimento: al più 16 chiavi");
+    for (const k of chiavi) {
+      const v = r[k];
+      if (!CHIAVE_RIF.test(k)) throw new Errore("riferimento: chiave non ammessa " + k);
+      if (typeof v === "string") { if (v.length > 500) throw new Errore("riferimento." + k + ": testo troppo lungo"); }
+      else if (!(v === null || typeof v === "boolean" || Number.isInteger(v))) throw new Errore("riferimento." + k + ": ammessi testo, interi, booleani, null");
+    }
+    if (typeof r.pratica !== "string" || !r.pratica.trim()) throw new Errore("riferimento.pratica: obbligatoria");
+  }
+  // Mai un'interpretazione «di ripiego»: formato o tipo sconosciuti sono errori
+  function interpretaFoglia(o) {
+    if (o.v === 1) {
+      const tipo = o.tipo === undefined ? "pda" : o.tipo;
+      if (tipo === "pda") { if (!o.pda || typeof o.radice_pda !== "string" || !HEX64.test(o.radice_pda)) throw new Errore("foglia di un PdA incompleta (pda, radice_pda)"); }
+      else if (tipo === "riversamento") { if (!o.pda || !o.impronta_pda) throw new Errore("foglia di riversamento incompleta (pda, impronta_pda)"); }
+      else throw new Errore("foglia di formato 1 con tipo sconosciuto «" + tipo + "»");
+      return { versione: 1, tipo, pda: String(o.pda), dati: o, provaConservazione: true, cicloVita: false };
+    }
+    if (o.v === 2) {
+      const campi = CAMPI_V2[o.tipo];
+      if (!campi) throw new Errore("foglia di formato 2 con tipo sconosciuto «" + o.tipo + "»: aggiornare il verificatore");
+      const attesi = ["id", "tipo", "v", ...campi].sort();
+      const presenti = Object.keys(o).sort();
+      if (attesi.length !== presenti.length || attesi.some((k, i) => k !== presenti[i])) throw new Errore("foglia " + o.tipo + ": campi diversi da quelli del formato 2");
+      if (!UUID.test(String(o.id))) throw new Errore("id: atteso un UUID");
+      if (o.tipo === "audit") return { versione: 2, tipo: "audit", pda: null, dati: o, provaConservazione: false, cicloVita: false };
+      controllaRiferimento(o.riferimento);
+      if (!HEX64.test(String(o.impronta_documento_pratica))) throw new Errore("impronta_documento_pratica: attesa SHA-256");
+      if (!o.pda) throw new Errore("foglia " + o.tipo + ": pda obbligatorio");
+      return { versione: 2, tipo: o.tipo, pda: String(o.pda), dati: o, provaConservazione: false, cicloVita: true };
+    }
+    throw new Errore("formato di foglia sconosciuto (v=" + JSON.stringify(o.v) + "): aggiornare il verificatore");
+  }
+  const VERBO = { scarto: "scartato", annullamento: "annullato", rettifica: "metadati rettificati" };
+  const descriviEvento = (f) => `${VERBO[f.tipo]} il ${f.dati.registrato_il} con pratica ${f.dati.riferimento.pratica}`;
+
+  // ── Signed note e checkpoint (C2SP; come libs/catena/nota.py) ──────────
+  let ed25519 = null;  // true/false dopo il controllo all'avvio
+  async function controllaEd25519() {
+    try {
+      const k = daBase64("GlzZBxQ8OExB6DDFvOEqqIF+xWSaqr8sMTiLNbLXRNY=");
+      await crypto.subtle.importKey("raw", k, { name: "Ed25519" }, false, ["verify"]);
+      ed25519 = true;
+    } catch { ed25519 = false; }
+    document.getElementById("avviso-ed25519").hidden = ed25519;
+    return ed25519;
+  }
+  async function keyHash(nome, pubblica) {
+    const h = await sha256(unisci(enc.encode(nome + "\n"), new Uint8Array([1]), pubblica));
+    return hex(h.subarray(0, 4));
+  }
+  async function analizzaVerificatore(testo) {
+    // Come Go note.NewVerifier: solo i primi due «+» separano (il base64 può contenerne)
+    const t = testo.trim(), i1 = t.indexOf("+"), i2 = i1 < 0 ? -1 : t.indexOf("+", i1 + 1);
+    if (i1 < 0 || i2 < 0) throw new Errore("Chiave pubblica: atteso nome+keyhash+chiave");
+    const nome = t.slice(0, i1), kh = t.slice(i1 + 1, i2), cod = t.slice(i2 + 1);
+    if (!nome || /\s/.test(nome) || !/^[0-9a-f]{8}$/.test(kh)) throw new Errore("Chiave pubblica malformata");
+    const mat = daBase64(cod);
+    if (mat.length !== 33 || mat[0] !== 1) throw new Errore("Chiave pubblica: non Ed25519");
+    const pubblica = mat.subarray(1);
+    if (await keyHash(nome, pubblica) !== kh) throw new Errore("Chiave pubblica: key hash non corrispondente");
+    return { nome, keyHash: kh, pubblica, testo: testo.trim() };
+  }
+  function separa(nota) {
+    const i = nota.lastIndexOf("\n\n");
+    if (i < 0) throw new Errore("Nota senza firme");
+    const corpo = nota.slice(0, i + 1), firme = nota.slice(i + 2);
+    if (!firme.endsWith("\n")) throw new Errore("Righe di firma senza a capo finale");
+    const righe = firme.slice(0, -1).split("\n").map((r) => {
+      if (!r.startsWith("— ")) throw new Errore("Riga di firma non valida");
+      const p = r.slice(2).split(" ");
+      if (p.length !== 2) throw new Errore("Riga di firma non valida");
+      const dati = daBase64(p[1]);
+      if (dati.length < 5) throw new Errore("Firma troppo corta");
+      return { nome: p[0], keyHash: hex(dati.subarray(0, 4)), firma: dati.subarray(4) };
+    });
+    return { corpo, righe };
+  }
+  function analizzaCheckpoint(nota) {
+    const { corpo, righe } = separa(nota);
+    const r = corpo.slice(0, -1).split("\n");
+    if (r.length < 3) throw new Errore("Checkpoint incompleto");
+    if (!/^(0|[1-9][0-9]{0,19})$/.test(r[1])) throw new Errore("Dimensione non decimale canonica");
+    const radice = daBase64(r[2]);
+    if (radice.length !== 32 || aBase64(radice) !== r[2]) throw new Errore("Radice non valida");
+    return { origine: r[0], dimensione: BigInt(r[1]), radice, corpo, righe };
+  }
+  async function firmaValida(cp, verificatore) {
+    if (!ed25519) return null;  // non eseguibile in questo browser
+    const chiave = await crypto.subtle.importKey("raw", verificatore.pubblica, { name: "Ed25519" }, false, ["verify"]);
+    for (const r of cp.righe) {
+      if (r.nome !== verificatore.nome || r.keyHash !== verificatore.keyHash || r.firma.length !== 64) continue;
+      if (await crypto.subtle.verify({ name: "Ed25519" }, chiave, r.firma, enc.encode(cp.corpo))) return true;
+    }
+    return false;
+  }
+
+  // ── Rapporto ───────────────────────────────────────────────────────
+  // Nomi delle chiavi nei loro ruoli (contratto K2)
+  const NOME_REGISTRO = "verumdoc-registro", NOME_TESTIMONE = "verumdoc-testimone";
+  const OK = "OK", FALLITO = "Fallito", NON_ESEGUITO = "Non eseguito", NON_RICHIESTO = "Non richiesto", NON_APPLICABILE = "Non applicabile";
+  const SCARTATO = "Scartato", ANNULLATO = "Annullato", NOME_STATO = "Stato del documento";
+  // Revisione 3 di R05 (T3): cancellazione dello scarto iniziata e non completata
+  const SCARTATO_IN_PARTE = "Scartato in parte";
+  const INVALIDANTI = [SCARTATO, ANNULLATO, SCARTATO_IN_PARTE];
+  class Rapporto {
+    constructor() { this.controlli = []; }
+    _metti(c) {  // lo stesso controllo con lo stesso esito si mostra una volta sola
+      if (!this.controlli.some((x) => x.nome === c.nome && x.esito === c.esito && x.dettaglio === c.dettaglio)) this.controlli.push(c);
+    }
+    aggiungi(nome, riuscito, dettaglio) { this._metti({ nome, esito: riuscito ? OK : FALLITO, dettaglio }); return riuscito; }
+    non(nome, dettaglio, esito = NON_ESEGUITO) { this._metti({ nome, esito, dettaglio }); }
+    get riuscito() {
+      return this.controlli.some((c) => c.esito === OK) &&
+        this.controlli.every((c) => [OK, NON_RICHIESTO, NON_APPLICABILE].includes(c.esito));
+    }
+    // R05: controlli riusciti ma documento scartato o annullato (mai «verificata»)
+    get invalidante() {
+      const stati = this.controlli.filter((c) => INVALIDANTI.includes(c.esito));
+      const altri = this.controlli.filter((c) => !INVALIDANTI.includes(c.esito));
+      return stati.length && altri.some((c) => c.esito === OK) &&
+        altri.every((c) => [OK, NON_RICHIESTO, NON_APPLICABILE].includes(c.esito)) ? stati[0] : null;
+    }
+  }
+  const intero = (v, nome) => {
+    if (typeof v !== "number" || !Number.isSafeInteger(v) || v < 0) throw new Errore(nome + ": atteso un intero non negativo");
+    return BigInt(v);
+  };
+  const elencoHex = (v, nome) => { if (!Array.isArray(v)) throw new Errore(nome + ": atteso un elenco di hash"); return v.map(daHex); };
+
+  async function verificaFirme(rap, testo, chiavi, etichetta) {
+    let cp;
+    try { cp = analizzaCheckpoint(testo); } catch (e) { if (!(e instanceof Errore)) throw e; rap.aggiungi(etichetta + ": formato", false, "Nota firmata non valida: " + e.message); return null; }
+    const okOrigine = cp.origine === chiavi.origine;
+    rap.aggiungi(`${etichetta} ${cp.dimensione}: origine`, okOrigine, `origine ${cp.origine}` +
+      (okOrigine ? "" : `, attesa ${chiavi.origine}: checkpoint di un altro registro o ambiente`));
+    const nome = `${etichetta} ${cp.dimensione}: firma del registro`;
+    const reg = await firmaValida(cp, chiavi.registro);
+    if (reg === null) rap.non(nome, "Ed25519 non disponibile in questo browser");
+    else rap.aggiungi(nome, reg, `origine ${cp.origine}, chiave ${chiavi.registro.nome}+${chiavi.registro.keyHash}`);
+    const nomeT = `${etichetta} ${cp.dimensione}: controfirma del testimone`;
+    if (!chiavi.testimone) rap.non(nomeT, "Non richiesta: il checkpoint è garantito solo dal registro", NON_RICHIESTO);
+    else {
+      const t = await firmaValida(cp, chiavi.testimone);
+      if (t === null) rap.non(nomeT, "Ed25519 non disponibile in questo browser");
+      else rap.aggiungi(nomeT, t, `chiave ${chiavi.testimone.nome}+${chiavi.testimone.keyHash}` + (t ? "" : " — controfirma assente o non valida: il checkpoint non è confermato dal testimone indipendente"));
+    }
+    return cp;
+  }
+
+  async function verificaProva(rap, prova, chiavi, impronta, corrente = null, consistenzaCorrente = null) {
+    if (!prova || typeof prova !== "object") throw new Errore("La prova d'inclusione deve essere un oggetto JSON");
+    const reg = datiFoglia(prova.foglia_registro_dati, "foglia_registro_dati");
+    let foglia;
+    try { foglia = interpretaFoglia(reg.ogg); } catch (e) {
+      if (!(e instanceof Errore)) throw e;
+      rap.aggiungi("Formato della foglia del registro", false, e.message); return;
+    }
+    if (!foglia.provaConservazione) {
+      rap.aggiungi("Formato della foglia del registro", false, `foglia di tipo «${foglia.tipo}» (formato ${foglia.versione}): registra un fatto successivo, non prova la conservazione di un contenuto`);
+      return;
+    }
+    rap.aggiungi("Foglia del registro riferita al PdA", reg.ogg.pda === prova.pda, "PdA " + prova.pda);
+    if (foglia.tipo === "riversamento") {
+      rap.non("Inclusione nel PdA", "PdA conservato prima del registro a due livelli (foglia di riversamento)", NON_APPLICABILE);
+      if (impronta) rap.non("Impronta del file", "Non verificabile con una foglia di riversamento: usare il pacchetto di distribuzione");
+    } else {
+      const doc = datiFoglia(prova.foglia_dati, "foglia_dati");
+      const pp = prova.prova_pda || {};
+      const pref = prova.nome_file ? prova.nome_file + ": " : "";
+      rap.aggiungi(pref + "Foglia del documento riferita al PdA e al documento",
+        doc.ogg.pda === prova.pda && String(doc.ogg.doc) === String(prova.documento),
+        `documento ${doc.ogg.doc}, file ${doc.ogg.file}`);
+      if (prova.impronta_dichiarata != null)
+        rap.aggiungi(pref + "Impronta dichiarata nel rapporto = impronta della foglia",
+          String(prova.impronta_dichiarata).toLowerCase() === String(doc.ogg.sha256).toLowerCase() && prova.nome_file === doc.ogg.file,
+          "file " + prova.nome_file);
+      if (impronta) {
+        const attesa = String(doc.ogg.sha256 || "").toLowerCase();
+        rap.aggiungi(pref + "Impronta del file", impronta === attesa, `SHA-256 calcolata ${impronta}` + (impronta === attesa ? "" : `, attesa ${attesa}`));
+      } else rap.non(pref + "Impronta del file", "File originale non indicato", NON_RICHIESTO);
+      const radicePda = String(prova.radice_pda || "");
+      const incluso = await verificaInclusione(await hashFoglia(doc.dati), intero(pp.foglia_indice, "prova_pda.foglia_indice"),
+        intero(pp.dimensione, "prova_pda.dimensione"), elencoHex(pp.percorso, "prova_pda.percorso"), daHex(radicePda));
+      rap.aggiungi(pref + "Inclusione nel PdA", incluso, `foglia ${pp.foglia_indice} di ${pp.dimensione}, radice del PdA ${radicePda}`);
+      rap.aggiungi("Radice del PdA nella foglia del registro", String(reg.ogg.radice_pda || "").toLowerCase() === radicePda.toLowerCase(), "radice_pda " + reg.ogg.radice_pda);
+    }
+    if (typeof prova.checkpoint !== "string") throw new Errore("checkpoint: atteso il testo della nota firmata");
+    const cp = await verificaFirme(rap, prova.checkpoint, chiavi, "Checkpoint");
+    const pr = prova.prova_registro || {};
+    const indice = intero(pr.foglia_indice, "prova_registro.foglia_indice"), dim = intero(pr.dimensione_albero, "prova_registro.dimensione_albero");
+    const percorso = elencoHex(pr.percorso, "prova_registro.percorso");
+    if (!cp) { rap.non("Inclusione nel registro", "Checkpoint non leggibile"); return; }
+    const incluso = dim === cp.dimensione && await verificaInclusione(await hashFoglia(reg.dati), indice, dim, percorso, cp.radice);
+    rap.aggiungi("Inclusione nel registro", incluso, `foglia ${indice} del registro di ${dim} foglie, checkpoint ${cp.dimensione}`);
+    await verificaCicloVita(rap, prova, String(prova.pda), cp, chiavi, corrente, consistenzaCorrente);
+  }
+
+  // Revisione 2 di R05 (S8): attestazione firmata dal registro del numero e
+  // dell'impronta dell'elenco delle foglie del ciclo di vita (libs/catena/attestazione.py).
+  // Revisione 3 (T2, T3): v2 con l'istante del rilascio e lo stato del PdA firmati.
+  const NOME_ATTESTAZIONE = "Attestazione del ciclo di vita", INTESTAZIONE_ATTESTAZIONE = "verumdoc.it/attestazione-ciclo-vita/v2";
+  const STATI_ATTESTATI = ["CONSERVATO", "SCARTO", "SCARTO_PARZIALE"];
+  async function improntaElenco(voci) {
+    const righe = [...voci].sort((a, b) => (a.indice < b.indice ? -1 : a.indice > b.indice ? 1 : 0))
+      .map((v) => `${v.indice} ${hex(v.hash)}\n`).join("");
+    return hex(await sha256(enc.encode(righe)));
+  }
+  function analizzaAttestazione(testo) {
+    const { corpo, righe } = separa(testo);
+    const r = corpo.slice(0, -1).split("\n");
+    const chiavi = ["origine", "checkpoint", "rilasciata", "pda", "stato", "foglie", "elenco"];
+    if (r.length !== chiavi.length + 1 || r[0] !== INTESTAZIONE_ATTESTAZIONE) throw new Errore("non è un'attestazione del ciclo di vita (v2)");
+    const v = {};
+    chiavi.forEach((k, i) => { if (!r[i + 1].startsWith(k + " ")) throw new Errore(`riga «${k}» mancante`); v[k] = r[i + 1].slice(k.length + 1); });
+    for (const k of ["checkpoint", "foglie"]) if (!/^(0|[1-9][0-9]{0,19})$/.test(v[k])) throw new Errore(k + ": decimale canonico atteso");
+    if (!/^[0-9a-f]{64}$/.test(v.elenco)) throw new Errore("elenco: SHA-256 atteso");
+    if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$/.test(v.rilasciata)) throw new Errore("rilasciata: atteso AAAA-MM-GGThh:mm:ssZ");
+    if (!STATI_ATTESTATI.includes(v.stato)) throw new Errore("stato: atteso uno fra " + STATI_ATTESTATI.join(", "));
+    return { origine: v.origine, dimensione: BigInt(v.checkpoint), pda: v.pda, foglie: BigInt(v.foglie), elenco: v.elenco,
+      rilasciata: v.rilasciata, stato: v.stato, corpo, righe };
+  }
+  async function verificaAttestazione(rap, prova, pda, cp, chiavi, presentate) {
+    const testo = prova.attestazione_ciclo_vita;
+    if (testo == null) {
+      const motivo = typeof prova.attestazione_assente === "string" && prova.attestazione_assente ? ` (${prova.attestazione_assente})` : "";
+      rap.non(NOME_ATTESTAZIONE, `assente${motivo}: l'assenza di scarti o annullamenti NON è dimostrabile da questa prova (una foglia tolta non si vedrebbe; il conservatore la rilascia solo per l'ultimo checkpoint); chiedi la prova direttamente al conservatore`);
+      return null;
+    }
+    if (typeof testo !== "string") throw new Errore("attestazione_ciclo_vita: atteso il testo della nota firmata");
+    let att;
+    try { att = analizzaAttestazione(testo); } catch (e) { if (!(e instanceof Errore)) throw e; rap.aggiungi(NOME_ATTESTAZIONE, false, "non valida: " + e.message); return null; }
+    const firmata = await firmaValida(att, chiavi.registro);
+    if (firmata === null) { rap.non(NOME_ATTESTAZIONE, "Ed25519 non disponibile in questo browser"); return null; }
+    if (!firmata) { rap.aggiungi(NOME_ATTESTAZIONE, false, "firma del registro assente o non valida"); return null; }
+    if (att.origine !== cp.origine || att.dimensione !== cp.dimensione || att.pda !== pda) {
+      rap.aggiungi(NOME_ATTESTAZIONE, false, `riferita a ${att.pda} al checkpoint ${att.dimensione} di ${att.origine}, non al PdA e al checkpoint di questa prova`); return null;
+    }
+    const n = BigInt(presentate.length);
+    if (att.foglie < n) { rap.aggiungi(NOME_ATTESTAZIONE, false, `la prova riporta ${n} foglie, il registro ne attesta ${att.foglie}`); return null; }
+    if (att.foglie === n && await improntaElenco(presentate) !== att.elenco) {
+      rap.aggiungi(NOME_ATTESTAZIONE, false, "le foglie della prova non sono quelle attestate dal registro (foglia tolta, aggiunta o sostituita)"); return null;
+    }
+    rap.aggiungi(NOME_ATTESTAZIONE, true, `${att.foglie} foglie del ciclo di vita fino al checkpoint ${att.dimensione}, stato del PdA ${att.stato}, rilasciata il ${att.rilasciata} (ultimo checkpoint del registro in quell'istante), firmata dal registro`);
+    return att;
+  }
+
+  // Revisione 4 di R05 (U3): il checkpoint corrente si CONFRONTA con quello della
+  // prova (come confronta_checkpoint_corrente della CLI). true solo se coincide.
+  const NOME_CORRENTE = "Checkpoint corrente rispetto alla prova", NOME_CONS_CORRENTE = "Consistenza con il checkpoint corrente";
+  async function confrontaCorrente(rap, cp, corrente, consistenza) {
+    if (corrente.origine !== cp.origine) { rap.aggiungi(NOME_CORRENTE, false, `origine diversa (${corrente.origine} invece di ${cp.origine}): non è un checkpoint dello stesso registro`); return false; }
+    if (corrente.dimensione < cp.dimensione) { rap.aggiungi(NOME_CORRENTE, false, `checkpoint fornito più vecchio della prova (${corrente.dimensione} foglie contro ${cp.dimensione}): non è il checkpoint corrente; indica l'ultimo checkpoint pubblicato dal registro`); return false; }
+    if (corrente.dimensione === cp.dimensione) {
+      if (!uguali(corrente.radice, cp.radice)) { rap.aggiungi(NOME_CORRENTE, false, `REGISTRO BIFORCATO: il checkpoint corrente e quello della prova hanno la stessa dimensione (${cp.dimensione} foglie) e radici diverse (${hex(corrente.radice)} e ${hex(cp.radice)}), entrambi firmati: conserva i due checkpoint e segnala al conservatore e all'ispettore`); return false; }
+      rap.aggiungi(NOME_CORRENTE, true, `coincide con il checkpoint della prova (${cp.dimensione} foglie, stessa radice)`); return true;
+    }
+    rap.aggiungi(NOME_CORRENTE, true, `più recente della prova (${corrente.dimensione} foglie contro ${cp.dimensione})`);
+    if (!consistenza) { rap.non(NOME_CONS_CORRENTE, "prova di consistenza non indicata: non si esclude che il registro sia stato riscritto dopo il checkpoint della prova", NON_RICHIESTO); return false; }
+    if (typeof consistenza !== "object") throw new Errore("La prova di consistenza deve essere un oggetto JSON");
+    const da = intero(consistenza.da, "da"), a = intero(consistenza.a, "a"), percorso = elencoHex(consistenza.percorso, "percorso");
+    const valida = da === cp.dimensione && a === corrente.dimensione && await verificaConsistenza(da, a, cp.radice, corrente.radice, percorso);
+    rap.aggiungi(NOME_CONS_CORRENTE, valida, valida
+      ? `il registro corrente di ${corrente.dimensione} foglie estende quello della prova (${cp.dimensione}): nessuna riscrittura`
+      : `REGISTRO BIFORCATO o riscritto: la prova NON dimostra che il checkpoint corrente (${corrente.dimensione}) estende quello della prova (${cp.dimensione}); conserva i checkpoint e segnala al conservatore e all'ispettore`);
+    return false;
+  }
+
+  // R05 (contratto Q3): foglie del ciclo di vita nello STESSO checkpoint
+  async function verificaCicloVita(rap, prova, pda, cp, chiavi, corrente = null, consistenzaCorrente = null) {
+    const correnteCoincide = corrente ? await confrontaCorrente(rap, cp, corrente, consistenzaCorrente) : null;
+    if (!("ciclo_vita" in prova)) {
+      rap.non(NOME_STATO, "La ricevuta non riporta il ciclo di vita del documento: per lo stato attuale (scarto, annullamento, rettifica) chiedi una prova d'inclusione aggiornata", NON_APPLICABILE);
+      return;
+    }
+    if (!Array.isArray(prova.ciclo_vita)) throw new Errore("ciclo_vita: atteso un elenco");
+    const valide = [], presentate = [];
+    for (const [i, voce] of prova.ciclo_vita.entries()) {
+      if (!voce || typeof voce !== "object") throw new Errore(`ciclo_vita[${i}]: atteso un oggetto`);
+      const d = datiFoglia(voce.foglia_dati, `ciclo_vita[${i}].foglia_dati`);
+      const pr = voce.prova_registro || {};
+      const indice = intero(pr.foglia_indice, `ciclo_vita[${i}].foglia_indice`), dim = intero(pr.dimensione_albero, `ciclo_vita[${i}].dimensione_albero`);
+      const percorso = elencoHex(pr.percorso, `ciclo_vita[${i}].percorso`);
+      let f;
+      try { f = interpretaFoglia(d.ogg); } catch (e) {
+        if (!(e instanceof Errore)) throw e;
+        rap.aggiungi(`Ciclo di vita: foglia ${indice}`, false, e.message); continue;
+      }
+      const nome = `Ciclo di vita: ${f.tipo} (foglia ${indice})`;
+      if (!f.cicloVita || f.pda !== pda) { rap.aggiungi(nome, false, "foglia non del ciclo di vita di questo PdA"); continue; }
+      const inclusa = dim === cp.dimensione && await verificaInclusione(await hashFoglia(d.dati), indice, dim, percorso, cp.radice);
+      rap.aggiungi(nome, inclusa, `pratica ${f.dati.riferimento.pratica}, inclusa nel registro di ${dim} foglie, checkpoint ${cp.dimensione}`);
+      if (inclusa) { valide.push({ f, indice }); presentate.push({ indice, hash: await hashFoglia(d.dati) }); }
+    }
+    valide.sort((a, b) => (a.indice < b.indice ? -1 : a.indice > b.indice ? 1 : 0));
+    const scarto = valide.find((x) => x.f.tipo === "scarto"), annullamento = valide.find((x) => x.f.tipo === "annullamento");
+    const rettifiche = valide.filter((x) => x.f.tipo === "rettifica");
+    // Revisione R05 (R4): un elenco troncato non prova l'assenza di scarti
+    let completo = "ciclo_vita_completo" in prova ? prova.ciclo_vita_completo : true;
+    if (typeof completo !== "boolean") throw new Errore("ciclo_vita_completo: atteso true o false");
+    let totale = prova.ciclo_vita_totale == null ? null : intero(prova.ciclo_vita_totale, "ciclo_vita_totale");
+    if (totale !== null && totale > prova.ciclo_vita.length) completo = false;
+    const att = await verificaAttestazione(rap, prova, pda, cp, chiavi, presentate);
+    // S8: il numero firmato prevale sui campi non firmati della prova
+    if (att !== null && att.foglie > BigInt(presentate.length)) { completo = false; totale = att.foglie; }
+    // Revisione 3 di R05 (T2): lo stato è sempre «al checkpoint N del <data>»
+    const quando = att ? `stato al checkpoint ${att.dimensione} del ${att.rilasciata}` : "";
+    if (scarto) rap.non(NOME_STATO, "il documento è stato " + descriviEvento(scarto.f), SCARTATO);
+    else if (annullamento) rap.non(NOME_STATO, "il documento è stato " + descriviEvento(annullamento.f), ANNULLATO);
+    // T3: stato del PdA firmato dal registro (anche senza foglia di scarto)
+    else if (att && att.stato === "SCARTO_PARZIALE") rap.non(NOME_STATO, `il PdA è stato scartato in parte: la cancellazione è iniziata e non è stata completata (${quando}, attestato dal registro)`, SCARTATO_IN_PARTE);
+    else if (att && att.stato === "SCARTO") rap.non(NOME_STATO, `il PdA è in scarto: la cancellazione è stata avviata (${quando}, attestato dal registro)`, SCARTATO);
+    else if (!completo) rap.non(NOME_STATO, `elenco del ciclo di vita incompleto (${prova.ciclo_vita.length} di ${totale === null ? "?" : totale} foglie): lo stato del documento non è determinabile da questa prova (mai «conservato»); chiedi al conservatore le foglie mancanti`);
+    else if (att === null) rap.non(NOME_STATO, "assenza di scarto non dimostrabile: la prova non ha un'attestazione valida del ciclo di vita firmata dal registro (mai «conservato»); chiedi la prova direttamente al conservatore");
+    else if (corrente && corrente.dimensione > att.dimensione) rap.non(NOME_STATO, `conservato secondo questa prova, ma ${quando}: il registro ha ora ${corrente.dimensione} foglie (checkpoint corrente indicato), quindi lo stato ATTUALE non è dimostrato (uno scarto successivo non si vedrebbe); chiedi al conservatore una prova aggiornata`);
+    // U3: corrente più vecchio, biforcato o di un altro registro: lo stato attuale non si dichiara
+    else if (corrente && !correnteCoincide) rap.non(NOME_STATO, `conservato secondo questa prova (${quando}), ma il checkpoint corrente indicato non è coerente con quello della prova (vedi «${NOME_CORRENTE}»): lo stato attuale non è dimostrato`);
+    else {
+      const attuale = corrente ? " (è il checkpoint corrente indicato)" : "; per lo stato attuale indica l'ultimo checkpoint pubblicato (passo 5)";
+      if (rettifiche.length) rap.aggiungi(NOME_STATO, true, "conservato; " + rettifiche.map((x) => descriviEvento(x.f)).join("; ") + ` (il contenuto originale resta immutato) — ${quando}${attuale}`);
+      else rap.aggiungi(NOME_STATO, true, `conservato: nessuno scarto, annullamento o rettifica fino al checkpoint ${cp.dimensione} (elenco attestato dal registro) — ${quando}${attuale}`);
+    }
+  }
+
+  async function verificaConsistenzaCheckpoint(rap, vecchio, nuovo, prova, chiavi) {
+    const cp1 = await verificaFirme(rap, vecchio, chiavi, "Checkpoint conservato");
+    const cp2 = await verificaFirme(rap, nuovo, chiavi, "Checkpoint recente");
+    if (!cp1 || !cp2) { rap.non("Consistenza fra i checkpoint", "Checkpoint non leggibili"); return; }
+    if (!prova || typeof prova !== "object") throw new Errore("La prova di consistenza deve essere un oggetto JSON");
+    const da = intero(prova.da, "da"), a = intero(prova.a, "a"), percorso = elencoHex(prova.percorso, "percorso");
+    const valida = cp1.origine === cp2.origine && da === cp1.dimensione && a === cp2.dimensione &&
+      await verificaConsistenza(da, a, cp1.radice, cp2.radice, percorso);
+    rap.aggiungi("Consistenza fra i checkpoint", valida, valida
+      ? `il registro di ${cp2.dimensione} foglie estende quello di ${cp1.dimensione}`
+      : `la prova NON dimostra che il checkpoint ${cp2.dimensione} estende il ${cp1.dimensione}: conserva entrambi e segnala al conservatore e all'ispettore`);
+  }
+
+  // ── Rapporto di versamento definitivo v2 (K5): una prova per documento ──
+  const NS_RDV_2 = "https://schemi.verumdoc.it/rdv/definitivo/2";
+  function proveDaRdv(testoXml) {
+    if (/<!DOCTYPE|<!ENTITY/.test(testoXml)) throw new Errore("RdV: DTD ed entità non ammesse");
+    const doc = new DOMParser().parseFromString(testoXml, "application/xml");
+    if (doc.getElementsByTagName("parsererror").length) throw new Errore("RdV: XML non valido");
+    const r = doc.documentElement;
+    if (r.namespaceURI !== NS_RDV_2 || r.localName !== "RapportoVersamento" || r.getAttribute("versione") !== "2")
+      throw new Errore("Il file non è un rapporto di versamento definitivo versione 2");
+    const figlio = (el, nome) => el ? Array.from(el.children).find((c) => c.namespaceURI === NS_RDV_2 && c.localName === nome) || null : null;
+    const figli = (el, nome) => el ? Array.from(el.getElementsByTagNameNS(NS_RDV_2, nome)) : [];
+    const testo = (el) => (el ? el.textContent : "");
+    const num = (v, nome) => { if (!/^[0-9]+$/.test(v || "")) throw new Errore("RdV: " + nome + " non è un intero"); return Number(v); };
+    const pda = figlio(r, "PdA"), reg = figlio(r, "Registro"), cp = figlio(reg, "Checkpoint"), pr = figlio(reg, "ProvaInclusione");
+    if (!pda || !reg || !cp || !pr) throw new Errore("RdV incompleto: mancano PdA, registro o checkpoint");
+    const comune = {
+      pda: testo(figlio(pda, "URN")), foglia_registro_dati: testo(figlio(reg, "Foglia")),
+      prova_registro: { foglia_indice: num(pr.getAttribute("foglia_indice"), "foglia_indice"),
+        dimensione_albero: num(pr.getAttribute("dimensione_albero"), "dimensione_albero"),
+        percorso: figli(pr, "Hash").map(testo) },
+      checkpoint: testo(figlio(cp, "Nota")),
+    };
+    if (pda.getAttribute("riversamento") === "true") return [comune];
+    const prove = figli(figlio(r, "Documenti"), "Documento").map((d) => {
+      const el = figlio(d, "ProvaPdA");
+      if (!el) throw new Errore("RdV: documento senza prova d'inclusione nel PdA");
+      const foglia = testo(figlio(el, "Foglia"));
+      let idDoc = null; try { idDoc = JSON.parse(foglia).doc; } catch { /* lo segnala il controllo */ }
+      const sha = Array.from(d.children).find((c) => c.localName === "Impronta" && c.getAttribute("algoritmo") === "SHA-256");
+      return { ...comune, documento: idDoc, foglia_dati: foglia, radice_pda: testo(figlio(pda, "RadicePdA")),
+        prova_pda: { foglia_indice: num(el.getAttribute("foglia_indice"), "foglia_indice"),
+          dimensione: num(el.getAttribute("dimensione"), "dimensione"), percorso: figli(el, "Hash").map(testo) },
+        impronta_dichiarata: sha ? testo(sha) : null, nome_file: testo(figlio(d, "NomeFile")) };
+    });
+    if (!prove.length) throw new Errore("RdV senza documenti");
+    return prove;
+  }
+
+  // ── Interfaccia ────────────────────────────────────────────────────
+  const $ = (id) => document.getElementById(id);
+  const leggiTesto = (f) => f.text();
+  async function leggiJson(f, nome) {
+    try { return JSON.parse(await leggiTesto(f)); } catch { throw new Errore(nome + ": JSON non valido"); }
+  }
+  function mostra(rap) {
+    const corpo = $("controlli"); corpo.textContent = "";
+    rap.controlli.forEach((c, i) => {
+      const tr = document.createElement("tr");
+      const n = document.createElement("td"); n.className = "vd-ora"; n.textContent = String(i + 1);
+      const nome = document.createElement("td"); nome.textContent = c.nome;
+      const sotto = document.createElement("span"); sotto.className = "vd-sotto"; sotto.textContent = c.dettaglio; nome.appendChild(sotto);
+      const es = document.createElement("td");
+      const s = document.createElement("span");
+      s.className = "vd-stato " + ({ [OK]: "vd-stato--ok", [FALLITO]: "vd-stato--critico", [NON_ESEGUITO]: "vd-stato--rischio", [SCARTATO]: "vd-stato--rischio", [ANNULLATO]: "vd-stato--rischio", [SCARTATO_IN_PARTE]: "vd-stato--rischio" }[c.esito] || "vd-stato--neutro");
+      s.textContent = c.esito; es.appendChild(s);
+      tr.dataset.esito = c.esito; tr.append(n, nome, es); corpo.appendChild(tr);
+    });
+    $("risultati").hidden = false;
+    const falliti = rap.controlli.filter((c) => c.esito === FALLITO).length;
+    const mancati = rap.controlli.filter((c) => c.esito === NON_ESEGUITO).length;
+    $("risultati-nota").textContent = `${rap.controlli.length} controlli · ${falliti} falliti · ${mancati} non eseguiti`;
+    const fascia = $("fascia");
+    const stato = rap.invalidante;
+    if (stato) {
+      fascia.className = "vd-fascia vd-fascia--rischio";
+      $("fascia-titolo").textContent = { [SCARTATO]: "Documento scartato", [ANNULLATO]: "Documento annullato", [SCARTATO_IN_PARTE]: "Documento scartato in parte" }[stato.esito];
+      $("fascia-riga").textContent = `La ricevuta è autentica, ma ${stato.dettaglio}: il contenuto non è più conservato e non vale come verificato.`;
+      return;
+    }
+    fascia.className = "vd-fascia " + (rap.riuscito ? "vd-fascia--giallo" : "vd-fascia--critico");
+    $("fascia-titolo").textContent = rap.riuscito ? "Ricevuta verificata" : "Ricevuta non verificata";
+    $("fascia-riga").textContent = rap.riuscito
+      ? "Tutti i controlli richiesti sono riusciti. Verifica eseguita in questo browser."
+      : (falliti ? `${falliti} controlli falliti` : "Nessun controllo fallito") + (mancati ? `, ${mancati} non eseguiti` : "") + ": leggi il dettaglio qui sotto.";
+  }
+  async function esegui() {
+    const rap = new Rapporto();
+    try {
+      const testoReg = $("chiave-registro").value.trim();
+      $("chiave-registro").setAttribute("aria-invalid", "false");
+      if (!testoReg) { $("chiave-registro").setAttribute("aria-invalid", "true"); throw new Errore("Indica la chiave pubblica del registro"); }
+      const origine = $("origine").value.trim();
+      if (!origine) throw new Errore("Indica l'origine attesa del registro");
+      const chiavi = { registro: await analizzaVerificatore(testoReg), testimone: null, origine };
+      if (chiavi.registro.nome !== NOME_REGISTRO) throw new Errore(`La chiave del registro si chiama «${chiavi.registro.nome}»: attesa «${NOME_REGISTRO}»`);
+      const testoTst = $("chiave-testimone").value.trim();
+      if (testoTst) {
+        chiavi.testimone = await analizzaVerificatore(testoTst);
+        if (hex(chiavi.testimone.pubblica) === hex(chiavi.registro.pubblica))
+          throw new Errore("La chiave del testimone coincide con quella del registro: la controfirma deve venire da una chiave indipendente");
+        if (chiavi.testimone.nome !== NOME_TESTIMONE) throw new Errore(`La chiave del testimone si chiama «${chiavi.testimone.nome}»: attesa «${NOME_TESTIMONE}»`);
+      }
+      else if (!$("senza-testimone").checked) throw new Errore("Indica la chiave del testimone oppure scegli di non verificarla");
+      const fProva = $("prova").files[0], fRdv = $("rdv").files[0], fDoc = $("documento").files[0], fCorrente = $("cp-corrente").files[0], fConsCorrente = $("consistenza-corrente").files[0];
+      if (fConsCorrente && !fCorrente) throw new Errore("La prova di consistenza verso l'ultimo checkpoint richiede l'ultimo checkpoint pubblicato");
+      const cons = [$("cp-vecchio").files[0], $("cp-nuovo").files[0], $("prova-consistenza").files[0]];
+      if (cons.some(Boolean) && !cons.every(Boolean)) throw new Errore("Per la consistenza servono i due checkpoint e la prova");
+      if (!fProva && !fRdv && !cons.every(Boolean)) throw new Errore("Carica la prova d'inclusione, il rapporto di versamento o i due checkpoint");
+      const prove = [];
+      if (fProva) prove.push(await leggiJson(fProva, "Prova d'inclusione"));
+      if (fRdv) prove.push(...proveDaRdv(await leggiTesto(fRdv)));
+      // Revisione 3 di R05 (T2): ultimo checkpoint pubblicato (firme verificate come gli altri)
+      const corrente = fCorrente ? await verificaFirme(rap, await leggiTesto(fCorrente), chiavi, "Checkpoint corrente") : null;
+      const consCorrente = fConsCorrente ? await leggiJson(fConsCorrente, "Prova di consistenza verso l'ultimo checkpoint") : null;
+      const impronta = fDoc ? await impronteFile(fDoc) : null;
+      let destinataria = null;
+      if (impronta && prove.length === 1) destinataria = 0;
+      else if (impronta) destinataria = prove.findIndex((p) => {
+        try { return String(datiFoglia(p.foglia_dati, "foglia_dati").ogg.sha256).toLowerCase() === impronta; } catch { return false; }
+      });
+      if (impronta && prove.length && (destinataria === null || destinataria < 0))
+        rap.aggiungi("Impronta del file", false, `SHA-256 calcolata ${impronta}: nessun documento della ricevuta ha questa impronta`);
+      for (const [i, p] of prove.entries()) await verificaProva(rap, p, chiavi, i === destinataria ? impronta : null, corrente, consCorrente);
+      if (cons.every(Boolean)) await verificaConsistenzaCheckpoint(rap, await leggiTesto(cons[0]), await leggiTesto(cons[1]), await leggiJson(cons[2], "Prova di consistenza"), chiavi);
+    } catch (e) {
+      if (!(e instanceof Errore)) { console.error(e); rap.aggiungi("Ingressi", false, "Errore imprevisto: " + e.message); }
+      else rap.aggiungi("Ingressi", false, e.message);
+    }
+    mostra(rap);
+    return rap;
+  }
+
+  $("modulo").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const b = $("verifica"); b.disabled = true; b.textContent = "Verifica in corso…";
+    try { await esegui(); } finally { b.disabled = false; b.textContent = "Verifica"; $("risultati-titolo").focus?.(); }
+  });
+  $("modulo").addEventListener("reset", () => {
+    $("risultati").hidden = true; $("fascia").className = "vd-fascia vd-fascia--neutro";
+    $("fascia-titolo").textContent = "Nessuna verifica eseguita";
+    $("fascia-riga").textContent = "Carica la prova e le chiavi pubbliche, poi premi «Verifica». Nulla lascia questo browser.";
+  });
+  $("risultati-titolo").tabIndex = -1;
+
+  // Interfaccia per le prove automatiche (Playwright) e per chi vuole riusare le funzioni.
+  window.VerumDocVerifica = {
+    Sha256Flusso, impronteFile, config, verificaInclusione, verificaConsistenza, canonico,
+    analizzaVerificatore, analizzaCheckpoint, controllaEd25519, esegui, hex, daHex,
+    proveDaRdv, interpretaFoglia,
+    pronto: controllaEd25519(),
+  };
+})();
+</script>
+</body>
+</html>

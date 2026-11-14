@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+# FILE GENERATO da infra/k8s/genera_manifest.py a partire da infra/helm/values*.yaml.
+# Non modificare a mano: cambiare i values e rigenerare.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sftp-ingest-config
+  namespace: verumdoc
+  labels:
+    app: sftp-ingest
+    app.kubernetes.io/name: sftp-ingest
+    app.kubernetes.io/part-of: verumdoc
+data:
+  ENV: production
+  LOG_LEVEL: INFO
+  SFTP_COMPONENTI: server
+  SFTP_PORTA: '2222'
+  SFTP_RADICE: /var/lib/verumdoc/sftp
+  SFTP_QUOTA_ACCOUNT_BYTE: '53687091200'
+  SFTP_RSA_BIT_MINIMI: '3072'
+  SFTP_LOGIN_TIMEOUT_SECONDI: '60'
+  SFTP_PROXY_SORGENTI_FIDATE: 10.0.0.0/20,10.0.16.0/20,10.0.32.0/20
+  SFTP_PROXY_ATTESA_SECONDI: '5'
+  SFTP_SEGNALAZIONI_INTERVALLO_SECONDI: '0.5'
+  JWT_ISSUER: verumdoc.it
+  URL_PUBBLICO_API: https://api.verumdoc.it

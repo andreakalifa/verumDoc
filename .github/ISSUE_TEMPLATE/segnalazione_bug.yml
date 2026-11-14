@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
+# SPDX-License-Identifier: EUPL-1.2
+name: Segnalazione di un errore
+description: Qualcosa non funziona come descritto nella documentazione.
+labels: ["errore", "da valutare"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Grazie della segnalazione. **Per una vulnerabilità non usare questo modulo: segui `SECURITY.md`.**
+        Non inserire dati personali reali, documenti di enti reali, chiavi o token: usa dati fittizi.
+  - type: input
+    id: versione
+    attributes:
+      label: Versione
+      description: Commit o rilascio (es. R18, oppure l'hash del commit).
+    validations:
+      required: true
+  - type: dropdown
+    id: componente
+    attributes:
+      label: Componente
+      options:
+        - gateway (versamento, accesso)
+        - validation
+        - aip-builder
+        - hashchain / testimone / verificatore
+        - signature / verifica-firme
+        - distribution
+        - ciclo-vita
+        - notification
+        - onboarding / dashboard-api
+        - sftp-ingest
+        - console (frontend)
+        - infrastruttura (Helm, Kubernetes, Terraform, docker compose)
+        - documentazione
+        - altro
+    validations:
+      required: true
+  - type: textarea
+    id: descrizione
+    attributes:
+      label: Cosa succede
+      description: Comportamento osservato, con il codice d'errore del catalogo se c'è (es. `VRS-130`).
+    validations:
+      required: true
+  - type: textarea
+    id: atteso
+    attributes:
+      label: Cosa ti aspettavi
+    validations:
+      required: true
+  - type: textarea
+    id: riproduzione
+    attributes:
+      label: Passi per riprodurre
+      description: Comandi, richieste o passi nella console, con dati fittizi.
+      render: shell
+  - type: textarea
+    id: ambiente
+    attributes:
+      label: Ambiente
+      description: Sviluppo locale (docker compose), staging, Kubernetes; sistema operativo; versioni di Python e Node.
