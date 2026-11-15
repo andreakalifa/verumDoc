@@ -26,7 +26,7 @@ dependencies = [
     "cryptography>=42.0.0",
     # R16 (VD-C-166): lettura della busta CAdES firmata dal responsabile (MIT)
     "asn1crypto>=1.5.0,<2",
-    "prometheus-client>=0.20.0,<1",
+    "prometheus-client>=0.26.0,<1",
     # R03 f2 (REV-03): limite di richieste al minuto su Redis (libs/shared/limiti_richieste)
     "redis[hiredis]>=5.0.0,<9",
     # R04 servizi (VD-C-075): consumer delle code di scarto e relay dell'outbox
