@@ -14,7 +14,7 @@ COPY public ./public
 COPY src ./src
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS runtime
 # Configurazione completa (pid e file temporanei in /tmp: compatibile con
 # readOnlyRootFilesystem in Kubernetes, con /tmp montato come emptyDir)
 COPY nginx.conf /etc/nginx/nginx.conf
