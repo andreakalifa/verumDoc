@@ -31,7 +31,7 @@ dependencies = [
     "cryptography>=42.0.0",
     "bcrypt>=4.1.0,<6",
     "python-multipart>=0.0.9",
-    "prometheus-client>=0.20.0,<1",
+    "prometheus-client>=0.26.0,<1",
     # R13b (VD-C-069): UserInfo SPID/CIE cifrato (JWE) — joserfc, BSD-3-Clause
     "joserfc>=1.0.0,<2",
     # R10 (D08): codice a tempo RFC 6238 (MIT) e passkey WebAuthn (py_webauthn, BSD-3-Clause;
