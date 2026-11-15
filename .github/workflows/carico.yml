@@ -69,7 +69,7 @@ jobs:
         run: |
           k6 run --summary-export riepilogo-giornata.json tools/carico/k6/giornata_milione.js
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: carico-giornata
@@ -98,7 +98,7 @@ jobs:
         run: |
           k6 run --summary-export riepilogo-k6.json tools/carico/k6/versamenti.js
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: carico-k6
@@ -158,7 +158,7 @@ jobs:
             --livelli "$livelli" --durata "$durata" --worker 4 --riavvia-s3 \
             --python "$PWD/.venv-carico/bin/python" --uscita risultati-carico
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: carico-locale
