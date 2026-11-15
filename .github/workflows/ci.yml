@@ -120,7 +120,7 @@ jobs:
           test "$(git -C "$RUNNER_TEMP/gomod" rev-parse HEAD)" = "$GO_MOD_COMMIT"
           echo "VD_ORACOLO_GO_MOD=$RUNNER_TEMP/gomod" >> "$GITHUB_ENV"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -174,7 +174,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
