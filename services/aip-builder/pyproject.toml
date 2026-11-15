@@ -14,7 +14,7 @@ dependencies = [
     # R16 (VD-C-176): esportatore OTLP e propagazione HTTP delle tracce (BSD-3-Clause)
     "httpx>=0.27.0,<1",
     # R16 (VD-C-176): tracce OpenTelemetry (Apache-2.0), attive solo con OTEL_TRACCE_ATTIVE
-    "opentelemetry-sdk>=1.40.0,<2",
+    "opentelemetry-sdk>=1.45.2,<2",
     "fastapi>=0.117.0,<0.157",
     "uvicorn[standard]>=0.30.0,<1",
     "pydantic>=2.7.0,<3",
