@@ -53,7 +53,7 @@ jobs:
     timeout-minutes: 1440
     environment: staging
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: grafana/setup-k6-action@v1
         with:
@@ -82,7 +82,7 @@ jobs:
     timeout-minutes: 120
     environment: staging
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: grafana/setup-k6-action@v1
         with:
@@ -129,7 +129,7 @@ jobs:
     env:
       PGPASSWORD: postgres
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v5
         with:
