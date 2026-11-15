@@ -9,7 +9,7 @@
 # Versione minima 1.21: prima PgBouncer non gestisce in modalità transaction i
 # prepared statement di protocollo che asyncpg usa (max_prepared_statements).
 # La build fallisce se il pacchetto è più vecchio.
-FROM alpine:3.21
+FROM alpine:3.24
 
 RUN apk add --no-cache pgbouncer ca-certificates \
  && v="$(pgbouncer --version | head -1 | sed -E 's/^[^0-9]*([0-9]+)\.([0-9]+).*/\1 \2/')" \
