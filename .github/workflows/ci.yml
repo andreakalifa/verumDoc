@@ -71,7 +71,7 @@ jobs:
       VD_TEST_S3_SECRET_KEY: ci-solo-prova-${{ github.run_id }}
       VD_TEST_REDIS_URL: redis://127.0.0.1:6379/0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # R05 (VD-C-115): storage S3 con Object Lock = versitygw (Apache-2.0),
       # backend POSIX con versioning, come docker-compose.yml (servizio «minio»).
@@ -170,7 +170,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -209,7 +209,7 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -226,7 +226,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # OpenTofu (registry.opentofu.org): stessa versione usata per la verifica
       # di VD-C-038 (be-qualita). Nessun backend: validate non tocca lo stato.
@@ -265,7 +265,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: azure/setup-helm@v4
         with:
@@ -336,7 +336,7 @@ jobs:
           - {nome: pgbouncer, dockerfile: infra/pgbouncer/Dockerfile}
           - {nome: frontend, dockerfile: frontend/Dockerfile, contesto: frontend}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build ${{ matrix.immagine.nome }}
         run: |
