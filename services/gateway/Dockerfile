@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
 # SPDX-License-Identifier: EUPL-1.2
 # Multi-stage build — immagine finale minimale
-FROM python:3.12-slim AS builder
+FROM python:3.15-slim AS builder
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir "."
 
 # Stage finale
-FROM python:3.12-slim AS runtime
+FROM python:3.15-slim AS runtime
 
 RUN groupadd -r verumdoc && useradd -r -g verumdoc -u 1000 verumdoc
 
