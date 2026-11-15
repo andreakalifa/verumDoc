@@ -23,7 +23,7 @@ dependencies = [
     "aiokafka>=0.11.0,<1",
     # R04: Kafka su MSK con autenticazione IAM (KAFKA_AUTENTICAZIONE=iam), Apache-2.0
     "aws-msk-iam-sasl-signer-python==1.0.2",
-    "boto3>=1.34.0,<2",
+    "boto3>=1.44.1,<2",
     # R03 b4: OpenSearch via API REST con httpx (opensearch-py non più usato)
     "httpx>=0.27.0,<1",
     "PyJWT[crypto]>=2.8.0,<3",
