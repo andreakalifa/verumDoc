@@ -4,7 +4,7 @@
 # Stage 1: build di frontend/dist con Vite. Stage 2: nginx non privilegiato che
 # serve i file statici con fallback SPA (vedi nginx.conf).
 # Costruzione:  docker build -t verumdoc-frontend frontend/
-FROM node:20.18-alpine AS build
+FROM node:26.13-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
