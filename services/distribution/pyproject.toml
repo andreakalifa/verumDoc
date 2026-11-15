@@ -28,7 +28,7 @@ dependencies = [
     "httpx>=0.27.0,<1",
     "PyJWT[crypto]>=2.8.0,<3",
     "cryptography>=42.0.0",
-    "prometheus-client>=0.20.0,<1",
+    "prometheus-client>=0.26.0,<1",
     # R03 f2 (REV-03): limite di richieste al minuto su Redis (libs/shared/limiti_richieste)
     "redis[hiredis]>=5.0.0,<9",
 ]
