@@ -26,7 +26,7 @@ dependencies = [
     # R04: Kafka su MSK con autenticazione IAM (KAFKA_AUTENTICAZIONE=iam), Apache-2.0
     "aws-msk-iam-sasl-signer-python==1.0.2",
     "boto3>=1.34.0,<2",
-    "prometheus-client>=0.20.0,<1",
+    "prometheus-client>=0.26.0,<1",
     # R11 (D03): validazione dell'IPdA contro lo schema XSD caricato (libs/sincro), BSD-3
     "lxml>=5.2,<7",
 ]
