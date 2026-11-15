@@ -35,7 +35,7 @@
   <properties>
     <java.version>21</java.version>
     <dss.version>6.2</dss.version>
-    <nimbus.version>9.41.2</nimbus.version>
+    <nimbus.version>10.10</nimbus.version>
   </properties>
 
   <dependencyManagement>
