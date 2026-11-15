@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
 # SPDX-License-Identifier: EUPL-1.2
 # Multi-stage build — validation service
-FROM python:3.12-slim AS builder
+FROM python:3.15-slim AS builder
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # R08 (D02): Siegfried 1.11.1 (Apache-2.0) e firme PRONOM DROID V118 (The National
 # Archives, Open Government Licence), scaricati con SHA-256 verificato.
-FROM python:3.12-slim AS siegfried
+FROM python:3.15-slim AS siegfried
 ARG SF_VERSIONE=1.11.1
 ARG SF_ZIP_SHA256=4aa45926a41ed4374d83f15b34aa2dd4fdafbe5d93058bafd155343ea8c45734
 ARG SF_FIRME_SHA256=5c7db6b16edd76aa6ca509ddb082abe29c8c6bd3f9e72307219edae77b86f133
@@ -35,7 +35,7 @@ with zipfile.ZipFile("/tmp/sf.zip") as z:
 os.chmod("/opt/siegfried/sf", 0o755)
 PY
 
-FROM python:3.12-slim AS runtime
+FROM python:3.15-slim AS runtime
 
 RUN groupadd -r verumdoc && useradd -r -g verumdoc -u 1000 verumdoc
 
