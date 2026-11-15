@@ -12,7 +12,7 @@ license = { text = "EUPL-1.2" }  # R18 (VD-P-190): SPDX, testo in LICENSE
 # precedenti le rotte 204 con `from __future__ import annotations` non si importano.
 dependencies = [
     # R16 (VD-C-176): tracce OpenTelemetry (Apache-2.0), attive solo con OTEL_TRACCE_ATTIVE
-    "opentelemetry-sdk>=1.40.0,<2",
+    "opentelemetry-sdk>=1.45.2,<2",
     "fastapi>=0.117.0,<0.157",
     "uvicorn[standard]>=0.30.0,<1",
     "pydantic>=2.7.0,<3",
