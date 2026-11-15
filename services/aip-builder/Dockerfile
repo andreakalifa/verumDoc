@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Contributori di VerumDoc
 # SPDX-License-Identifier: EUPL-1.2
-FROM python:3.12-slim AS builder
+FROM python:3.15-slim AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential && rm -rf /var/lib/apt/lists/*
 COPY services/aip-builder/pyproject.toml .
 RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -e "."
 
-FROM python:3.12-slim AS runtime
+FROM python:3.15-slim AS runtime
 RUN groupadd -r verumdoc && useradd -r -g verumdoc -u 1000 verumdoc
 WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.12 /usr/local/lib/python3.12
